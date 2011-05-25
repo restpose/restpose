@@ -48,6 +48,12 @@ libs/libmicrohttpd/libmicrohttpd.pc
 libs/libmicrohttpd/libtool
 libs/libmicrohttpd/MHD_config.h.in~
 libs/libmicrohttpd/m4/Makefile
+libs/libmicrohttpd/m4/libgcrypt.m4
+libs/libmicrohttpd/m4/libtool.m4
+libs/libmicrohttpd/m4/ltoptions.m4
+libs/libmicrohttpd/m4/ltsugar.m4
+libs/libmicrohttpd/m4/ltversion.m4
+libs/libmicrohttpd/m4/lt~obsolete.m4
 libs/libmicrohttpd/src/Makefile
 libs/libmicrohttpd/src/daemon/Makefile
 libs/libmicrohttpd/src/examples/Makefile
