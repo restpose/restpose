@@ -1,0 +1,17 @@
+TYPEMAP
+tokenizer		O_TOKENIZER
+tokenizer *		O_TOKENIZER
+
+OUTPUT
+O_TOKENIZER
+	sv_setref_pv($arg, "Lingua::CJK::Tokenizer", (void*)$var);
+
+INPUT
+O_TOKENIZER
+	if (sv_isobject($arg) && sv_derived_from($arg, \"Lingua::CJK::Tokenizer\")) {
+		$var = ($type)SvIV((SV*)SvRV($arg));
+	}
+	else{
+		warn(\"${Package}::$func_name() -- $var is not a \\\"Lingua::CJK::Tokenizer\\\" object\");
+		XSRETURN_UNDEF;
+	}

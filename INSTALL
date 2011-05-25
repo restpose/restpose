@@ -1,0 +1,27 @@
+=========================
+Installation instructions
+=========================
+
+Compilation from tarball
+========================
+
+Compilation requires a working C++ compiler, and the Xapian library (and
+development headers) to be installed.  It does not depend on any of the Xapian
+bindings for other programming languages.
+
+Development has been performed in a Linux environment.  It has not yet been
+tested in other environments.
+
+FIXME: list requirements properly.
+
+Compilation from checkout
+=========================
+
+To compile from a checkout, you will need to have the following additional
+packages installed:
+
+ - automake (version 1.10.2 or later)
+ - autoconf (version 2.64 or later)
+ - libtool (version 2.2.8 or later)
+
+The "bootstrap" script will call these tools appropriately.

@@ -1,0 +1,51 @@
+/** @file stringutils.h
+ * @brief Some simple string utilities.
+ */
+/* Copyright 2011 Richard Boulton
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+#ifndef RESTPOSE_INCLUDED_STRINGUTILS_H
+#define RESTPOSE_INCLUDED_STRINGUTILS_H
+
+#include <string>
+
+/** Check if a string starts with the given ending.
+ */
+inline bool
+string_startswith(const std::string & text, const std::string & start)
+{
+    if (text.size() < start.size()) {
+	return false;
+    }
+    return (0 == text.compare(0, start.size(), start));
+}
+
+/** Check if a string ends with the given ending.
+ */
+inline bool
+string_endswith(const std::string & text, const std::string & ending)
+{
+    if (text.size() < ending.size()) {
+	return false;
+    }
+    return (0 == text.compare(text.size() - ending.size(), ending.size(), ending));
+}
+
+#endif /* RESTPOSE_INCLUDED_STRINGUTILS_H */

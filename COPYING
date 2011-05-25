@@ -1,0 +1,149 @@
+License summary
+===============
+
+This software contains source files under a variety of different open source
+licenses.  Currently, some of the source files (notably, Xapian) are
+distributed under the terms of the GPL (version 2 or later).  Other source
+files (ie, the MongoDB driver) are distributed under the terms of the Apache 2
+License, which is compatible with the GPL version 3.  As a result, when
+distributing the package as a whole, the terms of the GPL version 3 must be
+followed.  However individual files and components are released under less
+restrictive licenses than the GPL.
+
+RestPose
+========
+
+The files under the "src", "include", "unittests" and "scripts" directories
+(other than specific exceptions noted below) are original source files written
+for RestPose.  They are released under the following license and copyright.
+
+Copyright (C) 2010,2011 Richard Boulton (richard@tartarus.org)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+src/server/ignore_sigpipe.cc
+----------------------------
+
+This file contains code copied from the documentation for libmicrohttpd,
+licensed under the LGPL.
+
+src/utils/compression.cc
+------------------------
+
+This file contains code copied from the Xapian core source code, licensed under
+the GPL, version 2 or later.
+
+src/ngramcat/profile.cc
+-----------------------
+
+This file contains code copied from the Xapian core source code, licensed under
+the GPL, version 2 or later.
+
+src/configure.ac
+----------------
+
+This file contains fragments copied from the Xapian core source code, licensed under
+the GPL, version 2 or later.
+
+Xapian
+======
+
+The following files are copied from the Xapian source tree.  These files are
+licensed under the GPL, version 2 (or later at your discretion).  See the
+individual files for details of the copyright holders.
+
+ - m4/xapian.m4
+ - libs/xapiancommon/
+
+JSONCPP
+=======
+
+(Files under libs/jsoncpp/)
+
+JSONCPP is distributed under the MIT license (or possibly as Public Domain
+software).  see the libs/jsoncpp/LICENSE file for details.
+
+MicroHTTPD
+==========
+
+(Files under libs/libmicrohttpd/)
+
+MicroHTTPD is distributed under the LGPL license.  see the
+libs/libmicrohttpd/COPYING file for details.
+
+CJK-tokenizer
+=============
+
+The files in the libs/cjk-tokenizer directory are taken from the cjk-tokenizer
+project (at http://code.google.com/p/cjk-tokenizer/), and are released under
+the following license and copyright.
+
+Copyright (c) 2007, 2008 Yung-chung Lin (henearkrxern@gmail.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Mongo C Driver
+==============
+
+(Files under libs/mongo-c-driver/)
+
+The Mongo C Driver files are licensed under the Apache 2.0 License - see
+libs/mongo-c-driver/APACHE-2.0.txt
+
+UnittestCPP
+===========
+
+(Files under libs/unittest-cpp/)
+
+Copyright (c) 2006 Noel Llopis and Charles Nicholson
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

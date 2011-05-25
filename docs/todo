@@ -1,0 +1,18 @@
+TODO
+====
+
+Before an initial release
+-------------------------
+
+ - Documentation.
+
+ - Update libs/README
+
+ - Sort out mess of types.
+
+ - Document -> JSON formatting should have two flavours: a "raw" mode, which doesn't unpack the document data, and a higher level mode which unpacks the document data, and also splits terms into prefix and value stored.
+
+ - Rename "prefix" to something less implementation-specific?  "group"?  Define group shortnames somewhere special?
+ - Complain if undefined groups are used?
+
+ - Position data for multiple text fields should not overlap - and there should be a setting to define the spacing.
