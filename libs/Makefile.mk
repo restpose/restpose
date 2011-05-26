@@ -37,7 +37,6 @@ noinst_LIBRARIES += libxapiancommon.a
 INCLUDES += \
  -I$(top_srcdir)/libs/xapiancommon
 noinst_HEADERS += \
- libs/xapiancommon/config.h \
  libs/xapiancommon/diritor.h \
  libs/xapiancommon/hashterm.h \
  libs/xapiancommon/loadfile.h \
