@@ -279,6 +279,25 @@ dnl Checks for library functions.
 AC_FUNC_MEMCMP
 AC_CHECK_FUNCS(strerror hstrerror)
 
+dnl Check for lstat() (not available under mingw for example).
+AC_CHECK_FUNCS(lstat)
+
+dnl Need a full link check for posix_fadvise.
+AC_LINK_IFELSE([
+  AC_LANG_PROGRAM(
+    [[
+#ifdef __linux__
+# define _POSIX_C_SOURCE 200112L /* for posix_fadvise from fcntl.h */
+#endif
+#include <fcntl.h>
+    ]], [[
+      posix_fadvise(1, 0, 0, POSIX_FADV_NOREUSE);
+      posix_fadvise(1, 0, 0, POSIX_FADV_SEQUENTIAL);
+      posix_fadvise(1, 0, 0, POSIX_FADV_DONTNEED);
+    ]])],
+  [AC_DEFINE(HAVE_POSIX_FADVISE, 1, [Define to 1 if you have the 'posix_fadvise' function])]
+)
+
 dnl Check that snprintf actually works as it's meant to.
 dnl
 dnl Linux 'man snprintf' warns:
