@@ -1,0 +1,13 @@
+Style notes
+===========
+
+Generally, we try and follow the same coding style as Xapian's core code.  Some
+exceptions:
+
+ - Header include ordering.  In header files, all headers should be included in
+   lexicographical order.  If there is a good reason not to do this, a comment
+   should explain it.  In source files, the <config.h> header should be
+   included first, followed by any header directly describing a public
+   interface for symbols defined in the source file.  All following headers
+   should be in lexicographical order.  There should usually be a single blank
+   line between the inital two headers and the following headers.
