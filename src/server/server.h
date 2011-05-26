@@ -28,6 +28,7 @@
 #include <string>
 #include <map>
 #include "json/value.h"
+#include "utils/safe_inttypes.h"
 #include "utils/threading.h"
 
 // Forward declaration within this file.

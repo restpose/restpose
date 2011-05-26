@@ -27,6 +27,7 @@
 
 #include "json/value.h"
 #include <string>
+#include "utils/safe_inttypes.h"
 
 namespace RestPose {
     /** Check that a JSON value is an object, raising an exception if not.
