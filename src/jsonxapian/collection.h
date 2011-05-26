@@ -29,8 +29,9 @@
 #include <xapian.h>
 #include "dbgroup/dbgroup.h"
 #include "jsonmanip/mapping.h"
-#include "schema.h"
 #include "ngramcat/categoriser.h"
+#include "schema.h"
+#include "utils/safe_inttypes.h"
 
 class TaskManager;
 
