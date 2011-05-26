@@ -700,12 +700,3 @@ AC_OUTPUT
 dnl Required for auto regeneration to work in a combined maintainer-mode tree.
 : ${AUTOM4TE=autom4te}
 AC_SUBST([AUTOM4TE])
-
-AH_BOTTOM([
-#ifdef HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
-#if HAVE_STDINT_H
-# include <stdint.h>
-#endif
-])
