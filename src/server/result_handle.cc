@@ -29,8 +29,8 @@
 
 using namespace RestPose;
 
-ResultHandle::ResultHandle(int nudge_fd, char nudge_byte)
-	: internal(new ResultHandle::Internal(nudge_fd, nudge_byte))
+ResultHandle::ResultHandle()
+	: internal(new ResultHandle::Internal)
 {}
 
 ResultHandle::~ResultHandle()

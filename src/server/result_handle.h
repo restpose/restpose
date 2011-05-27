@@ -50,21 +50,26 @@ class ResultHandle {
 	char nudge_byte;
 	bool is_ready;
 
-	Internal(int nudge_fd_, char nudge_byte_)
+	Internal()
 		: ref_count(1),
 		  status_code(200),
-		  nudge_fd(nudge_fd_),
-		  nudge_byte(nudge_byte_),
+		  nudge_fd(-1),
+		  nudge_byte('\0'),
 		  is_ready(false) {}
     };
 
     Internal * internal;
 
   public:
-    ResultHandle(int nudge_fd, char nudge_byte);
+    ResultHandle();
     ~ResultHandle();
     ResultHandle(const ResultHandle & other);
     void operator=(const ResultHandle & other);
+
+    void set_nudge(int nudge_fd, char nudge_byte) {
+	internal->nudge_fd = nudge_fd;
+	internal->nudge_byte = nudge_byte;
+    }
 
     /** If the result is ready, return a pointer to it.  Otherwise, return NULL.
      *
