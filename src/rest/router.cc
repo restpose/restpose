@@ -25,8 +25,10 @@
 #include <config.h>
 #include "router.h"
 #include "httpserver/httpserver.h"
+#include "omassert.h"
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
+#include "utils/rsperrors.h"
 
 #include <cstdarg>
 #include <cstdio>
@@ -42,6 +44,14 @@ using namespace RestPose;
 // Virtual destructor to ensure there's a vtable.
 Handler::~Handler() {}
 
+Handler *
+CollCreateHandler::create(const std::vector<std::string> & path_params) const
+{
+    std::auto_ptr<CollCreateHandler> result(new CollCreateHandler);
+    result->coll_name = path_params[0];
+    return result.release();
+}
+
 void
 CollCreateHandler::handle(ConnectionInfo & conn)
 {
@@ -53,35 +63,45 @@ CollCreateHandler::handle(ConnectionInfo & conn)
     conn.respond(MHD_HTTP_OK, json_serialise(result), "application/json");
 }
 
-QueuedHandler::QueuedHandler(TaskManager * taskman_)
-	: taskman(taskman_),
-	  resulthandle(taskman_->get_nudge_fd(), 'H'),
+QueuedHandler::QueuedHandler()
+	: Handler(),
+	  resulthandle(),
 	  queued(false)
 {}
 
 /** Handle queue push status responses which correspond to the push having
  *  failed.
  */
-static void
-handle_queue_push_fail(Queue::QueueState state, ConnectionInfo & conn)
+bool
+QueuedHandler::handle_queue_push_fail(Queue::QueueState state,
+				      ConnectionInfo & conn)
 {
     switch (state) {
 	case Queue::CLOSED:
 	    conn.respond(MHD_HTTP_INTERNAL_SERVER_ERROR, "{\"err\":\"Server is shutting down\"}", "application/json");
-	    break;
+	    return true;
 	case Queue::FULL:
 	    conn.respond(MHD_HTTP_SERVICE_UNAVAILABLE, "{\"err\":\"Too many active requests\"}", "application/json");
-	    break;
+	    return true;
 	default:
 	    // Do nothing
 	    break;
     }
+    return false;
 }
 
 void
 QueuedHandler::handle(ConnectionInfo & conn)
 {
+#if 0
+    printf("QueuedHandler: firstcall=%d, queued=%d, data=!%s!, size=%d\n",
+	   conn.first_call, queued,
+	   conn.upload_data,
+	   *(conn.upload_data_size)
+	  );
+#endif
     if (conn.first_call) {
+	resulthandle.set_nudge(taskman->get_nudge_fd(), 'H');
 	return;
     }
     if (!queued) {
@@ -94,7 +114,9 @@ QueuedHandler::handle(ConnectionInfo & conn)
 	    *(conn.upload_data_size) = 0;
 	}
 	Queue::QueueState state = enqueue(body);
-	handle_queue_push_fail(state, conn);
+	if (handle_queue_push_fail(state, conn)) {
+	    return;
+	}
 	queued = true;
     } else {
 	const Json::Value * result = resulthandle.get_result();
@@ -105,79 +127,229 @@ QueuedHandler::handle(ConnectionInfo & conn)
     }
 }
 
+Handler *
+ServerStatusHandler::create(const std::vector<std::string> &) const
+{
+    return new ServerStatusHandler;
+}
+
 Queue::QueueState
 ServerStatusHandler::enqueue(const Json::Value &) const
 {
     return taskman->queue_get_status(resulthandle);
 }
 
+Handler *
+CollInfoHandler::create(const std::vector<std::string> & path_params) const
+{
+    std::auto_ptr<CollInfoHandler> result(new CollInfoHandler);
+    result->coll_name = path_params[0];
+    return result.release();
+}
+
 Queue::QueueState
 CollInfoHandler::enqueue(const Json::Value &) const
 {
-    return taskman->queue_get_collinfo(collection, resulthandle);
+    return taskman->queue_get_collinfo(coll_name, resulthandle);
+}
+
+Handler *
+SearchHandler::create(const std::vector<std::string> & path_params) const
+{
+    std::auto_ptr<SearchHandler> result(new SearchHandler);
+    result->coll_name = path_params[0];
+    return result.release();
 }
 
 Queue::QueueState
 SearchHandler::enqueue(const Json::Value & body) const
 {
-    return taskman->queue_search(collection, resulthandle, body);
+    return taskman->queue_search(coll_name, resulthandle, body);
+}
+
+Handler *
+NotFoundHandler::create(const std::vector<std::string> &) const
+{
+    return new NotFoundHandler;
 }
 
 void
 NotFoundHandler::handle(ConnectionInfo & conn)
 {
-    printf("NotFoundHandler()%s\n", conn.first_call ? " first call" : "");
-    if (conn.first_call) {
+    conn.respond(MHD_HTTP_NOT_FOUND, "Resource not found", "text/plain");
+}
+
+RouteLevel::~RouteLevel()
+{
+    for (std::map<int, const Handler *>::const_iterator i = handlers.begin();
+	 i != handlers.end(); ++i) {
+	const Handler * ptr = i->second;
+	for (std::map<int, const Handler *>::iterator j = handlers.begin();
+	     j != handlers.end(); ++j) {
+	    if (j->second == ptr) {
+		j->second = NULL;
+	    }
+	}
+	delete ptr;
+    }
+    for (std::map<std::string, RouteLevel *>::iterator
+	 i = routes.begin(); i != routes.end(); ++i) {
+	delete i->second;
+    }
+}
+
+void
+RouteLevel::add(const std::string & path_pattern,
+		size_t pattern_offset,
+		int methods, const Handler * handler_)
+{
+    auto_ptr<const Handler> handler(handler_);
+    if (pattern_offset != path_pattern.size()) {
+	// Add or update the entry in the routes map
+
+	// pattern_offset should be pointing to a '/'
+	pattern_offset += 1;
+	const char * next = strchr(path_pattern.c_str() + pattern_offset, '/');
+	size_t next_offset;
+	std::string component;
+	if (next == NULL) {
+	    next_offset = path_pattern.size();
+	    component = path_pattern.substr(pattern_offset);
+	} else {
+	    next_offset = next - path_pattern.c_str();
+	    component = path_pattern.substr(pattern_offset,
+					    next_offset - pattern_offset);
+	}
+
+	std::map<std::string, RouteLevel *>::iterator
+		i = routes.find(component);
+	if (i == routes.end()) {
+	    routes[component] = NULL; // Allocate space in routes
+	    routes[component] = new RouteLevel(level + 1);
+	}
+	RouteLevel & child = *(routes[component]);
+	child.add(path_pattern, next_offset, methods, handler.release());
 	return;
     }
-    conn.respond(MHD_HTTP_NOT_FOUND, "Resource not found", "text/plain");
+
+    // Add an entry at this route level.
+    for (int i = 1; i <= HTTP_METHODMASK_MAX; i *= 2) {
+	if (methods & i) {
+	    if (handlers.find(i) != handlers.end()) {
+		throw InvalidValueError("Duplicate handlers specified for path");
+	    }
+	    handlers[i] = NULL;
+	    if (handler.get() != NULL) {
+		handlers[i] = handler.release();
+	    } else {
+		// Multiple methods handled by this handler.
+		handlers[i] = handler_;
+	    }
+	}
+    }
+    allowed_methods |= methods;
+}
+
+const Handler *
+RouteLevel::get(ConnectionInfo & conn,
+		std::vector<std::string> & path_params) const
+{
+    if (conn.components.size() == level) {
+	if (!conn.require_method(allowed_methods)) {
+	    return NULL;
+	}
+	map<int, const Handler *>::const_iterator 
+		i = handlers.find(conn.method);
+	if (i == handlers.end()) {
+	    // Shouldn't happen; the check on allowed_methods earlier should
+	    // catch this.
+	    return NULL;
+	}
+	return i->second;
+    }
+
+    // Check for an exact match at this level.
+    std::map<std::string, RouteLevel *>::const_iterator i;
+    i = routes.find(conn.components[level]);
+    if (i == routes.end()) {
+	i = routes.find("?");
+    }
+    if (i == routes.end()) {
+	return NULL;
+    }
+    if (i->first == "?") {
+	path_params.push_back(conn.components[level]);
+    }
+    return i->second->get(conn, path_params);
+}
+
+Handler *
+Router::route_find(ConnectionInfo & conn) const
+{
+    conn.parse_url_components();
+    vector<string> path_params;
+    const Handler * prototype = routes.get(conn, path_params);
+    if (conn.responded) {
+	// Happens when routing finds the method isn't valid for the
+	// resource.
+	Assert(prototype == NULL);
+	return NULL;
+    }
+    if (prototype == NULL) {
+	path_params.clear();
+	prototype = default_handler;
+    }
+    if (prototype != NULL) {
+	return prototype->create(path_params);
+    } else {
+	return NULL;
+    } 
 }
 
 Router::Router(TaskManager * taskman_, Server * server_)
 	: taskman(taskman_),
-	  server(server_)
+	  server(server_),
+	  routes(0),
+	  default_handler(NULL)
 {
+    // FIXME - these calls should be done externally.
+    add("/status", HTTP_GETHEAD, new ServerStatusHandler);
+    add("/coll/?", HTTP_GETHEAD, new CollInfoHandler);
+    add("/coll/?", HTTP_PUT, new CollCreateHandler);
+    //add("/coll/?/type/?", HTTP_GET, new GetDocumentHandler);
+    //add("/coll/?/type/?", HTTP_POST, new IndexDocumentHandler);
+    add("/coll/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandler);
+    //add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandler);
+    set_default(new NotFoundHandler);
+}
+
+Router::~Router()
+{
+    delete default_handler;
+}
+
+void
+Router::add(const std::string & path_pattern, int methods, Handler * handler)
+{
+    auto_ptr<Handler> handler_ptr(handler);
+    handler_ptr->set_context(taskman, server);
+    routes.add(path_pattern, 0, methods, handler_ptr.release());
+}
+
+void
+Router::set_default(Handler * handler)
+{
+    delete default_handler;
+    default_handler = handler;
+    handler->set_context(taskman, server);
 }
 
 Handler *
 Router::route(ConnectionInfo & conn) const
 {
-    conn.parse_url_components();
-    if (conn.components.size() == 0) {
-	return new NotFoundHandler;
+    auto_ptr<Handler> handler(route_find(conn));
+    if (handler.get() != NULL) {
+	handler->set_context(taskman, server);
     }
-    if (conn.components[0] == "status") {
-	if (conn.components.size() == 1) {
-	    if (!conn.require_method(HTTP_GETHEAD)) {
-		return NULL;
-	    }
-	    if (conn.method & HTTP_GETHEAD) {
-		return new ServerStatusHandler(taskman);
-	    }
-	}
-    }
-    if (conn.components[0] == "coll") {
-	if (conn.components.size() == 2) {
-	    if (!conn.require_method(HTTP_GETHEAD | HTTP_POST)) {
-		return NULL;
-	    }
-	    if (conn.method & HTTP_GETHEAD) {
-		return new CollInfoHandler(taskman, conn.components[1]);
-	    } else if (conn.method & HTTP_POST) {
-		return new CollCreateHandler(taskman, server);
-	    }
-	}
-	if (conn.components.size() == 3) {
-	    if (conn.components[2] == "search") {
-		if (!conn.require_method(HTTP_GETHEAD | HTTP_POST)) {
-		    // Allow POST to perform searches, since some clients don't
-		    // allow bodies to be submitted for GET requests.
-		    return NULL;
-		}
-		return new SearchHandler(taskman, conn.components[1]);
-	    }
-	}
-    }
-
-    return new NotFoundHandler;
+    return handler.release();
 }
