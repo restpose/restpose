@@ -4,6 +4,7 @@ noinst_HEADERS += \
  src/utils/compression.h \
  src/utils/io_wrappers.h \
  src/utils/jsonutils.h \
+ src/utils/queueing.h \
  src/utils/rsperrors.h \
  src/utils/stringutils.h \
  src/utils/threading.h \

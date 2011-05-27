@@ -28,25 +28,10 @@
 #include <queue>
 #include <string>
 #include "utils/io_wrappers.h"
+#include "utils/queueing.h"
 #include "utils/threading.h"
 
 namespace Queue {
-    /** The state of a queue after pushing.
-     */
-    enum QueueState {
-	/// Queue has space for more items before throttling.
-	HAS_SPACE,
-
-	/// Queue is nearly full (ie, has >= throttle_size items in it)
-	LOW_SPACE,
-
-	/// Queue is full.
-	FULL,
-
-	/// Queue is closed - no more items may be inserted.
-	CLOSED
-    };
-
     /** A threadsafe queue, with throttling.
      */
     template<class T> class ThreadsafeQueue {
