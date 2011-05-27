@@ -42,4 +42,4 @@ namespace Queue {
     };
 };
 
-#endif /* RESTPOSE_INCLUDED_QUEUEING_H
+#endif /* RESTPOSE_INCLUDED_QUEUEING_H */
