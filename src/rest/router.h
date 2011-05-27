@@ -24,105 +24,15 @@
 #ifndef RESTPOSE_INCLUDED_ROUTER_H
 #define RESTPOSE_INCLUDED_ROUTER_H
 
-#include "server/result_handle.h"
+#include <map>
+#include <string>
 #include "utils/queueing.h"
+#include <vector>
 
-class TaskManager;
-class Server;
 class ConnectionInfo;
-
-/** Handlers for restful resources.
- *
- *  An instance handler is added to the router, associated with a given path
- *  pattern and HTTP method.  This "prototype" instance is used as a factory to
- *  create instances of the handler for handling each matching request.
- */
-class Handler {
-  protected:
-    TaskManager * taskman;
-    Server * server;
-  public:
-    Handler() : taskman(NULL), server(NULL) {}
-
-    /** Set pointers to system resources, used for starting tasks, etc.
-     */
-    void set_context(TaskManager * taskman_, Server * server_) {
-	taskman = taskman_;
-	server = server_;
-    }
-
-    virtual ~Handler();
-
-    /** Create a new handler, for handling this type of request, with the
-     *  specified path parameters.
-     */
-    virtual Handler *
-	    create(const std::vector<std::string> & path_params) const = 0;
-
-    /** Handle a request.
-     *
-     *  This will be called multiple times by the server, until the request has
-     *  been fully received (and called further times if the server is nudged,
-     *  until the request has been handled).
-     */
-    virtual void handle(ConnectionInfo & info) = 0;
-};
-
-/** Handler for creating a collection.
- */
-class CollCreateHandler : public Handler {
-    std::string coll_name;
-  public:
-    Handler * create(const std::vector<std::string> & path_params) const;
-    void handle(ConnectionInfo & info);
-};
-
-/** Base class of handlers which put a task on a queue and wait for the
- *  response.
- */
-class QueuedHandler : public Handler {
-  protected:
-    RestPose::ResultHandle resulthandle;
-    bool queued;
-
-    /** Handle the request if the queue push failed.
-     *
-     *  Return true if the request has now been handled, false otherwise.
-     */
-    bool handle_queue_push_fail(Queue::QueueState state,
-				ConnectionInfo & conn);
-  public:
-    QueuedHandler();
-    void handle(ConnectionInfo & conn);
-    virtual Queue::QueueState enqueue(const Json::Value & body) const = 0;
-};
-
-class ServerStatusHandler : public QueuedHandler {
-  public:
-    Handler * create(const std::vector<std::string> & path_params) const;
-    Queue::QueueState enqueue(const Json::Value & body) const;
-};
-
-class CollInfoHandler : public QueuedHandler {
-    std::string coll_name;
-  public:
-    Handler * create(const std::vector<std::string> & path_params) const;
-    Queue::QueueState enqueue(const Json::Value & body) const;
-};
-
-class SearchHandler : public QueuedHandler {
-    std::string coll_name;
-  public:
-    Handler * create(const std::vector<std::string> & path_params) const;
-    Queue::QueueState enqueue(const Json::Value & body) const;
-};
-
-class NotFoundHandler : public Handler {
-  public:
-    Handler * create(const std::vector<std::string> & path_params) const;
-    void handle(ConnectionInfo & info);
-};
-
+class Handler;
+class Server;
+class TaskManager;
 
 class RouteLevel {
     /** Level number.

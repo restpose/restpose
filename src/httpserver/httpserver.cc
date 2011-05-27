@@ -33,6 +33,7 @@
 #include <sys/socket.h>
 #include <microhttpd.h>
 
+#include "rest/handler.h"
 #include "rest/router.h"
 #include "server/ignore_sigpipe.h"
 #include "utils/rsperrors.h"

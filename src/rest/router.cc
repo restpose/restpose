@@ -24,6 +24,10 @@
 
 #include <config.h>
 #include "router.h"
+
+#include "rest/handler.h"
+#include "rest/handlers.h"
+
 #include "httpserver/httpserver.h"
 #include "omassert.h"
 #include "server/task_manager.h"
