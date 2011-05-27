@@ -24,13 +24,11 @@
 #ifndef RESTPOSE_INCLUDED_ROUTER_H
 #define RESTPOSE_INCLUDED_ROUTER_H
 
-#include "server/server.h"
 #include "server/result_handle.h"
-#include "utils/threadsafequeue.h"
-
-using namespace RestPose;
+#include "utils/queueing.h"
 
 class TaskManager;
+class Server;
 class ConnectionInfo;
 
 /** Handlers for restful resources.
@@ -84,7 +82,7 @@ class CollCreateHandler : public Handler {
  */
 class QueuedHandler : public Handler {
   protected:
-    ResultHandle resulthandle;
+    RestPose::ResultHandle resulthandle;
     bool queued;
 
     /** Handle the request if the queue push failed.
