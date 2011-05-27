@@ -384,7 +384,7 @@ const Schema &
 Collection::get_schema(const string & type) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collecton must be open to get schema");
+	throw InvalidStateError("Collection must be open to get schema");
     }
     map<string, Schema *>::const_iterator i = types.find(type);
     if (i == types.end()) {
@@ -429,7 +429,7 @@ const Pipe &
 Collection::get_pipe(const string & pipe_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collecton must be open to get schema");
+	throw InvalidStateError("Collection must be open to get schema");
     }
     map<string, Pipe *>::const_iterator i = pipes.find(pipe_name);
     if (i == pipes.end()) {
@@ -473,7 +473,7 @@ const Categoriser &
 Collection::get_categoriser(const string & categoriser_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collecton must be open to get schema");
+	throw InvalidStateError("Collection must be open to get schema");
     }
     map<string, Categoriser *>::const_iterator i = categorisers.find(categoriser_name);
     if (i == categorisers.end()) {
