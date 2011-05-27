@@ -118,6 +118,7 @@ ConnectionInfo::ConnectionInfo(struct MHD_Connection *connection_,
 	  version(version_),
 
 	  first_call(true),
+	  responded(false),
 	  handler(NULL)
 {
     // Assume that the methods are usually one of HEAD, GET, DELETE, POST,
@@ -180,6 +181,7 @@ ConnectionInfo::respond()
 			   response_ptr) != MHD_YES) {
 	throw RestPose::HTTPServerError("Couldn't queue response");
     }
+    responded = true;
 }
 
 bool

@@ -40,7 +40,8 @@ enum HTTPMethod {
     HTTP_GETHEAD = 3, // Convenience; can be used to check for GET or HEAD.
     HTTP_POST = 4,
     HTTP_PUT = 8,
-    HTTP_DELETE = 16
+    HTTP_DELETE = 16,
+    HTTP_METHODMASK_MAX = 31 // Set this to the bitwise or of all HTTPMethod values.
 };
 
 class Response {
@@ -72,8 +73,11 @@ struct ConnectionInfo {
     const char * upload_data;
     size_t * upload_data_size;
 
-    /// True the first time accept is called
+    /// True the first time accept is called.
     bool first_call;
+
+    /// True if a response has been sent.
+    bool responded;
 
     /// The components of the url path, separated on /.
     std::vector<std::string> components;
