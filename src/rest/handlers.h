@@ -26,16 +26,14 @@
 
 #include "rest/handler.h"
 
-/** Handler for creating a collection.
- */
-class CollCreateHandler : public Handler {
-    std::string coll_name;
+class ServerStatusHandler : public QueuedHandler {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
-    void handle(ConnectionInfo & info);
+    Queue::QueueState enqueue(const Json::Value & body) const;
 };
 
-class ServerStatusHandler : public QueuedHandler {
+class CollCreateHandler : public QueuedHandler {
+    std::string coll_name;
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
     Queue::QueueState enqueue(const Json::Value & body) const;

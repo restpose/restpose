@@ -34,25 +34,6 @@ using namespace std;
 using namespace RestPose;
 
 Handler *
-CollCreateHandler::create(const std::vector<std::string> & path_params) const
-{
-    std::auto_ptr<CollCreateHandler> result(new CollCreateHandler);
-    result->coll_name = path_params[0];
-    return result.release();
-}
-
-void
-CollCreateHandler::handle(ConnectionInfo & conn)
-{
-    if (conn.first_call) {
-	return;
-    }
-
-    Json::Value result(Json::objectValue);
-    conn.respond(MHD_HTTP_OK, json_serialise(result), "application/json");
-}
-
-Handler *
 ServerStatusHandler::create(const std::vector<std::string> &) const
 {
     return new ServerStatusHandler;
@@ -62,6 +43,20 @@ Queue::QueueState
 ServerStatusHandler::enqueue(const Json::Value &) const
 {
     return taskman->queue_get_status(resulthandle);
+}
+
+Handler *
+CollCreateHandler::create(const std::vector<std::string> & path_params) const
+{
+    std::auto_ptr<CollCreateHandler> result(new CollCreateHandler);
+    result->coll_name = path_params[0];
+    return result.release();
+}
+
+Queue::QueueState
+CollCreateHandler::enqueue(const Json::Value &) const
+{
+    return taskman->queue_create_coll(coll_name, resulthandle);
 }
 
 Handler *
