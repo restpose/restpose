@@ -169,15 +169,6 @@ Router::Router(TaskManager * taskman_, Server * server_)
 	  routes(0),
 	  default_handler(NULL)
 {
-    // FIXME - these calls should be done externally.
-    add("/status", HTTP_GETHEAD, new ServerStatusHandler);
-    add("/coll/?", HTTP_GETHEAD, new CollInfoHandler);
-    add("/coll/?", HTTP_PUT, new CollCreateHandler);
-    //add("/coll/?/type/?", HTTP_GET, new GetDocumentHandler);
-    //add("/coll/?/type/?", HTTP_POST, new IndexDocumentHandler);
-    add("/coll/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandler);
-    //add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandler);
-    set_default(new NotFoundHandler);
 }
 
 Router::~Router()

@@ -33,6 +33,7 @@
 #include "httpserver/httpserver.h"
 #include "importer/filesystem/filesystem_import.h"
 #include "importer/mongo/mongo_import.h"
+#include "rest/default_routes.h"
 #include "rest/router.h"
 #include "server/task_manager.h"
 #include "server/server.h"
@@ -61,6 +62,7 @@ main_do(int argc, char * const* argv)
     TaskManager * taskman = new TaskManager(opts.datadir);
     server.add("taskman", taskman);
     Router router(taskman, &server);
+    setup_routes(router);
 
     if (opts.action == CliOptions::ACT_SERVE) {
 	server.add("httpserver", new HTTPServer(opts.port, opts.pedantic, &router));
