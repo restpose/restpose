@@ -83,13 +83,15 @@ ServerStatusTask::perform(RestPose::Collection *)
 }
 
 void
-ProcessorPipeDocumentTask::perform(RestPose::Collection & collection)
+ProcessorPipeDocumentTask::perform(RestPose::Collection & collection,
+				   TaskManager * taskman)
 {
     collection.send_to_pipe(taskman, pipe, doc);
 }
 
 void
-ProcessorProcessDocumentTask::perform(RestPose::Collection & collection)
+ProcessorProcessDocumentTask::perform(RestPose::Collection & collection,
+				      TaskManager * taskman)
 {
     string idterm;
     Xapian::Document xdoc = collection.process_doc(type, doc, idterm);
@@ -141,7 +143,7 @@ ProcessingThread::run()
 	    return;
 	}
 
-	CollUpdateTask * colltask = static_cast<CollUpdateTask *>(task);
+	CollProcessTask * colltask = static_cast<CollProcessTask *>(task);
 	if (collection == NULL) {
 	    collection = pool.get_readonly(coll_name);
 	} else if (collection->get_name() == coll_name) {
@@ -150,7 +152,7 @@ ProcessingThread::run()
 	    pool.release(tmp);
 	    collection = pool.get_readonly(coll_name);
 	}
-	colltask->perform(*collection);
+	colltask->perform(*collection, taskman);
     }
 }
 
@@ -200,7 +202,7 @@ IndexingThread::run()
 		break;
 	    }
 	    std::auto_ptr<Task> taskptr(task);
-	    CollUpdateTask * colltask = static_cast<CollUpdateTask *>(task);
+	    CollIndexTask * colltask = static_cast<CollIndexTask *>(task);
 	    colltask->perform(*collection);
 	}
 
@@ -243,8 +245,8 @@ SearchThread::run()
 	    return;
 	}
 
-	SearchTask * searchtask = static_cast<SearchTask *>(task);
-	const string * coll_name_ptr = searchtask->get_coll_name();
+	ReadonlyTask * rotask = static_cast<ReadonlyTask *>(task);
+	const string * coll_name_ptr = rotask->get_coll_name();
 	try {
 	    if (coll_name_ptr == NULL) {
 		if (collection != NULL) {
@@ -264,32 +266,32 @@ SearchThread::run()
 		}
 	    }
 	} catch(const RestPose::Error & e) {
-	    Json::Value & result = searchtask->resulthandle.result_target();
+	    Json::Value & result = rotask->resulthandle.result_target();
 	    result = Json::objectValue;
 	    result["err"] = e.what();
-	    searchtask->resulthandle.set_status(500);
-	    searchtask->resulthandle.set_ready();
+	    rotask->resulthandle.set_status(500);
+	    rotask->resulthandle.set_ready();
 	    continue;
 	} catch(const Xapian::DatabaseOpeningError & e) {
-	    Json::Value & result = searchtask->resulthandle.result_target();
+	    Json::Value & result = rotask->resulthandle.result_target();
 	    result["err"] = e.get_description();
-	    searchtask->resulthandle.set_status(404);
-	    searchtask->resulthandle.set_ready();
+	    rotask->resulthandle.set_status(404);
+	    rotask->resulthandle.set_ready();
 	    continue;
 	} catch(const Xapian::Error & e) {
-	    Json::Value & result = searchtask->resulthandle.result_target();
+	    Json::Value & result = rotask->resulthandle.result_target();
 	    result["err"] = e.get_description();
-	    searchtask->resulthandle.set_status(500);
-	    searchtask->resulthandle.set_ready();
+	    rotask->resulthandle.set_status(500);
+	    rotask->resulthandle.set_ready();
 	    continue;
 	} catch(const std::bad_alloc) {
-	    Json::Value & result = searchtask->resulthandle.result_target();
+	    Json::Value & result = rotask->resulthandle.result_target();
 	    result["err"] = "out of memory";
-	    searchtask->resulthandle.set_status(503);
-	    searchtask->resulthandle.set_ready();
+	    rotask->resulthandle.set_status(503);
+	    rotask->resulthandle.set_ready();
 	    continue;
 	}
-	searchtask->perform(collection);
+	rotask->perform(collection);
     }
 }
 
@@ -497,7 +499,7 @@ TaskManager::queue_pipe_document(const string & collection,
 	}
     }
     return processing_queues.push(collection,
-	new ProcessorPipeDocumentTask(this, pipe, doc), allow_throttle,
+	new ProcessorPipeDocumentTask(pipe, doc), allow_throttle,
 	end_time);
 }
 
@@ -514,7 +516,7 @@ TaskManager::queue_process_document(const string & collection,
 	}
     }
     return processing_queues.push(collection,
-	new ProcessorProcessDocumentTask(this, type, doc), allow_throttle);
+	new ProcessorProcessDocumentTask(type, doc), allow_throttle);
 }
 
 Queue::QueueState
@@ -585,7 +587,8 @@ TaskManager::start()
     }
     for (int i = processing_thread_count; i != 0; --i) {
 	processing_threads.add_thread(new ProcessingThread(processing_queues,
-							   collections));
+							   collections,
+							   this));
     }
     for (int i = search_thread_count; i != 0; --i) {
 	search_threads.add_thread(new SearchThread(search_queues,

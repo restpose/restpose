@@ -1,4 +1,4 @@
-/** @file task_manager.cc
+/** @file task_manager.h
  * @brief Manage access and updates to collections.
  */
 /* Copyright (c) 2011 Richard Boulton
@@ -24,14 +24,18 @@
 #ifndef RESTPOSE_INCLUDED_TASK_MANAGER_H
 #define RESTPOSE_INCLUDED_TASK_MANAGER_H
 
-#include "omassert.h"
-#include "utils/threadsafequeue.h"
 #include "jsonxapian/collection.h"
+#include <map>
+#include <memory>
+#include "omassert.h"
+#include <queue>
 #include "server/collection_pool.h"
 #include "server/result_handle.h"
 #include "server/server.h"
-#include <map>
+#include "server/tasks.h"
 #include <string>
+#include "utils/queueing.h"
+#include "utils/io_wrappers.h"
 #include <vector>
 #include <xapian.h>
 
@@ -40,194 +44,6 @@ namespace Xapian {
 };
 
 class TaskManager;
-
-/** Base class of all tasks performed.
- */
-class Task {
-    Task(const Task &);
-    void operator=(const Task &);
-  public:
-    Task() {};
-    virtual ~Task();
-};
-
-/** A task that a REST request is waiting on the result from.
- */
-class RestTask : public Task {
-  public:
-    RestPose::ResultHandle resulthandle;
-
-    RestTask(const RestPose::ResultHandle & resulthandle_)
-	    : resulthandle(resulthandle_)
-    {}
-
-    /** Get the collection name for this task.
-     *
-     *  Return NULL if no collection is used.
-     *
-     *  If NULL is returned, perform() will be called with collection=NULL.
-     *  Otherwise, perform() will not be called with collection=NULL.
-     */
-    virtual const std::string * get_coll_name() const = 0;
-
-    virtual void perform(RestPose::Collection * collection) = 0;
-};
-
-/** A task for performing an update to a collection.
- */
-class CollUpdateTask : public Task {
-  public:
-    virtual void perform(RestPose::Collection & collection) = 0;
-};
-
-/** A search or information gathering task.
- */
-class SearchTask : public RestTask {
-  public:
-    SearchTask(const RestPose::ResultHandle & resulthandle_)
-	    : RestTask(resulthandle_)
-    {}
-
-    virtual void perform(RestPose::Collection * collection) = 0;
-};
-
-class CollInfoTask : public SearchTask {
-    std::string coll_name;
-  public:
-    CollInfoTask(const RestPose::ResultHandle & resulthandle_,
-		 const std::string & coll_name_)
-	    : SearchTask(resulthandle_),
-	      coll_name(coll_name_)
-    {}
-
-    const std::string * get_coll_name() const
-    {
-	return &coll_name;
-    }
-
-    void perform(RestPose::Collection * collection);
-};
-
-class PerformSearchTask : public SearchTask {
-    std::string coll_name;
-    Json::Value search;
-  public:
-    PerformSearchTask(const RestPose::ResultHandle & resulthandle_,
-		      const std::string & coll_name_,
-		      const Json::Value & search_)
-	    : SearchTask(resulthandle_),
-	      coll_name(coll_name_),
-	      search(search_)
-    {}
-
-    const std::string * get_coll_name() const
-    {
-	return &coll_name;
-    }
-
-    void perform(RestPose::Collection * collection);
-};
-
-class ServerStatusTask : public SearchTask {
-    const TaskManager * taskman;
-  public:
-    ServerStatusTask(const RestPose::ResultHandle & resulthandle_,
-		     const TaskManager * taskman_)
-	    : SearchTask(resulthandle_),
-	      taskman(taskman_)
-    {}
-
-    const std::string * get_coll_name() const { return NULL; }
-
-    void perform(RestPose::Collection * collection);
-};
-
-/// Process a JSON document via a pipe.
-class ProcessorPipeDocumentTask : public CollUpdateTask {
-    /// The task manager in use.
-    TaskManager * taskman;
-
-    /// The pipe to send the document to.
-    std::string pipe;
-
-    /// The serialised document to send to the pipe.
-    Json::Value doc;
-
-  public:
-    ProcessorPipeDocumentTask(TaskManager * taskman_,
-			      const std::string & pipe_,
-			      const Json::Value & doc_)
-	    : taskman(taskman_), pipe(pipe_), doc(doc_)
-    {}
-
-    /// Perform the indexing task, given a collection (open for writing).
-    void perform(RestPose::Collection & collection);
-};
-
-/// Process a JSON document.
-class ProcessorProcessDocumentTask : public CollUpdateTask {
-    /// The task manager in use.
-    TaskManager * taskman;
-
-    /// The type of the document to process.
-    std::string type;
-
-    /// The serialised document to process.
-    Json::Value doc;
-
-  public:
-    ProcessorProcessDocumentTask(TaskManager * taskman_,
-				 const std::string & type_,
-				 const Json::Value & doc_)
-	    : taskman(taskman_), type(type_), doc(doc_)
-    {}
-
-    /// Perform the indexing task, given a collection (open for writing).
-    void perform(RestPose::Collection & collection);
-};
-
-/// Add or update a document.
-class IndexerUpdateDocumentTask : public CollUpdateTask {
-    /// The unique ID term for the document.
-    std::string idterm;
-
-    /// The document to add.
-    Xapian::Document doc;
-
-  public:
-    IndexerUpdateDocumentTask(const std::string & idterm_,
-			      const Xapian::Document & doc_)
-	    : idterm(idterm_), doc(doc_)
-    {}
-
-    /// Perform the indexing task, given a collection (open for writing).
-    void perform(RestPose::Collection & collection);
-};
-
-/// Delete a document.
-class IndexerDeleteDocumentTask : public CollUpdateTask {
-    /// The unique ID term for the document.
-    std::string idterm;
-
-  public:
-    IndexerDeleteDocumentTask(const std::string & idterm_)
-	    : idterm(idterm_)
-    {}
-
-    /// Perform the indexing task, given a collection (open for writing).
-    void perform(RestPose::Collection & collection);
-};
-
-/// Commit changes.
-class IndexerCommitTask : public CollUpdateTask {
-  public:
-    IndexerCommitTask()
-    {}
-
-    /// Perform the indexing task, given a collection (open for writing).
-    void perform(RestPose::Collection & collection);
-};
-
 
 /** A group of queues of tasks, keyed by a name.
  */
@@ -705,12 +521,18 @@ class ProcessingThread : public TaskThread {
      */
     std::string coll_name;
 
+    /** The task manager for this thread.
+     */
+    TaskManager * taskman;
+
   public:
     /** Create an indexer for a collection.
      */
     ProcessingThread(TaskQueueGroup & queuegroup_,
-		     CollectionPool & pool_)
-	    : TaskThread(queuegroup_, pool_)
+		     CollectionPool & pool_,
+		     TaskManager * taskman_)
+	    : TaskThread(queuegroup_, pool_),
+	      taskman(taskman_)
     {}
 
     /* Standard thread methods. */
@@ -792,6 +614,7 @@ class TaskManager : public SubServer {
     friend class ProcessorProcessDocumentTask;
     friend class ProcessorPipeDocumentTask;
     friend class ServerStatusTask;
+    friend class DelayedCollIndexTask;
 
     /** Condition containing lock to be held whenever accessing mutable
      *  internal state.
@@ -882,13 +705,6 @@ class TaskManager : public SubServer {
 				   const RestPose::ResultHandle & resulthandle,
 				   const Json::Value & search);
 
-#if 0
-    /** Queue setting the schema for a collection.
-     */
-    Queue::QueueState queue_set_schema(const std::string & collection,
-				       const Json::Value & schema);
-#endif
-
     /** Queue a document for indexing.
      *
      *  This is intended to be called from the output of processing.
@@ -898,6 +714,11 @@ class TaskManager : public SubServer {
     void queue_index_processed_doc(const std::string & collection,
 				   Xapian::Document xdoc,
 				   const std::string & idterm);
+
+    /** Queue setting the schema for a collection.
+     */
+    Queue::QueueState queue_set_schema(const std::string & collection,
+				       const Json::Value & schema);
 
     Queue::QueueState queue_pipe_document(const std::string & collection,
 					  const std::string & pipe,
