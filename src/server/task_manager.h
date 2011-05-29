@@ -31,6 +31,7 @@
 #include "server/tasks.h"
 #include "server/thread_pool.h"
 #include "server/task_queue_group.h"
+#include "server/task_threads.h"
 #include <string>
 #include "utils/queueing.h"
 #include "utils/io_wrappers.h"
@@ -41,103 +42,6 @@ namespace Xapian {
 };
 
 class TaskManager;
-
-/** A thread for performing a type of task.
- */
-class TaskThread : public Thread {
-  protected:
-    /** Reference to queues of tasks.
-     */
-    TaskQueueGroup & queuegroup;
-
-    /** The pool to get collections from and return collections to.
-     */
-    CollectionPool & pool;
-
-    /** The current collection the indexer is working on.
-     */
-    RestPose::Collection * collection;
-
-    TaskThread(const TaskThread &);
-    void operator=(const TaskThread &);
-  public:
-    /** Create an indexer for a collection.
-     */
-    TaskThread(TaskQueueGroup & queuegroup_,
-	       CollectionPool & pool_)
-	    : Thread(),
-	      queuegroup(queuegroup_),
-	      pool(pool_),
-	      collection(NULL)
-    {}
-
-    ~TaskThread();
-};
-
-/** An processor thread.
- */
-class ProcessingThread : public TaskThread {
-    /** The name of the current collection.
-     */
-    std::string coll_name;
-
-    /** The task manager for this thread.
-     */
-    TaskManager * taskman;
-
-  public:
-    /** Create an indexer for a collection.
-     */
-    ProcessingThread(TaskQueueGroup & queuegroup_,
-		     CollectionPool & pool_,
-		     TaskManager * taskman_)
-	    : TaskThread(queuegroup_, pool_),
-	      taskman(taskman_)
-    {}
-
-    /* Standard thread methods. */
-    void run();
-    void cleanup();
-};
-
-/** An indexer thread.
- */
-class IndexingThread : public TaskThread {
-    /** The name of the current collection.
-     */
-    std::string coll_name;
-
-  public:
-    /** Create an indexer for a collection.
-     */
-    IndexingThread(TaskQueueGroup & queuegroup_,
-		  CollectionPool & pool_)
-	    : TaskThread(queuegroup_, pool_)
-    {}
-
-    /* Standard thread methods. */
-    void run();
-    void cleanup();
-};
-
-/** A search thread.
- */
-class SearchThread : public TaskThread {
-    /** The name of the current collection.
-     */
-    std::string coll_name;
-
-  public:
-    /** Create an indexer for a collection.
-     */
-    SearchThread(TaskQueueGroup & queuegroup_, CollectionPool & pool_)
-	    : TaskThread(queuegroup_, pool_)
-    {}
-
-    /* Standard thread methods. */
-    void run();
-    void cleanup();
-};
 
 /** Manager for all non-instantaneous tasks.
  */

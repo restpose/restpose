@@ -9,6 +9,7 @@ noinst_HEADERS += \
  src/server/signals.h \
  src/server/task_manager.h \
  src/server/task_queue_group.h \
+ src/server/task_threads.h \
  src/server/tasks.h \
  src/server/thread_pool.h
 
