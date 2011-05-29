@@ -33,6 +33,7 @@
 #include "server/result_handle.h"
 #include "server/server.h"
 #include "server/tasks.h"
+#include "server/thread_pool.h"
 #include <string>
 #include "utils/queueing.h"
 #include "utils/io_wrappers.h"
@@ -577,35 +578,6 @@ class SearchThread : public TaskThread {
     /* Standard thread methods. */
     void run();
     void cleanup();
-};
-
-/** A pool of threads.
- */
-class ThreadPool {
-    mutable Mutex mutex;
-    std::vector<Thread *> threads;
-
-    ThreadPool(const ThreadPool &);
-    void operator=(const ThreadPool &);
-  public:
-    ThreadPool() {}
-    ~ThreadPool();
-
-    /** Add a thread to the pool, and start it.
-     */
-    void add_thread(Thread * thread);
-
-    /** Stop all threads in the pool.
-     */
-    void stop();
-
-    /** Join all threads in the pool.
-     */
-    void join();
-
-    /** Get the current status of the thread pool.
-     */
-    void get_status(Json::Value & status) const;
 };
 
 /** Manager for all non-instantaneous tasks.

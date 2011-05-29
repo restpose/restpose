@@ -8,7 +8,8 @@ noinst_HEADERS += \
  src/server/server.h \
  src/server/signals.h \
  src/server/task_manager.h \
- src/server/tasks.h
+ src/server/tasks.h \
+ src/server/thread_pool.h
 
 libserver_a_SOURCES = \
  src/server/collection_pool.cc \
