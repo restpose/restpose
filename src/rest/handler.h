@@ -57,7 +57,7 @@ class Handler {
      *  specified path parameters.
      */
     virtual Handler *
-	    create(const std::vector<std::string> & path_params) const = 0;
+    create(const std::vector<std::string> & path_params) const = 0;
 
     /** Handle a request.
      *
