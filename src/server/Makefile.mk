@@ -21,4 +21,5 @@ libserver_a_SOURCES = \
  src/server/signals.cc \
  src/server/task_manager.cc \
  src/server/task_threads.cc \
+ src/server/tasks.cc \
  src/server/thread_pool.cc
