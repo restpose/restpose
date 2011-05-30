@@ -25,9 +25,21 @@
 #define RESTPOSE_INCLUDED_TASKS_H
 
 #include "server/basetasks.h"
+#include <string>
 
 namespace Xapian {
     class Document;
+};
+
+class StaticFileTask : public ReadonlyTask {
+    std::string path;
+  public:
+    StaticFileTask(const RestPose::ResultHandle & resulthandle_,
+		   const std::string & path_)
+	    : ReadonlyTask(resulthandle_), path(path_)
+    {}
+
+    void perform(RestPose::Collection * collection);
 };
 
 class CollInfoTask : public ReadonlyCollTask {

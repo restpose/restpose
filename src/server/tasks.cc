@@ -26,6 +26,7 @@
 #include "tasks.h"
 
 #include "jsonxapian/collection.h"
+#include "loadfile.h"
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
 
@@ -33,6 +34,18 @@ using namespace std;
 using namespace RestPose;
 
 Task::~Task() {}
+
+void
+StaticFileTask::perform(RestPose::Collection *)
+{
+    string data;
+    if (load_file(path, data)) {
+	resulthandle.result_target() = data;
+    } else {
+	resulthandle.result_target()["err"] = "Couldn't load file";
+    }
+    resulthandle.set_ready();
+}
 
 void
 CollInfoTask::perform(RestPose::Collection * collection)
