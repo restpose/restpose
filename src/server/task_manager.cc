@@ -25,15 +25,10 @@
 #include <config.h>
 #include "task_manager.h"
 
-#include "omassert.h"
-#include "realtime.h"
-#include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include "safeerrno.h"
 #include "utils/jsonutils.h"
-
-#define DIR_SEPARATOR "/"
 
 using namespace std;
 using namespace RestPose;
@@ -114,60 +109,6 @@ void
 IndexerCommitTask::perform(RestPose::Collection & collection)
 {
     collection.commit();
-}
-
-
-ThreadPool::~ThreadPool()
-{
-    for (std::vector<Thread *>::iterator i = threads.begin();
-	 i != threads.end(); ++i) {
-	(*i)->stop();
-    }
-    for (std::vector<Thread *>::iterator i = threads.begin();
-	 i != threads.end(); ++i) {
-	(*i)->join();
-    }
-    for (std::vector<Thread *>::iterator i = threads.begin();
-	 i != threads.end(); ++i) {
-	delete *i;
-    }
-}
-
-void
-ThreadPool::add_thread(Thread * thread)
-{
-    ContextLocker lock(mutex);
-    auto_ptr<Thread> threadptr(thread);
-    threads.push_back(NULL);
-    threads.back() = threadptr.release();
-    thread->start();
-}
-
-void
-ThreadPool::stop()
-{
-    ContextLocker lock(mutex);
-    for (std::vector<Thread *>::iterator i = threads.begin();
-	 i != threads.end(); ++i) {
-	(*i)->stop();
-    }
-}
-
-void
-ThreadPool::join()
-{
-    ContextLocker lock(mutex);
-    for (std::vector<Thread *>::iterator i = threads.begin();
-	 i != threads.end(); ++i) {
-	(*i)->join();
-    }
-}
-
-void
-ThreadPool::get_status(Json::Value & status) const
-{
-    ContextLocker lock(mutex);
-    status["size"] = uint64_t(threads.size());
 }
 
 
