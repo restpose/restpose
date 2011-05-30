@@ -28,10 +28,27 @@
 #include "httpserver/httpserver.h"
 #include <microhttpd.h>
 #include "server/task_manager.h"
+#include "server/tasks.h"
 #include "utils/jsonutils.h"
 
 using namespace std;
 using namespace RestPose;
+
+Handler *
+StaticHandler::create(const std::vector<std::string> &path_params) const
+{
+    std::auto_ptr<StaticHandler> result(new StaticHandler);
+    (void)path_params;
+    result->path = "static/index.html";
+    return result.release();
+}
+
+Queue::QueueState
+StaticHandler::enqueue(const Json::Value &) const
+{
+    return taskman->queue_readonly("static",
+	new StaticFileTask(resulthandle, path));
+}
 
 Handler *
 ServerStatusHandler::create(const std::vector<std::string> &) const
@@ -42,7 +59,8 @@ ServerStatusHandler::create(const std::vector<std::string> &) const
 Queue::QueueState
 ServerStatusHandler::enqueue(const Json::Value &) const
 {
-    return taskman->queue_get_status(resulthandle);
+    return taskman->queue_readonly("status",
+	new ServerStatusTask(resulthandle, taskman));
 }
 
 Handler *
@@ -56,7 +74,7 @@ CollCreateHandler::create(const std::vector<std::string> & path_params) const
 Queue::QueueState
 CollCreateHandler::enqueue(const Json::Value &) const
 {
-    return taskman->queue_create_coll(coll_name, resulthandle);
+    return Queue::FULL; // FIXME
 }
 
 Handler *

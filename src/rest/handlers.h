@@ -26,6 +26,13 @@
 
 #include "rest/handler.h"
 
+class StaticHandler : public QueuedHandler {
+    std::string path;
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+    Queue::QueueState enqueue(const Json::Value & body) const;
+};
+
 class ServerStatusHandler : public QueuedHandler {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
