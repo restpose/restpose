@@ -19,4 +19,5 @@ libserver_a_SOURCES = \
  src/server/result_handle.cc \
  src/server/server.cc \
  src/server/signals.cc \
- src/server/task_manager.cc
+ src/server/task_manager.cc \
+ src/server/task_threads.cc
