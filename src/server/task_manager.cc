@@ -80,6 +80,19 @@ TaskManager::~TaskManager()
 }
 
 Queue::QueueState
+TaskManager::queue_readonly(const std::string & queue, ReadonlyTask * task)
+{
+    std::auto_ptr<ReadonlyTask> taskptr(task);
+    {
+	ContextLocker lock(cond);
+	if (stopping) {
+	    return Queue::CLOSED;
+	}
+    }
+    return search_queues.push(queue, taskptr.release(), false);
+}
+
+Queue::QueueState
 TaskManager::queue_get_status(const RestPose::ResultHandle & resulthandle)
 {
     {

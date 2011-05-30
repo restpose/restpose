@@ -125,6 +125,11 @@ class TaskManager : public SubServer {
 	return nudge_write_end;
     }
 
+    /** Queue a readonly task, on the named queue.
+     */
+    Queue::QueueState queue_readonly(const std::string & queue,
+				     ReadonlyTask * task);
+
     /** Queue getting information about the server status.
      */
     Queue::QueueState queue_get_status(const RestPose::ResultHandle & resulthandle);
