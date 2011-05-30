@@ -1,5 +1,5 @@
 /** @file tasks.h
- * @brief Tasks to be placed on queues for performing.
+ * @brief Tasks to be placed on queues for performing later.
  */
 /* Copyright (c) 2011 Richard Boulton
  *
