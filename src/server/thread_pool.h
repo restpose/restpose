@@ -26,6 +26,7 @@
 
 #include <json/value.h>
 #include "utils/io_wrappers.h"
+#include "utils/threading.h"
 #include <vector>
 
 class Thread;
