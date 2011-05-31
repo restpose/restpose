@@ -25,6 +25,7 @@
 #include <config.h>
 #include "task_threads.h"
 
+#include "httpserver/response.h"
 #include "realtime.h"
 #include "utils/jsonutils.h"
 
@@ -184,28 +185,27 @@ SearchThread::run()
 		}
 	    }
 	} catch(const RestPose::Error & e) {
-	    Json::Value & result = rotask->resulthandle.result_target();
-	    result = Json::objectValue;
+	    Json::Value result(Json::objectValue);
 	    result["err"] = e.what();
-	    rotask->resulthandle.set_status(500);
+	    rotask->resulthandle.response().set(result, 500);
 	    rotask->resulthandle.set_ready();
 	    continue;
 	} catch(const Xapian::DatabaseOpeningError & e) {
-	    Json::Value & result = rotask->resulthandle.result_target();
+	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
-	    rotask->resulthandle.set_status(404);
+	    rotask->resulthandle.response().set(result, 404);
 	    rotask->resulthandle.set_ready();
 	    continue;
 	} catch(const Xapian::Error & e) {
-	    Json::Value & result = rotask->resulthandle.result_target();
+	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
-	    rotask->resulthandle.set_status(500);
+	    rotask->resulthandle.response().set(result, 500);
 	    rotask->resulthandle.set_ready();
 	    continue;
 	} catch(const std::bad_alloc) {
-	    Json::Value & result = rotask->resulthandle.result_target();
+	    Json::Value result(Json::objectValue);
 	    result["err"] = "out of memory";
-	    rotask->resulthandle.set_status(503);
+	    rotask->resulthandle.response().set(result, 503);
 	    rotask->resulthandle.set_ready();
 	    continue;
 	}
