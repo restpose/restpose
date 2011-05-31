@@ -93,10 +93,10 @@ QueuedHandler::handle(ConnectionInfo & conn)
 	}
 	queued = true;
     } else {
-	const std::string * result = resulthandle.get_result();
+	Response * result = resulthandle.get_result();
 	if (result == NULL) {
 	    return;
 	}
-	conn.respond(resulthandle.get_status(), *result, "application/json");
+	conn.respond(*result);
     }
 }
