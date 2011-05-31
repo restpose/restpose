@@ -76,11 +76,10 @@ Response::set_data(const string & outbuf_)
 }
 
 void
-Response::set_content_type(string content_type_)
+Response::set_content_type(string content_type)
 {
     // Copy the content type into the response object, so it is available
     // until after the response has been sent.
-    content_type = content_type_;
     add_header("Content-Type", content_type);
 }
 
@@ -163,15 +162,16 @@ ConnectionInfo::respond(int status_code,
 			const string & outbuf,
 			const string & content_type)
 {
+    Response response;
     response.set_status(status_code);
     response.set_data(outbuf);
     response.set_content_type(content_type);
-    respond();
+    respond(response);
 }
 
 
 void
-ConnectionInfo::respond()
+ConnectionInfo::respond(Response & response)
 {
     struct MHD_Response * response_ptr = response.get_response();
     if (!response_ptr) {
@@ -191,6 +191,7 @@ ConnectionInfo::require_method(int allowed_methods)
     if (method & allowed_methods) {
 	return true;
     }
+    Response response;
     response.set_status(MHD_HTTP_METHOD_NOT_ALLOWED);
     response.set_data("Invalid HTTP method");
     response.set_content_type("text/plain");
@@ -206,7 +207,7 @@ ConnectionInfo::require_method(int allowed_methods)
     }
     response.add_header("Allow", allowed);
 
-    respond();
+    respond(response);
     return false;
 }
 

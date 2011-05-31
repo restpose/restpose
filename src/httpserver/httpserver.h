@@ -49,7 +49,6 @@ class Response {
     int status_code;
 
     std::string outbuf;
-    std::string content_type;
 
     Response(const Response &);
     void operator=(const Response &);
@@ -58,7 +57,7 @@ class Response {
     ~Response();
     void set_status(int status_code_);
     void set_data(const std::string & outbuf_);
-    void set_content_type(std::string content_type_);
+    void set_content_type(std::string content_type);
     void add_header(std::string header, std::string value);
 
     struct MHD_Response * get_response();
@@ -85,8 +84,6 @@ struct ConnectionInfo {
     /// The handler assigned to deal with this request.
     Handler * handler;
 
-    Response response;
-
     ConnectionInfo(struct MHD_Connection * connection_,
 		   const char * method_str,
 		   const char * url_,
@@ -103,7 +100,7 @@ struct ConnectionInfo {
      *  The connection.response object should have the response set in it
      *  before this is called.
      */
-    void respond();
+    void respond(Response & response);
 
     /** Respond to a request.
      *
