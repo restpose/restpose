@@ -30,9 +30,9 @@
 
 /* Forward declarations */
 struct MHD_Daemon;
-struct MHD_Response;
 class Handler;
 class Router;
+class Response;
 
 enum HTTPMethod {
     HTTP_UNKNOWN,
@@ -43,52 +43,6 @@ enum HTTPMethod {
     HTTP_PUT = 8,
     HTTP_DELETE = 16,
     HTTP_METHODMASK_MAX = 31 // Set this to the bitwise or of all HTTPMethod values.
-};
-
-class Response {
-    struct MHD_Response * response;
-    int status_code;
-
-    std::string outbuf;
-
-    Response(const Response &);
-    void operator=(const Response &);
-  public:
-    Response();
-    ~Response();
-
-    /// Set the status code for the response.
-    void set_status(int status_code_);
-
-    /** Set the response body from a string.
-     *
-     *  This clears any headers which have been set already.
-     */
-    void set_data(const std::string & outbuf_);
-
-    /** Set the content type for the response.
-     *
-     *  This is just a shortcut for calling add_header to set the content type.
-     */
-    void set_content_type(std::string content_type);
-
-    /** Add a header to the response.
-     *
-     *  The response body must be set (for example, using set_data()) before
-     *  this is called.
-     */
-    void add_header(std::string header, std::string value);
-
-    /** Set a JSON response.
-     *
-     *  This sets the response body to be the serialised JSON value, sets the
-     *  content type to application/json, and sets the status code to the value
-     *  supplied.
-     */
-    void set(const Json::Value & body, int status_code_ = 200);
-
-    struct MHD_Response * get_response();
-    int get_status_code() const;
 };
 
 struct ConnectionInfo {

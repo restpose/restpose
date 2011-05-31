@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include "httpserver.h"
+#include "response.h"
 
 #include <cstdarg>
 #include <cstdio>
