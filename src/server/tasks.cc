@@ -70,7 +70,7 @@ void
 CollInfoTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
-    result["doc_count"] = collection->doc_count();
+    result["doc_count"] = Json::UInt64(collection->doc_count());
     Json::Value & types(result["types"] = Json::objectValue);
     // FIXME - set types to a map from typenames in the collection to their schemas.
     (void) types;

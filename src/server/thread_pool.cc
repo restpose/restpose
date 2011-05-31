@@ -81,5 +81,5 @@ void
 ThreadPool::get_status(Json::Value & status) const
 {
     ContextLocker lock(mutex);
-    status["size"] = uint64_t(threads.size());
+    status["size"] = Json::UInt64(threads.size());
 }

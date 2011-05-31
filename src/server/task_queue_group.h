@@ -474,7 +474,7 @@ class TaskQueueGroup {
 	for (std::map<std::string, QueueInfo>::const_iterator
 	     i = queues.begin(); i != queues.end(); ++i) {
 	    Json::Value & queue_val(result[i->first] = Json::objectValue);
-	    queue_val["size"] = uint64_t(i->second.queue.size());
+	    queue_val["size"] = Json::UInt64(i->second.queue.size());
 	    queue_val["active"] = i->second.active;
 	    queue_val["assigned"] = i->second.assigned;
 	}
