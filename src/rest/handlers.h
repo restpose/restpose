@@ -26,6 +26,11 @@
 
 #include "rest/handler.h"
 
+class RootHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
 class FileHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;

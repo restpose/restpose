@@ -34,7 +34,8 @@ using namespace RestPose;
 void
 setup_routes(Router & router)
 {
-    router.add("/", HTTP_GETHEAD, new FileHandlerFactory);
+    router.add("/", HTTP_GETHEAD, new RootHandlerFactory);
+    router.add("/static/*", HTTP_GETHEAD, new FileHandlerFactory);
     router.add("/status", HTTP_GETHEAD, new ServerStatusHandlerFactory);
     router.add("/coll/?", HTTP_GETHEAD, new CollInfoHandlerFactory);
     router.add("/coll/?", HTTP_PUT, new CollCreateHandlerFactory);

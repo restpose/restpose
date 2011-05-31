@@ -37,21 +37,22 @@ using namespace RestPose;
 #define DIR_SEPARATOR "/"
 
 Handler *
+RootHandlerFactory::create(const vector<string> &) const
+{
+    return new FileHandler("static" DIR_SEPARATOR "index.html");
+}
+
+Handler *
 FileHandlerFactory::create(const vector<string> &path_params) const
 {
-    string filepath;
-    bool need_sep = false;
+    string filepath("static" DIR_SEPARATOR "static");
     for (vector<string>::const_iterator i = path_params.begin();
 	 i != path_params.end(); ++i) {
+	filepath += DIR_SEPARATOR;
 	filepath += *i;
-	if (need_sep) {
-	    filepath += DIR_SEPARATOR;
-	}
-	need_sep = true;
     }
     
-    auto_ptr<FileHandler> result(new FileHandler(filepath));
-    return result.release();
+    return new FileHandler(filepath);
 }
 
 Queue::QueueState
