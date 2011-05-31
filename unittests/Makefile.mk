@@ -22,6 +22,8 @@ unittest_SOURCES += \
 
 unittest_LDADD = \
  libserver.a \
+ libhttpserver.a \
+ librest.a \
  libjsonxapian.a \
  libngramcat.a \
  libjsonmanip.a \
@@ -32,6 +34,7 @@ unittest_LDADD = \
  libunittestpp.a \
  libmatchspies.a \
  libxapiancommon.a \
+ libs/libmicrohttpd/src/daemon/libmicrohttpd.la \
  $(XAPIAN_LIBS)
 
 unittest_LDFLAGS = \
