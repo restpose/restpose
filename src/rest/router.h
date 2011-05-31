@@ -35,6 +35,12 @@ class HandlerFactory;
 class Server;
 class TaskManager;
 
+/** Define how to handle routing requests at a level of the path hierarchy.
+ *
+ *  This handles routing requests with further components to an appropriate
+ *  sub-RouteLevel object, and handles routing based on HTTP method for
+ *  requests with no further components.
+ */
 class RouteLevel {
     /** Level number.
      *
@@ -74,6 +80,10 @@ class RouteLevel {
      */
     const HandlerFactory * get(ConnectionInfo & conn,
 			       std::vector<std::string> & path_params) const;
+
+    /** Get a handler factory at this level for a given method.
+     */
+    const HandlerFactory * get_method(ConnectionInfo & conn) const;
 };
 
 class Router {

@@ -36,6 +36,25 @@
 using namespace std;
 using namespace RestPose;
 
+const HandlerFactory *
+RouteLevel::get_method(ConnectionInfo & conn) const
+{
+    if (allowed_methods == 0) {
+	return NULL;
+    }
+    if (!conn.require_method(allowed_methods)) {
+	return NULL;
+    }
+    map<int, const HandlerFactory *>::const_iterator 
+	    i = handlers.find(conn.method);
+    if (i == handlers.end()) {
+	// Shouldn't happen; the check on allowed_methods earlier should
+	// catch this.
+	return NULL;
+    }
+    return i->second;
+}
+
 RouteLevel::~RouteLevel()
 {
     for (std::map<int, const HandlerFactory *>::const_iterator
@@ -112,17 +131,7 @@ RouteLevel::get(ConnectionInfo & conn,
 		std::vector<std::string> & path_params) const
 {
     if (conn.components.size() == level) {
-	if (!conn.require_method(allowed_methods)) {
-	    return NULL;
-	}
-	map<int, const HandlerFactory *>::const_iterator 
-		i = handlers.find(conn.method);
-	if (i == handlers.end()) {
-	    // Shouldn't happen; the check on allowed_methods earlier should
-	    // catch this.
-	    return NULL;
-	}
-	return i->second;
+	return get_method(conn);
     }
 
     // Check for an exact match at this level.
@@ -131,13 +140,23 @@ RouteLevel::get(ConnectionInfo & conn,
     if (i == routes.end()) {
 	i = routes.find("?");
     }
-    if (i == routes.end()) {
-	return NULL;
+    if (i != routes.end()) {
+	if (i->first == "?") {
+	    path_params.push_back(conn.components[level]);
+	}
+	const HandlerFactory * result = i->second->get(conn, path_params);
+	if (result != NULL || conn.responded) {
+	    return result;
+	}
     }
-    if (i->first == "?") {
-	path_params.push_back(conn.components[level]);
+    i = routes.find("*");
+    if (i != routes.end()) {
+	for (unsigned l = level; l != conn.components.size(); ++l) {
+	    path_params.push_back(conn.components[l]);
+	}
+	return i->second->get_method(conn);
     }
-    return i->second->get(conn, path_params);
+    return NULL;
 }
 
 Handler *
