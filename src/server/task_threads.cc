@@ -54,8 +54,10 @@ ProcessingThread::run()
 	    }
 	}
 
-	Task * task = queuegroup.pop_any(coll_name);
-	std::auto_ptr<Task> taskptr(task);
+	Task * newtask = queuegroup.pop_any(coll_name, task, coll_name);
+	delete task;
+	task = newtask;
+
 	if (!task) {
 	    // Queue has been closed, and is empty.
 	    return;
@@ -64,7 +66,7 @@ ProcessingThread::run()
 	ProcessingTask * colltask = static_cast<ProcessingTask *>(task);
 	if (collection == NULL) {
 	    collection = pool.get_readonly(coll_name);
-	} else if (collection->get_name() == coll_name) {
+	} else if (collection->get_name() != coll_name) {
 	    Collection * tmp = collection;
 	    collection = NULL;
 	    pool.release(tmp);
@@ -109,8 +111,14 @@ IndexingThread::run()
 
 	while (true) {
 	    bool is_finished;
-	    Task * task = queuegroup.pop_from(coll_name,
-		RealTime::now() + commit_after_idle, is_finished);
+
+	    Task * newtask = queuegroup.pop_from(coll_name,
+		RealTime::now() + commit_after_idle, is_finished,
+		task, last_coll_name);
+	    delete task;
+	    task = newtask;
+	    last_coll_name = coll_name;
+
 	    if (is_finished) {
 		// Queue has been closed, and is empty.
 		return;
@@ -119,7 +127,6 @@ IndexingThread::run()
 		// Timeout
 		break;
 	    }
-	    std::auto_ptr<Task> taskptr(task);
 	    IndexingTask * colltask = static_cast<IndexingTask *>(task);
 	    colltask->perform(*collection);
 	}
@@ -157,8 +164,10 @@ SearchThread::run()
 	}
 
 	string group_name;
-	Task * task = queuegroup.pop_any(group_name);
-	std::auto_ptr<Task> taskptr(task);
+	Task * newtask = queuegroup.pop_any(group_name, task, coll_name);
+	delete task;
+	task = newtask;
+
 	if (!task) {
 	    // Queue has been closed, and is empty.
 	    return;

@@ -76,6 +76,10 @@ class ProcessingThread : public TaskThread {
      */
     TaskManager * taskman;
 
+    /** The task being performed.
+     */
+    Task * task;
+
   public:
     /** Create an indexer for a collection.
      */
@@ -83,8 +87,14 @@ class ProcessingThread : public TaskThread {
 		     CollectionPool & pool_,
 		     TaskManager * taskman_)
 	    : TaskThread(queuegroup_, pool_),
-	      taskman(taskman_)
+	      taskman(taskman_),
+	      task(NULL)
     {}
+
+    ~ProcessingThread()
+    {
+	delete task;
+    }
 
     /* Standard thread methods. */
     void run();
@@ -98,13 +108,27 @@ class IndexingThread : public TaskThread {
      */
     std::string coll_name;
 
+    /** The task being performed.
+     */
+    Task * task;
+
+    /** The name of the collection for the task being performed.
+     */
+    std::string last_coll_name;
+
   public:
     /** Create an indexer for a collection.
      */
     IndexingThread(TaskQueueGroup & queuegroup_,
 		  CollectionPool & pool_)
-	    : TaskThread(queuegroup_, pool_)
+	    : TaskThread(queuegroup_, pool_),
+	      task(NULL)
     {}
+
+    ~IndexingThread()
+    {
+	delete task;
+    }
 
     /* Standard thread methods. */
     void run();
@@ -118,12 +142,22 @@ class SearchThread : public TaskThread {
      */
     std::string coll_name;
 
+    /** The task being performed.
+     */
+    Task * task;
+
   public:
     /** Create an indexer for a collection.
      */
     SearchThread(TaskQueueGroup & queuegroup_, CollectionPool & pool_)
-	    : TaskThread(queuegroup_, pool_)
+	    : TaskThread(queuegroup_, pool_),
+	      task(NULL)
     {}
+
+    ~SearchThread()
+    {
+	delete task;
+    }
 
     /* Standard thread methods. */
     void run();
