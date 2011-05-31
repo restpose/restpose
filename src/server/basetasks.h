@@ -89,7 +89,7 @@ class ReadonlyCollTask : public ReadonlyTask {
 
 /** A task for the processing queue for a collection.
  */
-class CollProcessTask : public Task {
+class ProcessingTask : public Task {
   public:
     virtual void perform(RestPose::Collection & collection,
 			 TaskManager * taskman) = 0;
@@ -97,20 +97,21 @@ class CollProcessTask : public Task {
 
 /** A task for the indexing queue for a collection.
  */
-class CollIndexTask : public Task {
+class IndexingTask : public Task {
   public:
     virtual void perform(RestPose::Collection & collection) = 0;
+    virtual IndexingTask * clone() const = 0;
 };
 
-/** A wrapper around a CollIndexTask.
+/** A wrapper around a IndexingTask.
  *
  *  This is used to place it on the processing queue, to allow processing tasks
  *  which have to happen before / after it to be sequenced correctly.
  */
-class DelayedCollIndexTask : public CollProcessTask {
-    CollIndexTask * task;
+class DelayedIndexingTask : public ProcessingTask {
+    IndexingTask * task;
   public:
-    DelayedCollIndexTask(CollIndexTask * task_)
+    DelayedIndexingTask(IndexingTask * task_)
 	    : task(task_)
     {}
 

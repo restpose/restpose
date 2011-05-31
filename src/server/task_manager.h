@@ -130,14 +130,39 @@ class TaskManager : public SubServer {
     Queue::QueueState queue_readonly(const std::string & queue,
 				     ReadonlyTask * task);
 
+    /** Queue an indexing task from a processing task, on the named queue.
+     *
+     *  If the indexing queue is full, this will block until the queue has
+     *  space.  It will also disable processing of items from the corresponding
+     *  processing queue until the indexing queue size drops to the lower
+     *  threshold.
+     */
+    void queue_indexing_from_processing(const std::string & queue,
+					IndexingTask * task);
+
+    /** Queue an indexing task.
+     */
+    Queue::QueueState queue_indexing(const std::string & queue,
+				     IndexingTask * task,
+				     bool allow_throttle);
+
+    /** Queue a processing task.
+     */
+    Queue::QueueState queue_processing(const std::string & queue,
+				       ProcessingTask * task,
+				       bool allow_throttle);
+
+
     /** Queue getting information about the server status.
      */
-    Queue::QueueState queue_get_status(const RestPose::ResultHandle & resulthandle);
+    Queue::QueueState queue_get_status(
+	const RestPose::ResultHandle & resulthandle);
 
     /** Queue getting information about a collection.
      */
-    Queue::QueueState queue_get_collinfo(const std::string & collection,
-					 const RestPose::ResultHandle & resulthandle);
+    Queue::QueueState queue_get_collinfo(
+	const std::string & collection,
+	const RestPose::ResultHandle & resulthandle);
 
     /** Queue for searching a collection.
      */
@@ -154,11 +179,6 @@ class TaskManager : public SubServer {
     void queue_index_processed_doc(const std::string & collection,
 				   Xapian::Document xdoc,
 				   const std::string & idterm);
-
-    /** Queue setting the schema for a collection.
-     */
-    Queue::QueueState queue_set_schema(const std::string & collection,
-				       const Json::Value & schema);
 
     Queue::QueueState queue_pipe_document(const std::string & collection,
 					  const std::string & pipe,

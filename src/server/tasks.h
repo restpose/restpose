@@ -79,7 +79,7 @@ class ServerStatusTask : public ReadonlyTask {
 
 
 /// Process a JSON document via a pipe.
-class ProcessorPipeDocumentTask : public CollProcessTask {
+class ProcessorPipeDocumentTask : public ProcessingTask {
     /// The pipe to send the document to.
     std::string pipe;
 
@@ -98,7 +98,7 @@ class ProcessorPipeDocumentTask : public CollProcessTask {
 };
 
 /// Process a JSON document.
-class ProcessorProcessDocumentTask : public CollProcessTask {
+class ProcessorProcessDocumentTask : public ProcessingTask {
     /// The type of the document to process.
     std::string type;
 
@@ -117,7 +117,7 @@ class ProcessorProcessDocumentTask : public CollProcessTask {
 };
 
 /// Add or update a document.
-class IndexerUpdateDocumentTask : public CollIndexTask {
+class IndexerUpdateDocumentTask : public IndexingTask {
     /// The unique ID term for the document.
     std::string idterm;
 
@@ -132,10 +132,13 @@ class IndexerUpdateDocumentTask : public CollIndexTask {
 
     /// Perform the indexing task, given a collection (open for writing).
     void perform(RestPose::Collection & collection);
+
+    /// Clone the task.
+    IndexingTask * clone() const;
 };
 
 /// Delete a document.
-class IndexerDeleteDocumentTask : public CollIndexTask {
+class IndexerDeleteDocumentTask : public IndexingTask {
     /// The unique ID term for the document.
     std::string idterm;
 
@@ -146,16 +149,22 @@ class IndexerDeleteDocumentTask : public CollIndexTask {
 
     /// Perform the indexing task, given a collection (open for writing).
     void perform(RestPose::Collection & collection);
+
+    /// Clone the task.
+    IndexingTask * clone() const;
 };
 
 /// Commit changes.
-class IndexerCommitTask : public CollIndexTask {
+class IndexerCommitTask : public IndexingTask {
   public:
     IndexerCommitTask()
     {}
 
     /// Perform the indexing task, given a collection (open for writing).
     void perform(RestPose::Collection & collection);
+
+    /// Clone the task.
+    IndexingTask * clone() const;
 };
 
 #endif /* RESTPOSE_INCLUDED_TASKS_H */

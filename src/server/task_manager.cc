@@ -92,53 +92,12 @@ TaskManager::queue_readonly(const std::string & queue, ReadonlyTask * task)
     return search_queues.push(queue, taskptr.release(), false);
 }
 
-Queue::QueueState
-TaskManager::queue_get_status(const RestPose::ResultHandle & resulthandle)
-{
-    {
-	ContextLocker lock(cond);
-	if (stopping) {
-	    return Queue::CLOSED;
-	}
-    }
-    return search_queues.push("status",
-	new ServerStatusTask(resulthandle, this), false);
-}
-
-Queue::QueueState
-TaskManager::queue_get_collinfo(const std::string & collection,
-				const RestPose::ResultHandle & resulthandle)
-{
-    {
-	ContextLocker lock(cond);
-	if (stopping) {
-	    return Queue::CLOSED;
-	}
-    }
-    return search_queues.push("info",
-	new CollInfoTask(resulthandle, collection), false);
-}
-
-Queue::QueueState
-TaskManager::queue_search(const std::string & collection,
-			  const RestPose::ResultHandle & resulthandle,
-			  const Json::Value & search)
-{
-    {
-	ContextLocker lock(cond);
-	if (stopping) {
-	    return Queue::CLOSED;
-	}
-    }
-    return search_queues.push("search",
-	new PerformSearchTask(resulthandle, collection, search), false);
-}
-
 void
-TaskManager::queue_index_processed_doc(const std::string & collection,
-				       Xapian::Document xdoc,
-				       const std::string & idterm)
+TaskManager::queue_indexing_from_processing(const std::string & queue,
+					    IndexingTask * task)
 {
+    auto_ptr<IndexingTask> taskptr(task);
+
     // Lock the processing queues while we try adding to the indexing queue,
     // to avoid a race condition when the indexing queue is full and we set the
     // processing queue to inactive.
@@ -147,19 +106,19 @@ TaskManager::queue_index_processed_doc(const std::string & collection,
     // Try adding the xapian document to the queue; block if the queue gets
     // full, but give up if the queue is closed.
     while (true) {
-    Queue::QueueState state = indexing_queues.push(collection,
-	    new IndexerUpdateDocumentTask(idterm, xdoc), false);
+	Queue::QueueState state =
+		indexing_queues.push(queue, taskptr->clone(), false);
 	switch (state) {
 	    case Queue::HAS_SPACE:
 		return;
 	    case Queue::LOW_SPACE:
 		// Disable this queue, to avoid processing items in it until
 		// the corresponding indexer queue is no longer overloaded.
-		processing_queues.set_inactive_internal(collection);
+		processing_queues.set_inactive_internal(queue);
 		return;
 	    case Queue::FULL:
 		// Continue the loop
-		processing_queues.set_inactive_internal(collection);
+		processing_queues.set_inactive_internal(queue);
 		processing_queues.cond.wait();
 		break;
 	    case Queue::CLOSED:
@@ -167,9 +126,74 @@ TaskManager::queue_index_processed_doc(const std::string & collection,
 		// and then wait for them to empty before closing the indexer
 		// queues.
 		// FIXME - log that data has been dropped.
+		fprintf(stderr, "Indexing queue closed early - dropped a task");
 		return;
 	}
     }
+}
+
+Queue::QueueState
+TaskManager::queue_indexing(const string & queue,
+			    IndexingTask * task,
+			    bool allow_throttle)
+{
+    auto_ptr<IndexingTask> taskptr(task);
+    {
+	ContextLocker lock(cond);
+	if (stopping) {
+	    return Queue::CLOSED;
+	}
+    }
+    return indexing_queues.push(queue, taskptr.release(), allow_throttle);
+}
+
+Queue::QueueState
+TaskManager::queue_processing(const string & queue,
+			      ProcessingTask * task,
+			      bool allow_throttle)
+{
+    auto_ptr<ProcessingTask> taskptr(task);
+    {
+	ContextLocker lock(cond);
+	if (stopping) {
+	    return Queue::CLOSED;
+	}
+    }
+    return processing_queues.push(queue, taskptr.release(), allow_throttle);
+}
+
+
+Queue::QueueState
+TaskManager::queue_get_status(const RestPose::ResultHandle & resulthandle)
+{
+    return queue_readonly("status",
+	new ServerStatusTask(resulthandle, this));
+}
+
+Queue::QueueState
+TaskManager::queue_get_collinfo(const std::string & collection,
+				const RestPose::ResultHandle & resulthandle)
+{
+    return queue_readonly("info",
+	new CollInfoTask(resulthandle, collection));
+}
+
+Queue::QueueState
+TaskManager::queue_search(const std::string & collection,
+			  const RestPose::ResultHandle & resulthandle,
+			  const Json::Value & search)
+{
+    return queue_readonly("search",
+	new PerformSearchTask(resulthandle, collection, search));
+}
+
+void
+TaskManager::queue_index_processed_doc(const std::string & collection,
+				       Xapian::Document xdoc,
+				       const std::string & idterm)
+{
+    return queue_indexing_from_processing(collection,
+	new IndexerUpdateDocumentTask(idterm, xdoc));
 }
 
 Queue::QueueState

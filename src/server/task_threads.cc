@@ -61,7 +61,7 @@ ProcessingThread::run()
 	    return;
 	}
 
-	CollProcessTask * colltask = static_cast<CollProcessTask *>(task);
+	ProcessingTask * colltask = static_cast<ProcessingTask *>(task);
 	if (collection == NULL) {
 	    collection = pool.get_readonly(coll_name);
 	} else if (collection->get_name() == coll_name) {
@@ -120,7 +120,7 @@ IndexingThread::run()
 		break;
 	    }
 	    std::auto_ptr<Task> taskptr(task);
-	    CollIndexTask * colltask = static_cast<CollIndexTask *>(task);
+	    IndexingTask * colltask = static_cast<IndexingTask *>(task);
 	    colltask->perform(*collection);
 	}
 

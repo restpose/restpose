@@ -134,14 +134,32 @@ IndexerUpdateDocumentTask::perform(RestPose::Collection & collection)
     collection.raw_update_doc(doc, idterm);
 }
 
+IndexingTask *
+IndexerUpdateDocumentTask::clone() const
+{
+    return new IndexerUpdateDocumentTask(idterm, doc);
+}
+
 void
 IndexerDeleteDocumentTask::perform(RestPose::Collection & collection)
 {
     collection.raw_delete_doc(idterm);
 }
 
+IndexingTask *
+IndexerDeleteDocumentTask::clone() const
+{
+    return new IndexerDeleteDocumentTask(idterm);
+}
+
 void
 IndexerCommitTask::perform(RestPose::Collection & collection)
 {
     collection.commit();
+}
+
+IndexingTask *
+IndexerCommitTask::clone() const
+{
+    return new IndexerCommitTask();
 }

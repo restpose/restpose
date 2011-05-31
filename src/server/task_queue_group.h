@@ -38,6 +38,8 @@
 
 class TaskManager;
 
+// FIXME - no good reason why most of this class is implemented in the header file.
+
 /** A group of queues of tasks, keyed by a name.
  */
 class TaskQueueGroup {
@@ -290,15 +292,18 @@ class TaskQueueGroup {
 
 	while(true) {
 	    if (closed) {
+		// printf("CLOSED %s\n", key.c_str());
 		return Queue::CLOSED;
 	    }
 
 	    if ((allow_throttle && (queue.queue.size() >= throttle_size)) ||
 		(!allow_throttle && (queue.queue.size() >= max_size))) {
 		if (end_time == 0.0) {
+		    // printf("FULL %s\n", key.c_str());
 		    return Queue::FULL;
 		} else {
 		    if (cond.timedwait(end_time)) {
+			// printf("FULL + TIMEOUT %s\n", key.c_str());
 			return Queue::FULL;
 		    }
 		    continue;
@@ -317,6 +322,7 @@ class TaskQueueGroup {
 	    result = Queue::LOW_SPACE;
 	}
 	cond.broadcast();
+	// printf("PUSHED: %s %d items%s\n", key.c_str(), size, result == Queue::LOW_SPACE ? " (low space)" : "");
 	return result;
     }
 
