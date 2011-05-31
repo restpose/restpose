@@ -165,30 +165,6 @@ TaskManager::queue_processing(const string & queue,
 }
 
 
-Queue::QueueState
-TaskManager::queue_get_status(const RestPose::ResultHandle & resulthandle)
-{
-    return queue_readonly("status",
-	new ServerStatusTask(resulthandle, this));
-}
-
-Queue::QueueState
-TaskManager::queue_get_collinfo(const std::string & collection,
-				const RestPose::ResultHandle & resulthandle)
-{
-    return queue_readonly("info",
-	new CollInfoTask(resulthandle, collection));
-}
-
-Queue::QueueState
-TaskManager::queue_search(const std::string & collection,
-			  const RestPose::ResultHandle & resulthandle,
-			  const Json::Value & search)
-{
-    return queue_readonly("search",
-	new PerformSearchTask(resulthandle, collection, search));
-}
-
 void
 TaskManager::queue_index_processed_doc(const std::string & collection,
 				       Xapian::Document xdoc,

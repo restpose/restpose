@@ -154,23 +154,6 @@ class TaskManager : public SubServer {
 				       double end_time=0.0);
 
 
-    /** Queue getting information about the server status.
-     */
-    Queue::QueueState queue_get_status(
-	const RestPose::ResultHandle & resulthandle);
-
-    /** Queue getting information about a collection.
-     */
-    Queue::QueueState queue_get_collinfo(
-	const std::string & collection,
-	const RestPose::ResultHandle & resulthandle);
-
-    /** Queue for searching a collection.
-     */
-    Queue::QueueState queue_search(const std::string & collection,
-				   const RestPose::ResultHandle & resulthandle,
-				   const Json::Value & search);
-
     /** Queue a document for indexing.
      *
      *  This is intended to be called from the output of processing.
