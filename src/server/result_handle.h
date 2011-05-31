@@ -55,6 +55,9 @@ class ResultHandle {
     void set_nudge(int nudge_fd, char nudge_byte);
 
     /** Get a reference to the response object.
+     *
+     *  This reference should only be used by the preparing thread before
+     *  set_ready() has been called.
      */
     Response & response();
 
@@ -62,26 +65,7 @@ class ResultHandle {
      *
      *  This is intended for use by the waiting thread.
      */
-    const std::string * get_result() const;
-
-    /** Get a reference to the result.
-     *
-     *  This is indended for use by the preparing thread, before is_ready is
-     *  set to true.
-     */
-    Json::Value & result_target();
-
-    /** Set the status code.
-     *
-     *  This should only be called before set_ready() has been called.
-     */
-    void set_status(int status_code);
-
-    /** Get the status code.
-     *
-     *  This should only be called after get_result() has returned non NULL.
-     */
-    int get_status() const;
+    Response * get_result() const;
 
     /** Mark the result as ready.
      *

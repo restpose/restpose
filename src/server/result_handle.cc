@@ -25,7 +25,7 @@
 #include <config.h>
 #include "server/result_handle.h"
 
-#include "httpserver/httpserver.h"
+#include "httpserver/response.h"
 #include "utils/io_wrappers.h"
 
 using namespace RestPose;
@@ -92,34 +92,20 @@ Response & ResultHandle::response() {
     return internal->response;
 }
 
-const std::string * ResultHandle::get_result() const {
+Response * ResultHandle::get_result() const {
     ContextLocker lock(internal->mutex);
     if (internal->is_ready) {
-	internal->value = json_serialise(internal->value_);
-	return &internal->value;
+	return &(internal->response);
     } else {
 	return NULL;
     }
-}
-
-Json::Value &
-ResultHandle::result_target() {
-    return internal->value_;
-}
-
-void
-ResultHandle::set_status(int status_code) {
-    internal->status_code = status_code;
-}
-
-int 
-ResultHandle::get_status() const {
-    return internal->status_code;
 }
 
 void
 ResultHandle::set_ready() {
     ContextLocker lock(internal->mutex);
     internal->is_ready = true;
+    lock.unlock();
+    // Unlock before writing, just in case the io_write_byte() blocks.
     (void) io_write_byte(internal->nudge_fd, internal->nudge_byte);
 }
