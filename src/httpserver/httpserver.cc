@@ -95,7 +95,7 @@ Response::add_header(string header, string value)
     if (MHD_add_response_header(response,
 				header.c_str(),
 				value.c_str()) == MHD_NO) {
-	throw RestPose::HTTPServerError("Can't set header '" + header + "'");
+	throw RestPose::HTTPServerError("Can't set header '" + header + "' to '" + value + "'");
     }
 }
 
@@ -251,10 +251,14 @@ answer_connection_cb(void * cls,
 	server->answer(*conn_info);
 	return MHD_YES;
     } catch(RestPose::Error & e) {
+	// FIXME log
+	fprintf(stderr, "RestPose::Error(): %s\n", e.what());
 	return MHD_NO;
     } catch(Xapian::Error & e) {
+	fprintf(stderr, "Xapian::Error(): %s\n", e.get_description().c_str());
 	return MHD_NO;
     } catch(bad_alloc) {
+	fprintf(stderr, "bad_alloc\n");
 	return MHD_NO;
     }
 }
