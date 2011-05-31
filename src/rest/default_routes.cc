@@ -34,12 +34,13 @@ using namespace RestPose;
 void
 setup_routes(Router & router)
 {
-    router.add("/status", HTTP_GETHEAD, new ServerStatusHandler);
-    router.add("/coll/?", HTTP_GETHEAD, new CollInfoHandler);
-    router.add("/coll/?", HTTP_PUT, new CollCreateHandler);
-    //router.add("/coll/?/type/?", HTTP_GET, new GetDocumentHandler);
-    //router.add("/coll/?/type/?", HTTP_POST, new IndexDocumentHandler);
-    router.add("/coll/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandler);
-    //router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandler);
-    router.set_default(new NotFoundHandler);
+    router.add("/", HTTP_GETHEAD, new FileHandlerFactory);
+    router.add("/status", HTTP_GETHEAD, new ServerStatusHandlerFactory);
+    router.add("/coll/?", HTTP_GETHEAD, new CollInfoHandlerFactory);
+    router.add("/coll/?", HTTP_PUT, new CollCreateHandlerFactory);
+    //router.add("/coll/?/type/?", HTTP_GET, new GetDocumentHandlerFactory);
+    //router.add("/coll/?/type/?", HTTP_POST, new IndexDocumentHandlerFactory);
+    router.add("/coll/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
+    //router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
+    router.set_default(new NotFoundHandlerFactory);
 }

@@ -38,11 +38,11 @@ using namespace RestPose;
 
 RouteLevel::~RouteLevel()
 {
-    for (std::map<int, const Handler *>::const_iterator i = handlers.begin();
-	 i != handlers.end(); ++i) {
-	const Handler * ptr = i->second;
-	for (std::map<int, const Handler *>::iterator j = handlers.begin();
-	     j != handlers.end(); ++j) {
+    for (std::map<int, const HandlerFactory *>::const_iterator
+	 i = handlers.begin(); i != handlers.end(); ++i) {
+	const HandlerFactory * ptr = i->second;
+	for (std::map<int, const HandlerFactory *>::iterator
+	     j = handlers.begin(); j != handlers.end(); ++j) {
 	    if (j->second == ptr) {
 		j->second = NULL;
 	    }
@@ -58,9 +58,9 @@ RouteLevel::~RouteLevel()
 void
 RouteLevel::add(const std::string & path_pattern,
 		size_t pattern_offset,
-		int methods, const Handler * handler_)
+		int methods, const HandlerFactory * handler_)
 {
-    auto_ptr<const Handler> handler(handler_);
+    auto_ptr<const HandlerFactory> handler(handler_);
     if (pattern_offset != path_pattern.size()) {
 	// Add or update the entry in the routes map
 
@@ -107,7 +107,7 @@ RouteLevel::add(const std::string & path_pattern,
     allowed_methods |= methods;
 }
 
-const Handler *
+const HandlerFactory *
 RouteLevel::get(ConnectionInfo & conn,
 		std::vector<std::string> & path_params) const
 {
@@ -115,7 +115,7 @@ RouteLevel::get(ConnectionInfo & conn,
 	if (!conn.require_method(allowed_methods)) {
 	    return NULL;
 	}
-	map<int, const Handler *>::const_iterator 
+	map<int, const HandlerFactory *>::const_iterator 
 		i = handlers.find(conn.method);
 	if (i == handlers.end()) {
 	    // Shouldn't happen; the check on allowed_methods earlier should
@@ -145,19 +145,19 @@ Router::route_find(ConnectionInfo & conn) const
 {
     conn.parse_url_components();
     vector<string> path_params;
-    const Handler * prototype = routes.get(conn, path_params);
+    const HandlerFactory * factory = routes.get(conn, path_params);
     if (conn.responded) {
 	// Happens when routing finds the method isn't valid for the
 	// resource.
-	Assert(prototype == NULL);
+	Assert(factory == NULL);
 	return NULL;
     }
-    if (prototype == NULL) {
+    if (factory == NULL) {
 	path_params.clear();
-	prototype = default_handler;
+	factory = default_handler;
     }
-    if (prototype != NULL) {
-	return prototype->create(path_params);
+    if (factory != NULL) {
+	return factory->create(path_params);
     } else {
 	return NULL;
     } 
@@ -177,19 +177,17 @@ Router::~Router()
 }
 
 void
-Router::add(const std::string & path_pattern, int methods, Handler * handler)
+Router::add(const std::string & path_pattern, int methods,
+	    HandlerFactory * handler)
 {
-    auto_ptr<Handler> handler_ptr(handler);
-    handler_ptr->set_context(taskman, server);
-    routes.add(path_pattern, 0, methods, handler_ptr.release());
+    routes.add(path_pattern, 0, methods, handler);
 }
 
 void
-Router::set_default(Handler * handler)
+Router::set_default(HandlerFactory * handler)
 {
     delete default_handler;
     default_handler = handler;
-    handler->set_context(taskman, server);
 }
 
 Handler *

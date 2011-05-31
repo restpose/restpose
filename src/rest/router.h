@@ -31,6 +31,7 @@
 
 class ConnectionInfo;
 class Handler;
+class HandlerFactory;
 class Server;
 class TaskManager;
 
@@ -48,7 +49,7 @@ class RouteLevel {
 
     /** Handlers, by HTTP method.
      */
-    std::map<int, const Handler *> handlers;
+    std::map<int, const HandlerFactory *> handlers;
 
     int allowed_methods;
 
@@ -65,14 +66,14 @@ class RouteLevel {
     /** Add a handler for a given path pattern and set of methods.
      */
     void add(const std::string & path_pattern, size_t pattern_offset,
-	     int methods, const Handler * handler);
+	     int methods, const HandlerFactory * handler);
 
-    /** Get a newly created handler for a given path and method.
+    /** Get a handler factory for a given path and method.
      *
      *  Append any wildcard path components matched to path_params.
      */
-    const Handler * get(ConnectionInfo & conn,
-			std::vector<std::string> & path_params) const;
+    const HandlerFactory * get(ConnectionInfo & conn,
+			       std::vector<std::string> & path_params) const;
 };
 
 class Router {
@@ -85,7 +86,7 @@ class Router {
 
     /** Handler used if none of the routes match.
      */
-    const Handler * default_handler;
+    const HandlerFactory * default_handler;
 
     Handler * route_find(ConnectionInfo & conn) const;
   public:
@@ -93,12 +94,21 @@ class Router {
     ~Router();
 
     /** Set the handler for a given path pattern and set of methods.
+     *
+     *  The pattern may contain path components which are used for literal matches, or are one of the specified forms.
+     *
+     *   - "?": match any single path component.
+     *   - "*": match all trailing path component.  This must be the last component.
+     *
+     *  @param path_pattern The pattern for the path to match.
+     *  @param method A bitmask of HTTPMethod values to accept for this handler.
+     *  @param factory The factory to use when the pattern and method match.
      */
-    void add(const std::string & path_pattern, int methods, Handler * handler);
+    void add(const std::string & path_pattern, int methods, HandlerFactory * factory);
 
     /** Set the handler to use if no other handler matches.
      */
-    void set_default(Handler *handler);
+    void set_default(HandlerFactory *factory);
 
     /** Get a newly created handler for a connection.
      */

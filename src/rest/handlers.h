@@ -26,43 +26,88 @@
 
 #include "rest/handler.h"
 
-class StaticHandler : public QueuedHandler {
-    std::string path;
+class FileHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
+};
+
+class FileHandler : public QueuedHandler {
+    std::string path;
+  public:
+    FileHandler(const std::string & path_)
+	    : path(path_)
+    {}
+
     Queue::QueueState enqueue(const Json::Value & body) const;
+};
+
+
+class ServerStatusHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
 };
 
 class ServerStatusHandler : public QueuedHandler {
   public:
-    Handler * create(const std::vector<std::string> & path_params) const;
     Queue::QueueState enqueue(const Json::Value & body) const;
+};
+
+
+class CollCreateHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
 };
 
 class CollCreateHandler : public QueuedHandler {
     std::string coll_name;
   public:
-    Handler * create(const std::vector<std::string> & path_params) const;
+    CollCreateHandler(const std::string & coll_name_)
+	    : coll_name(coll_name_)
+    {}
+
     Queue::QueueState enqueue(const Json::Value & body) const;
+};
+
+
+class CollInfoHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
 };
 
 class CollInfoHandler : public QueuedHandler {
     std::string coll_name;
   public:
-    Handler * create(const std::vector<std::string> & path_params) const;
+    CollInfoHandler(const std::string & coll_name_)
+	    : coll_name(coll_name_)
+    {}
+
     Queue::QueueState enqueue(const Json::Value & body) const;
+};
+
+
+class SearchHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
 };
 
 class SearchHandler : public QueuedHandler {
     std::string coll_name;
   public:
-    Handler * create(const std::vector<std::string> & path_params) const;
+    SearchHandler(const std::string & coll_name_)
+	    : coll_name(coll_name_)
+    {}
+
     Queue::QueueState enqueue(const Json::Value & body) const;
+};
+
+
+class NotFoundHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
 };
 
 class NotFoundHandler : public Handler {
   public:
-    Handler * create(const std::vector<std::string> & path_params) const;
     void handle(ConnectionInfo & info);
 };
 

@@ -38,9 +38,10 @@ Handler::~Handler() {}
 
 QueuedHandler::QueuedHandler()
 	: Handler(),
-	  resulthandle(),
-	  queued(false)
-{}
+	  queued(false),
+	  resulthandle()
+{
+}
 
 /** Handle queue push status responses which correspond to the push having
  *  failed.
@@ -92,10 +93,10 @@ QueuedHandler::handle(ConnectionInfo & conn)
 	}
 	queued = true;
     } else {
-	const Json::Value * result = resulthandle.get_result();
+	const std::string * result = resulthandle.get_result();
 	if (result == NULL) {
 	    return;
 	}
-	conn.respond(resulthandle.get_status(), json_serialise(*result), "application/json");
+	conn.respond(resulthandle.get_status(), *result, "application/json");
     }
 }

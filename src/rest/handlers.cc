@@ -34,24 +34,36 @@
 using namespace std;
 using namespace RestPose;
 
+#define DIR_SEPARATOR "/"
+
 Handler *
-StaticHandler::create(const std::vector<std::string> &path_params) const
+FileHandlerFactory::create(const vector<string> &path_params) const
 {
-    std::auto_ptr<StaticHandler> result(new StaticHandler);
-    (void)path_params;
-    result->path = "static/index.html";
+    string filepath;
+    bool need_sep = false;
+    for (vector<string>::const_iterator i = path_params.begin();
+	 i != path_params.end(); ++i) {
+	filepath += *i;
+	if (need_sep) {
+	    filepath += DIR_SEPARATOR;
+	}
+	need_sep = true;
+    }
+    
+    auto_ptr<FileHandler> result(new FileHandler(filepath));
     return result.release();
 }
 
 Queue::QueueState
-StaticHandler::enqueue(const Json::Value &) const
+FileHandler::enqueue(const Json::Value &) const
 {
     return taskman->queue_readonly("static",
 	new StaticFileTask(resulthandle, path));
 }
 
+
 Handler *
-ServerStatusHandler::create(const std::vector<std::string> &) const
+ServerStatusHandlerFactory::create(const std::vector<std::string> &) const
 {
     return new ServerStatusHandler;
 }
@@ -64,11 +76,11 @@ ServerStatusHandler::enqueue(const Json::Value &) const
 }
 
 Handler *
-CollCreateHandler::create(const std::vector<std::string> & path_params) const
+CollCreateHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
 {
-    std::auto_ptr<CollCreateHandler> result(new CollCreateHandler);
-    result->coll_name = path_params[0];
-    return result.release();
+    string coll_name = path_params[0];
+    return new CollCreateHandler(coll_name);
 }
 
 Queue::QueueState
@@ -78,11 +90,11 @@ CollCreateHandler::enqueue(const Json::Value &) const
 }
 
 Handler *
-CollInfoHandler::create(const std::vector<std::string> & path_params) const
+CollInfoHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
 {
-    std::auto_ptr<CollInfoHandler> result(new CollInfoHandler);
-    result->coll_name = path_params[0];
-    return result.release();
+    string coll_name = path_params[0];
+    return new CollInfoHandler(coll_name);
 }
 
 Queue::QueueState
@@ -92,11 +104,10 @@ CollInfoHandler::enqueue(const Json::Value &) const
 }
 
 Handler *
-SearchHandler::create(const std::vector<std::string> & path_params) const
+SearchHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
-    std::auto_ptr<SearchHandler> result(new SearchHandler);
-    result->coll_name = path_params[0];
-    return result.release();
+    string coll_name = path_params[0];
+    return new SearchHandler(coll_name);
 }
 
 Queue::QueueState
@@ -106,7 +117,7 @@ SearchHandler::enqueue(const Json::Value & body) const
 }
 
 Handler *
-NotFoundHandler::create(const std::vector<std::string> &) const
+NotFoundHandlerFactory::create(const std::vector<std::string> &) const
 {
     return new NotFoundHandler;
 }

@@ -53,12 +53,6 @@ class Handler {
 
     virtual ~Handler();
 
-    /** Create a new handler, for handling this type of request, with the
-     *  specified path parameters.
-     */
-    virtual Handler *
-    create(const std::vector<std::string> & path_params) const = 0;
-
     /** Handle a request.
      *
      *  This will be called multiple times by the server, until the request has
@@ -68,12 +62,24 @@ class Handler {
     virtual void handle(ConnectionInfo & info) = 0;
 };
 
+/** Factory for creating a new handler for a request, with the specified path
+ *  parameters.
+ *
+ *  @param path_params The path components which were wildcards in the route
+ *  pattern.
+ */
+class HandlerFactory {
+  public:
+    virtual Handler * create(const std::vector<std::string> & path_params) const = 0;
+};
+
 /** Base class of handlers which put a task on a queue and wait for the
  *  response.
  */
 class QueuedHandler : public Handler {
-  protected:
-    RestPose::ResultHandle resulthandle;
+  private:
+    /** Flag used to indicate if the request has been queued.
+     */
     bool queued;
 
     /** Handle the request if the queue push failed.
@@ -82,6 +88,12 @@ class QueuedHandler : public Handler {
      */
     bool handle_queue_push_fail(Queue::QueueState state,
 				ConnectionInfo & conn);
+
+  protected:
+    /** The handle used to return the response.
+     */
+    RestPose::ResultHandle resulthandle;
+
   public:
     QueuedHandler();
     void handle(ConnectionInfo & conn);
