@@ -102,6 +102,7 @@ void
 Response::set(const Json::Value & body, int status_code_)
 {
     set_data(json_serialise(body));
+    set_content_type("application/json");
     set_status(status_code_);
 }
 
