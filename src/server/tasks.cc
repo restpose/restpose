@@ -25,10 +25,12 @@
 #include <config.h>
 #include "tasks.h"
 
+#include "httpserver/response.h"
 #include "jsonxapian/collection.h"
 #include "loadfile.h"
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
+#include "utils/stringutils.h"
 
 using namespace std;
 using namespace RestPose;
@@ -38,11 +40,28 @@ Task::~Task() {}
 void
 StaticFileTask::perform(RestPose::Collection *)
 {
+    Response & response(resulthandle.response());
     string data;
     if (load_file(path, data)) {
-	resulthandle.result_target() = data;
+	response.set_data(data);
+	if (string_endswith(path, ".html")) {
+	    response.set_content_type("text/html");
+	} else if (string_endswith(path, ".js")) {
+	    response.set_content_type("application/javascript");
+	} else if (string_endswith(path, ".css")) {
+	    response.set_content_type("text/css");
+	} else if (string_endswith(path, ".png")) {
+	    response.set_content_type("image/png");
+	} else if (string_endswith(path, ".jpg")) {
+	    response.set_content_type("image/jpeg");
+	} else {
+	    response.set_content_type("text/plain");
+	}
+	response.set_status(200);
     } else {
-	resulthandle.result_target()["err"] = "Couldn't load file";
+	Json::Value result(Json::objectValue);
+	result["err"] = "Couldn't load file" + path; // FIXME - explain the error
+	response.set(result, 404); // FIXME - only return 404 if it's a file not found error.
     }
     resulthandle.set_ready();
 }
@@ -50,26 +69,29 @@ StaticFileTask::perform(RestPose::Collection *)
 void
 CollInfoTask::perform(RestPose::Collection * collection)
 {
-    Json::Value & result(resulthandle.result_target());
+    Json::Value result(Json::objectValue);
     result["doc_count"] = collection->doc_count();
     Json::Value & types(result["types"] = Json::objectValue);
     // FIXME - set types to a map from typenames in the collection to their schemas.
     (void) types;
+
+    resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
 
 void
 PerformSearchTask::perform(RestPose::Collection * collection)
 {
-    Json::Value & result(resulthandle.result_target());
+    Json::Value result(Json::objectValue);
     collection->perform_search(search, result);
+    resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
 
 void
 ServerStatusTask::perform(RestPose::Collection *)
 {
-    Json::Value & result(resulthandle.result_target());
+    Json::Value result(Json::objectValue);
     Json::Value & tasks(result["tasks"] = Json::objectValue);
     {
 	Json::Value & indexing(tasks["indexing"] = Json::objectValue);
@@ -86,6 +108,7 @@ ServerStatusTask::perform(RestPose::Collection *)
 	taskman->search_queues.get_status(search["queues"]);
 	taskman->search_threads.get_status(search["threads"]);
     }
+    resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
 
