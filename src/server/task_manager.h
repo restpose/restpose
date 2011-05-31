@@ -150,7 +150,8 @@ class TaskManager : public SubServer {
      */
     Queue::QueueState queue_processing(const std::string & queue,
 				       ProcessingTask * task,
-				       bool allow_throttle);
+				       bool allow_throttle,
+				       double end_time=0.0);
 
 
     /** Queue getting information about the server status.

@@ -150,7 +150,8 @@ TaskManager::queue_indexing(const string & queue,
 Queue::QueueState
 TaskManager::queue_processing(const string & queue,
 			      ProcessingTask * task,
-			      bool allow_throttle)
+			      bool allow_throttle,
+			      double end_time)
 {
     auto_ptr<ProcessingTask> taskptr(task);
     {
@@ -159,7 +160,8 @@ TaskManager::queue_processing(const string & queue,
 	    return Queue::CLOSED;
 	}
     }
-    return processing_queues.push(queue, taskptr.release(), allow_throttle);
+    return processing_queues.push(queue, taskptr.release(),
+				  allow_throttle, end_time);
 }
 
 
@@ -203,15 +205,10 @@ TaskManager::queue_pipe_document(const string & collection,
 				 bool allow_throttle,
 				 double end_time)
 {
-    {
-	ContextLocker lock(cond);
-	if (stopping) {
-	    return Queue::CLOSED;
-	}
-    }
-    return processing_queues.push(collection,
-	new ProcessorPipeDocumentTask(pipe, doc), allow_throttle,
-	end_time);
+    return queue_processing(collection,
+			    new ProcessorPipeDocumentTask(pipe, doc),
+			    allow_throttle,
+			    end_time);
 }
 
 Queue::QueueState
@@ -220,13 +217,7 @@ TaskManager::queue_process_document(const string & collection,
 				    const Json::Value & doc,
 				    bool allow_throttle)
 {
-    {
-	ContextLocker lock(cond);
-	if (stopping) {
-	    return Queue::CLOSED;
-	}
-    }
-    return processing_queues.push(collection,
+    return queue_processing(collection,
 	new ProcessorProcessDocumentTask(type, doc), allow_throttle);
 }
 
@@ -236,15 +227,9 @@ TaskManager::queue_index_document(const string & collection,
 				  const string & idterm,
 				  bool allow_throttle)
 {
-    {
-	ContextLocker lock(cond);
-	if (stopping) {
-	    return Queue::CLOSED;
-	}
-    }
-    return indexing_queues.push(collection,
-				new IndexerUpdateDocumentTask(idterm, doc),
-				allow_throttle);
+    return queue_indexing(collection,
+			  new IndexerUpdateDocumentTask(idterm, doc),
+			  allow_throttle);
 }
 
 Queue::QueueState
@@ -252,30 +237,18 @@ TaskManager::queue_delete_document(const string & collection,
 				   const string & idterm,
 				   bool allow_throttle)
 {
-    {
-	ContextLocker lock(cond);
-	if (stopping) {
-	    return Queue::CLOSED;
-	}
-    }
-    return indexing_queues.push(collection,
-				new IndexerDeleteDocumentTask(idterm),
-				allow_throttle);
+    return queue_indexing(collection,
+			  new IndexerDeleteDocumentTask(idterm),
+			  allow_throttle);
 }
 
 Queue::QueueState
 TaskManager::queue_commit(const std::string & collection,
 			  bool allow_throttle)
 {
-    {
-	ContextLocker lock(cond);
-	if (stopping) {
-	    return Queue::CLOSED;
-	}
-    }
-    return indexing_queues.push(collection,
-				new IndexerCommitTask(),
-				allow_throttle);
+    return queue_indexing(collection,
+			  new IndexerCommitTask(),
+			  allow_throttle);
 }
 
 void
