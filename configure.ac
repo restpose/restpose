@@ -13,7 +13,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl Use the same version of libtool as xapian does, for convenience.
-LT_PREREQ([2.2.8])
+LT_PREREQ([2.2.6])
 LT_INIT
 
 dnl Add parameters for aclocal
