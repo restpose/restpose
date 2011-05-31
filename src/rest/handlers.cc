@@ -101,7 +101,8 @@ CollInfoHandlerFactory::create(
 Queue::QueueState
 CollInfoHandler::enqueue(const Json::Value &) const
 {
-    return taskman->queue_get_collinfo(coll_name, resulthandle);
+    return taskman->queue_readonly("info",
+	new CollInfoTask(resulthandle, coll_name));
 }
 
 Handler *
@@ -114,7 +115,8 @@ SearchHandlerFactory::create(const std::vector<std::string> & path_params) const
 Queue::QueueState
 SearchHandler::enqueue(const Json::Value & body) const
 {
-    return taskman->queue_search(coll_name, resulthandle, body);
+    return taskman->queue_readonly("search",
+	new PerformSearchTask(resulthandle, coll_name, body));
 }
 
 Handler *
