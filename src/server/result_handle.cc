@@ -25,12 +25,36 @@
 #include <config.h>
 #include "server/result_handle.h"
 
+#include "httpserver/httpserver.h"
 #include "utils/io_wrappers.h"
 
 using namespace RestPose;
 
+class ResultHandle::Internal {
+    Internal(const Internal &);
+    void operator=(const Internal &);
+  public:
+    mutable Mutex mutex;
+    mutable unsigned ref_count;
+    Response response;
+    Json::Value value_;
+    std::string value;
+    int status_code;
+    int nudge_fd;
+    char nudge_byte;
+    bool is_ready;
+
+    Internal()
+	    : ref_count(1),
+	      status_code(200),
+	      nudge_fd(-1),
+	      nudge_byte('\0'),
+	      is_ready(false) {}
+};
+
+
 ResultHandle::ResultHandle()
-	: internal(new ResultHandle::Internal)
+	: internal(new ResultHandle::Internal())
 {}
 
 ResultHandle::~ResultHandle()
@@ -57,6 +81,40 @@ ResultHandle::operator=(const ResultHandle & other)
     ContextLocker lock(other.internal->mutex);
     internal = other.internal;
     ++(internal->ref_count);
+}
+
+void ResultHandle::set_nudge(int nudge_fd, char nudge_byte) {
+    internal->nudge_fd = nudge_fd;
+    internal->nudge_byte = nudge_byte;
+}
+
+Response & ResultHandle::response() {
+    return internal->response;
+}
+
+const std::string * ResultHandle::get_result() const {
+    ContextLocker lock(internal->mutex);
+    if (internal->is_ready) {
+	internal->value = json_serialise(internal->value_);
+	return &internal->value;
+    } else {
+	return NULL;
+    }
+}
+
+Json::Value &
+ResultHandle::result_target() {
+    return internal->value_;
+}
+
+void
+ResultHandle::set_status(int status_code) {
+    internal->status_code = status_code;
+}
+
+int 
+ResultHandle::get_status() const {
+    return internal->status_code;
 }
 
 void

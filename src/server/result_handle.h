@@ -25,7 +25,11 @@
 #define RESTPOSE_INCLUDED_RESULT_HANDLE_H
 
 #include <json/value.h>
+#include <string>
+#include "utils/jsonutils.h"
 #include "utils/threading.h"
+
+class Response;
 
 namespace RestPose {
 
@@ -38,25 +42,7 @@ namespace RestPose {
  *  on a file descriptor) that the result is ready.
  */
 class ResultHandle {
-    class Internal {
-	Internal(const Internal &);
-	void operator=(const Internal &);
-      public:
-	mutable Mutex mutex;
-	mutable unsigned ref_count;
-	Json::Value value;
-	int status_code;
-	int nudge_fd;
-	char nudge_byte;
-	bool is_ready;
-
-	Internal()
-		: ref_count(1),
-		  status_code(200),
-		  nudge_fd(-1),
-		  nudge_byte('\0'),
-		  is_ready(false) {}
-    };
+    class Internal;
 
     Internal * internal;
 
@@ -66,48 +52,36 @@ class ResultHandle {
     ResultHandle(const ResultHandle & other);
     void operator=(const ResultHandle & other);
 
-    void set_nudge(int nudge_fd, char nudge_byte) {
-	internal->nudge_fd = nudge_fd;
-	internal->nudge_byte = nudge_byte;
-    }
+    void set_nudge(int nudge_fd, char nudge_byte);
 
-    /** If the result is ready, return a pointer to it.  Otherwise, return NULL.
+    /** Get a reference to the response object.
+     */
+    Response & response();
+
+    /** If the result is ready, return a pointer to it.  If not, return NULL.
      *
      *  This is intended for use by the waiting thread.
      */
-    const Json::Value * get_result() const {
-	ContextLocker lock(internal->mutex);
-	if (internal->is_ready) {
-	    return &internal->value;
-	} else {
-	    return NULL;
-	}
-    }
+    const std::string * get_result() const;
 
     /** Get a reference to the result.
      *
      *  This is indended for use by the preparing thread, before is_ready is
      *  set to true.
      */
-    Json::Value & result_target() {
-	return internal->value;
-    }
+    Json::Value & result_target();
 
     /** Set the status code.
      *
      *  This should only be called before set_ready() has been called.
      */
-    void set_status(int status_code) {
-	internal->status_code = status_code;
-    }
+    void set_status(int status_code);
 
     /** Get the status code.
      *
      *  This should only be called after get_result() has returned non NULL.
      */
-    int get_status() const {
-	return internal->status_code;
-    }
+    int get_status() const;
 
     /** Mark the result as ready.
      *
