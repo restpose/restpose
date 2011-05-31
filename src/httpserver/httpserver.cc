@@ -36,10 +36,12 @@
 #include "rest/handler.h"
 #include "rest/router.h"
 #include "server/ignore_sigpipe.h"
+#include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 #include <xapian.h>
 
 using namespace std;
+using namespace RestPose;
 
 Response::Response()
 	: response(NULL),
@@ -94,6 +96,13 @@ Response::add_header(string header, string value)
 				value.c_str()) == MHD_NO) {
 	throw RestPose::HTTPServerError("Can't set header '" + header + "'");
     }
+}
+
+void
+Response::set(const Json::Value & body, int status_code_)
+{
+    set_data(json_serialise(body));
+    set_status(status_code_);
 }
 
 struct MHD_Response *
