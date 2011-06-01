@@ -150,10 +150,8 @@ class TaskQueueGroup {
 
     /** Check if a queue is empty and should be cleaned up.
      */
-    void check_for_cleanup(const std::string & key)
+    void check_for_cleanup(const std::map<std::string, QueueInfo>::iterator & i)
     {
-	std::map<std::string, QueueInfo>::iterator
-		i = queues.find(key);
 	QueueInfo & queue(i->second);
 	if (queue.queue.size() == 0 &&
 	    queue.in_progress.size() == 0 &&
@@ -257,7 +255,7 @@ class TaskQueueGroup {
 	}
 	queues[key].active = on;
 	if (on) {
-	    check_for_cleanup(key);
+	    check_for_cleanup(queues.find(key));
 	}
 	cond.broadcast();
     }
@@ -380,7 +378,7 @@ class TaskQueueGroup {
     void unassign_handler(const std::string & assignment) {
 	ContextLocker lock(cond);
 	queues[assignment].assigned = false;
-	check_for_cleanup(assignment);
+	check_for_cleanup(queues.find(assignment));
 	cond.broadcast();
     }
 
@@ -424,7 +422,7 @@ class TaskQueueGroup {
 	    i = queues.find(key);
 	    Assert(i != queues.end());
 	    (void) i->second.in_progress.erase(completed_task);
-	    check_for_cleanup(key);
+	    check_for_cleanup(i);
 	}
 	i = pick_queue();
 	if (i == queues.end()) {
@@ -444,7 +442,7 @@ class TaskQueueGroup {
 	queue.in_progress.insert(resultptr.get());
 	//printf("pop_any: queue %s now has %d items\n\n", key.c_str(), queue.queue.size());
 	//printf("pop_any: %s:%p\n", key.c_str(), resultptr.get());
-	check_for_cleanup(key);
+	check_for_cleanup(i);
 	cond.broadcast();
 	return resultptr.release();
     }
@@ -468,7 +466,7 @@ class TaskQueueGroup {
 	    i = queues.find(completed_key);
 	    Assert(i != queues.end());
 	    (void) i->second.in_progress.erase(completed_task);
-	    check_for_cleanup(completed_key);
+	    check_for_cleanup(i);
 	}
 	i = queues.find(key);
 	is_finished = false;
@@ -501,7 +499,7 @@ class TaskQueueGroup {
 	queue.queue.pop();
 	queue.in_progress.insert(resultptr.get());
 	//printf("pop_from: queue %s now has %d items\n\n", key.c_str(), queue.queue.size());
-	check_for_cleanup(key);
+	check_for_cleanup(i);
 	cond.broadcast();
 	return resultptr.release();
     }
