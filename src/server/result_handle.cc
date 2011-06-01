@@ -37,16 +37,12 @@ class ResultHandle::Internal {
     mutable Mutex mutex;
     mutable unsigned ref_count;
     Response response;
-    Json::Value value_;
-    std::string value;
-    int status_code;
     int nudge_fd;
     char nudge_byte;
     bool is_ready;
 
     Internal()
 	    : ref_count(1),
-	      status_code(200),
 	      nudge_fd(-1),
 	      nudge_byte('\0'),
 	      is_ready(false) {}
@@ -92,15 +88,6 @@ Response & ResultHandle::response() {
     return internal->response;
 }
 
-Response * ResultHandle::get_result() const {
-    ContextLocker lock(internal->mutex);
-    if (internal->is_ready) {
-	return &(internal->response);
-    } else {
-	return NULL;
-    }
-}
-
 void
 ResultHandle::set_ready() {
     ContextLocker lock(internal->mutex);
@@ -108,4 +95,10 @@ ResultHandle::set_ready() {
     lock.unlock();
     // Unlock before writing, just in case the io_write_byte() blocks.
     (void) io_write_byte(internal->nudge_fd, internal->nudge_byte);
+}
+
+bool
+ResultHandle::is_ready() const {
+    ContextLocker lock(internal->mutex);
+    return internal->is_ready;
 }

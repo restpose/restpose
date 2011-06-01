@@ -24,9 +24,7 @@
 #ifndef RESTPOSE_INCLUDED_RESULT_HANDLE_H
 #define RESTPOSE_INCLUDED_RESULT_HANDLE_H
 
-#include <json/value.h>
 #include <string>
-#include "utils/jsonutils.h"
 #include "utils/threading.h"
 
 class Response;
@@ -61,18 +59,18 @@ class ResultHandle {
      */
     Response & response();
 
-    /** If the result is ready, return a pointer to it.  If not, return NULL.
-     *
-     *  This is intended for use by the waiting thread.
-     */
-    Response * get_result() const;
-
     /** Mark the result as ready.
      *
      *  This should be called (once) by the preparing thread.
-     *  After this point, the preparing thread must not access result_target().
+     *  After this point, the preparing thread must not access response().
      */
     void set_ready();
+
+    /** Check if the result is ready - return true if it is.
+     *
+     *  This is intended for use by the waiting thread.
+     */
+    bool is_ready() const;
 };
 
 }
