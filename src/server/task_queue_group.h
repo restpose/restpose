@@ -526,15 +526,28 @@ class TaskQueueGroup {
 	return resultptr.release();
     }
 
-    /** Fill a vector with the names of all queues which have space for pushing
-     *  to them.
+    /** Fill a vector with the names of all queues which have low space for
+     *  pushing to them.
      */
-    void get_queues_with_space(std::vector<std::string> & result) const {
+    void get_busy_queues(std::vector<std::string> & result) const {
 	result.clear();
 	ContextLocker lock(cond);
 	for (std::map<std::string, QueueInfo>::const_iterator i = queues.begin();
 	     i != queues.end(); ++i) {
-	    if (i->second.queue.size() < throttle_size) {
+	    if (i->second.queue.size() >= throttle_size) {
+		result.push_back(i->first);
+	    }
+	}
+    }
+
+    /** Fill a vector with the names of all queues which are inactive.
+     */
+    void get_inactive_queues(std::vector<std::string> & result) const {
+	result.clear();
+	ContextLocker lock(cond);
+	for (std::map<std::string, QueueInfo>::const_iterator i = queues.begin();
+	     i != queues.end(); ++i) {
+	    if (!i->second.active) {
 		result.push_back(i->first);
 	    }
 	}

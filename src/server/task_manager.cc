@@ -306,12 +306,17 @@ TaskManager::serve(fd_set * read_fd_set, fd_set *, fd_set *, bool timed_out)
 	    fprintf(stderr, "TaskManager: failure to read from nudge pipe: %d\n", errno);
 	}
 
-	std::vector<std::string> queues;
-	indexing_queues.get_queues_with_space(queues);
-	for (std::vector<std::string>::const_iterator i = queues.begin();
-	     i != queues.end(); ++i) {
-	    //printf("TaskManager: reawakening queue %s\n", i->c_str());
-	    processing_queues.set_active(*i, true);
+	std::vector<std::string> busy_list;
+	std::vector<std::string> inactive;
+	indexing_queues.get_busy_queues(busy_list);
+	processing_queues.get_inactive_queues(inactive);
+	std::set<std::string> busy(busy_list.begin(), busy_list.end());
+	for (std::vector<std::string>::const_iterator i = inactive.begin();
+	     i != inactive.end(); ++i) {
+	    if (busy.find(*i) == busy.end()) {
+		//printf("TaskManager: reawakening queue %s\n", i->c_str());
+		processing_queues.set_active(*i, true);
+	    }
 	}
     }
 }
