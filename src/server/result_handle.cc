@@ -74,14 +74,21 @@ ResultHandle::ResultHandle(const ResultHandle & other)
 void
 ResultHandle::operator=(const ResultHandle & other)
 {
-    ContextLocker lock(other.internal->mutex);
-    --(internal->ref_count);
-    if (internal->ref_count == 0) {
-	lock.unlock();
-	delete internal;
+    {
+	ContextLocker lock(internal->mutex);
+	--(internal->ref_count);
+	if (internal->ref_count == 0) {
+	    lock.unlock();
+	    delete internal;
+	}
+	internal = NULL;
     }
-    internal = other.internal;
-    ++(internal->ref_count);
+
+    {
+	ContextLocker lock(other.internal->mutex);
+	internal = other.internal;
+	++(internal->ref_count);
+    }
 }
 
 void ResultHandle::set_nudge(int nudge_fd, char nudge_byte) {
