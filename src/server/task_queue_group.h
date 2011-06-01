@@ -432,10 +432,12 @@ class TaskQueueGroup {
 	key = i->first;
 	QueueInfo & queue = i->second;
 
-	if (nudge_fd != -1 && queue.queue.size() == throttle_size) {
-	    // Nudge when size is about to drop below throttle_size
-	    (void) io_write_byte(nudge_fd, nudge_byte);
-	}
+	// File descriptor to nudge on, if not -1.
+	// We need to take a copy here, so that nudge_fd isn't accessed when
+	// the lock isn't held.
+	int nudge_fd_copy
+		= (queue.queue.size() == throttle_size) ? nudge_fd : -1;
+	char nudge_byte_copy(nudge_byte);
 
 	std::auto_ptr<Task> resultptr(queue.queue.front());
 	queue.queue.pop();
@@ -444,6 +446,15 @@ class TaskQueueGroup {
 	//printf("pop_any: %s:%p\n", key.c_str(), resultptr.get());
 	check_for_cleanup(i);
 	cond.broadcast();
+
+	// Drop the lock before nudging, so that the lock isn't held if the
+	// write blocks.
+	lock.unlock();
+	if (nudge_fd_copy != -1) {
+	    // Nudge when size is about to drop below throttle_size
+	    (void) io_write_byte(nudge_fd_copy, nudge_byte_copy);
+	}
+
 	return resultptr.release();
     }
 
@@ -490,10 +501,12 @@ class TaskQueueGroup {
 	QueueInfo & queue = i->second;
 	//printf("pop_from: queue %s has %d items\n", key.c_str(), queue.queue.size());
 
-	if (nudge_fd != -1 && queue.queue.size() == throttle_size) {
-	    // Nudge when size is about to drop below throttle_size
-	    (void) io_write_byte(nudge_fd, nudge_byte);
-	}
+	// File descriptor to nudge on, if not -1.
+	// We need to take a copy here, so that nudge_fd isn't accessed when
+	// the lock isn't held.
+	int nudge_fd_copy
+		= (queue.queue.size() == throttle_size) ? nudge_fd : -1;
+	char nudge_byte_copy(nudge_byte);
 
 	std::auto_ptr<Task> resultptr(queue.queue.front());
 	queue.queue.pop();
@@ -501,6 +514,15 @@ class TaskQueueGroup {
 	//printf("pop_from: queue %s now has %d items\n\n", key.c_str(), queue.queue.size());
 	check_for_cleanup(i);
 	cond.broadcast();
+
+	// Drop the lock before nudging, so that the lock isn't held if the
+	// write blocks.
+	lock.unlock();
+	if (nudge_fd_copy != -1) {
+	    // Nudge when size is about to drop below throttle_size
+	    (void) io_write_byte(nudge_fd_copy, nudge_byte_copy);
+	}
+
 	return resultptr.release();
     }
 
