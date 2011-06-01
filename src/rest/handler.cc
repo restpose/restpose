@@ -38,8 +38,7 @@ Handler::~Handler() {}
 
 QueuedHandler::QueuedHandler()
 	: Handler(),
-	  queued(false),
-	  resulthandle()
+	  queued(false)
 {
 }
 
@@ -93,10 +92,8 @@ QueuedHandler::handle(ConnectionInfo & conn)
 	}
 	queued = true;
     } else {
-	Response * result = resulthandle.get_result();
-	if (result == NULL) {
-	    return;
+	if (resulthandle.is_ready()) {
+	    conn.respond(resulthandle);
 	}
-	conn.respond(*result);
     }
 }
