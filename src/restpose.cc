@@ -59,7 +59,8 @@ main_do(int argc, char * const* argv)
     }
 
     Server server;
-    TaskManager * taskman = new TaskManager(opts.datadir);
+    CollectionPool pool(opts.datadir);
+    TaskManager * taskman = new TaskManager(pool);
     server.add("taskman", taskman);
     Router router(taskman, &server);
     setup_routes(router);

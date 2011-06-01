@@ -56,10 +56,6 @@ class TaskManager : public SubServer {
      */
     Condition cond;
 
-    /** The directory that data is kept in.
-     */
-    const std::string datadir;
-
     /** The write end of the nudge pipe.
      *
      *  This is given to queues, so they can notify the manager when they
@@ -108,12 +104,12 @@ class TaskManager : public SubServer {
 
     /** The pool of collections used by tasks.
      */
-    CollectionPool collections;
+    CollectionPool & collections;
 
     TaskManager(const TaskManager &);
     void operator=(const TaskManager &);
   public:
-    TaskManager(const std::string & datadir_);
+    TaskManager(CollectionPool & collections_);
     ~TaskManager();
 
     /** Get the write end of the nudge pipe.

@@ -33,9 +33,8 @@
 using namespace std;
 using namespace RestPose;
 
-TaskManager::TaskManager(const string & datadir_)
-	: datadir(datadir_),
-	  nudge_write_end(-1),
+TaskManager::TaskManager(CollectionPool & collections_)
+	: nudge_write_end(-1),
 	  nudge_read_end(-1),
 	  started(false),
 	  stopping(false),
@@ -45,7 +44,7 @@ TaskManager::TaskManager(const string & datadir_)
 	  processing_threads(),
 	  search_queues(100, 1000), // FIXME - pull out magic constants
 	  search_threads(),
-	  collections(datadir)
+	  collections(collections_)
 {
     // Create the nudge socket.
     int fds[2];

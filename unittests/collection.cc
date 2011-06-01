@@ -200,9 +200,9 @@ TEST(CollectionPipes)
 TEST(CollectionAddViaPipe)
 {
     TempDir path("/tmp/jsonxapian");
-    TaskManager * taskman = new TaskManager(path.get());
-    taskman->start();
     CollectionPool pool(path.get());
+    TaskManager * taskman = new TaskManager(pool);
+    taskman->start();
 
     Collection * c = pool.get_writable("default");
 
@@ -259,9 +259,9 @@ TEST(CollectionAddViaPipe)
 TEST(CollectionCategoriser)
 {
     TempDir path("/tmp/jsonxapian");
-    TaskManager * taskman = new TaskManager(path.get());
-    taskman->start();
     CollectionPool pool(path.get());
+    TaskManager * taskman = new TaskManager(pool);
+    taskman->start();
     Json::Value tmp;
 
     Collection * c = pool.get_writable("default");
