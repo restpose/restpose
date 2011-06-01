@@ -96,6 +96,33 @@ class TaskQueueGroup {
     int nudge_fd;
     char nudge_byte;
 
+    /** Check if the next task is allowed to run now.
+     *
+     *  This checks if there are any tasks running which prevent the new task
+     *  starting, and checks if the new task requires other tasks to have
+     *  finished before it starts.
+     */
+    bool check_parallel_allowed(QueueInfo & queue) {
+	if (queue.in_progress.empty()) {
+	    return true;
+	}
+
+	// Check if the task currently being performed allows parallel
+	// execution.  (Just check the first task being performed, because
+	// if it doesn't allow parallel execution, there should be exactly
+	// one!)
+	if (!(*(queue.in_progress.begin()))->allow_parallel) {
+	    return false;
+	}
+
+	// Check if the next task to perform allows parallel execution.
+	if (!queue.queue.front()->allow_parallel) {
+	    return false;
+	}
+
+	return true;
+    }
+
     /** Pick a queue which is active and not assigned.
      *
      *  Block until there is such a queue, or the group is closed.  If the
@@ -116,8 +143,10 @@ class TaskQueueGroup {
 		while (true) {
 		    if (i->second.active && !i->second.assigned &&
 			!i->second.queue.empty()) {
-			last_pop_from = i->first;
-			return i;
+			if (check_parallel_allowed(i->second)) {
+			    last_pop_from = i->first;
+			    return i;
+			}
 		    }
 
 		    ++i;
@@ -479,11 +508,19 @@ class TaskQueueGroup {
 	    (void) i->second.in_progress.erase(completed_task);
 	    check_for_cleanup(i);
 	}
+
+	// Wait for a task to become available on the queue, or the timeout to
+	// happen.
 	i = queues.find(key);
 	is_finished = false;
 	while (!closed) {
-	    if (i != queues.end() && i->second.active && !i->second.queue.empty()) {
-		break;
+	    if (i != queues.end() &&
+		i->second.active &&
+		!i->second.queue.empty()) {
+
+		if (check_parallel_allowed(i->second)) {
+		    break;
+		}
 	    }
 	    if (cond.timedwait(end_time)) {
 		return NULL;

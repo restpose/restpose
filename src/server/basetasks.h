@@ -43,7 +43,14 @@ class Task {
     Task(const Task &);
     void operator=(const Task &);
   public:
-    Task() {};
+    /** Flag to indicate if other tasks from the same queue may be run in
+     * parallel with this task.
+     */
+    bool allow_parallel;
+
+    Task(bool allow_parallel_=true)
+	    : allow_parallel(allow_parallel_)
+    {}
     virtual ~Task();
 };
 
@@ -91,6 +98,7 @@ class ReadonlyCollTask : public ReadonlyTask {
  */
 class ProcessingTask : public Task {
   public:
+    ProcessingTask(bool allow_parallel_=true) : Task(allow_parallel_) {}
     virtual void perform(RestPose::Collection & collection,
 			 TaskManager * taskman) = 0;
 };
@@ -99,6 +107,7 @@ class ProcessingTask : public Task {
  */
 class IndexingTask : public Task {
   public:
+    IndexingTask() : Task(false) {}
     virtual void perform(RestPose::Collection & collection) = 0;
     virtual IndexingTask * clone() const = 0;
 };
@@ -112,7 +121,7 @@ class DelayedIndexingTask : public ProcessingTask {
     IndexingTask * task;
   public:
     DelayedIndexingTask(IndexingTask * task_)
-	    : task(task_)
+	    : ProcessingTask(false), task(task_)
     {}
 
     void perform(RestPose::Collection & collection,
