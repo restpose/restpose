@@ -62,7 +62,7 @@ class RouteLevel {
     RouteLevel(const RouteLevel &);
     void operator=(const RouteLevel &);
   public:
-    RouteLevel(unsigned level_=0) : level(level_) {}
+    RouteLevel(unsigned level_=0) : level(level_), allowed_methods(0) {}
     ~RouteLevel();
 
     void set_level(unsigned level_) {
