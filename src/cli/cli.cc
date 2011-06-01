@@ -32,8 +32,6 @@
 #include <iostream>
 #include <xapian.h>
 
-static const unsigned int JX_VERSION = 1u;
-
 RestPose::CliOptions::CliOptions()
 	: datadir(),
 	  action(ACT_DEFAULT),
@@ -106,7 +104,7 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
 "\n";
 		return 0;
 	    case 'v':
-		std::cout << progname << " version: " << JX_VERSION << "\n"
+		std::cout << progname << " version: " << PACKAGE_VERSION << "\n"
 			     "xapian version: " << Xapian::version_string() <<
 			     "\n";
 		return 0;
