@@ -75,6 +75,11 @@ void
 ResultHandle::operator=(const ResultHandle & other)
 {
     ContextLocker lock(other.internal->mutex);
+    --(internal->ref_count);
+    if (internal->ref_count == 0) {
+	lock.unlock();
+	delete internal;
+    }
     internal = other.internal;
     ++(internal->ref_count);
 }
