@@ -148,6 +148,22 @@ class TaskQueueGroup {
 	queues[key].active = false;
     }
 
+    /** Check if a queue is empty and should be cleaned up.
+     */
+    void check_for_cleanup(const std::string & key)
+    {
+	std::map<std::string, QueueInfo>::iterator
+		i = queues.find(key);
+	QueueInfo & queue(i->second);
+	if (queue.queue.size() == 0 &&
+	    queue.in_progress.size() == 0 &&
+	    queue.active &&
+	    !queue.assigned) {
+	    // Boring queue - equivalent to not existing.
+	    queues.erase(i);
+	}
+    }
+
   public:
     /** create a new queue group.
      *
@@ -240,6 +256,9 @@ class TaskQueueGroup {
 	    return;
 	}
 	queues[key].active = on;
+	if (on) {
+	    check_for_cleanup(key);
+	}
 	cond.broadcast();
     }
 
@@ -361,7 +380,26 @@ class TaskQueueGroup {
     void unassign_handler(const std::string & assignment) {
 	ContextLocker lock(cond);
 	queues[assignment].assigned = false;
+	check_for_cleanup(assignment);
 	cond.broadcast();
+    }
+
+    /** Register that a task has been completed.
+     *
+     *  Normally, such a registration should be done by passing details of the
+     *  completed task to the next pop() command, but in the case where a
+     *  thread is exiting, there is no such pop, so this method can be used
+     *  instead.
+     */
+    void completed(const std::string & key, Task * task) {
+	if (task != NULL) {
+	    ContextLocker lock(cond);
+	    std::map<std::string, QueueInfo>::iterator
+		    i = queues.find(key);
+	    if (i != queues.end()) {
+		(void) i->second.in_progress.erase(task);
+	    }
+	}
     }
 
     /** Pop from any active, non-assigned, queue.
@@ -370,26 +408,30 @@ class TaskQueueGroup {
      *  blocks if all queues are empty or disabled, then pops the oldest item
      *  from a queue, picking a different queue each time in round-robin order
      *  if there are multiple options, then returns a pointer to the item and
-     *  sets @a result_key to contain the key of the queue returned from.
+     *  sets @a key to contain the key of the queue returned from.
      *
-     *  @param completed A task which has been completed.
+     *  @param key Should be initialised to the key of the task which has just
+     *  been completed (if completed_task is not NULL).  Will be set to the key
+     *  of the task which is returned (if returned task is not NULL).
+     *  @param completed_task A task which has been completed, or NULL.
      */
-    Task * pop_any(std::string & result_key,
-		   Task * completed,
-		   const std::string & completed_key) {
+    Task * pop_any(std::string & key,
+		   Task * completed_task) {
 	ContextLocker lock(cond);
 	std::map<std::string, QueueInfo>::iterator i;
-	if (completed != NULL) {
-	    i = queues.find(completed_key);
+	if (completed_task != NULL) {
+	    //printf("pop_any: completed: %s:%p\n", key.c_str(), completed_task);
+	    i = queues.find(key);
 	    Assert(i != queues.end());
-	    i->second.in_progress.erase(completed);
+	    (void) i->second.in_progress.erase(completed_task);
+	    check_for_cleanup(key);
 	}
 	i = pick_queue();
 	if (i == queues.end()) {
 	    return NULL;
 	}
 
-	result_key = i->first;
+	key = i->first;
 	QueueInfo & queue = i->second;
 
 	if (nudge_fd != -1 && queue.queue.size() == throttle_size) {
@@ -400,7 +442,9 @@ class TaskQueueGroup {
 	std::auto_ptr<Task> resultptr(queue.queue.front());
 	queue.queue.pop();
 	queue.in_progress.insert(resultptr.get());
-	//printf("pop_any: queue %s now has %d items\n\n", result_key.c_str(), queue.queue.size());
+	//printf("pop_any: queue %s now has %d items\n\n", key.c_str(), queue.queue.size());
+	//printf("pop_any: %s:%p\n", key.c_str(), resultptr.get());
+	check_for_cleanup(key);
 	cond.broadcast();
 	return resultptr.release();
     }
@@ -411,19 +455,20 @@ class TaskQueueGroup {
      *  blocks if the queue is empty or disabled, then pops the oldest item
      *  from the queue, and returns a pointer to it.
      *
-     *  @param completed A task which has been completed.
+     *  @param completed_task A task which has been completed.
      */
     Task * pop_from(const std::string & key,
 		    double end_time,
 		    bool & is_finished,
-		    Task * completed,
+		    Task * completed_task,
 		    const std::string & completed_key) {
 	ContextLocker lock(cond);
 	std::map<std::string, QueueInfo>::iterator i;
-	if (completed != NULL) {
+	if (completed_task != NULL) {
 	    i = queues.find(completed_key);
 	    Assert(i != queues.end());
-	    i->second.in_progress.erase(completed);
+	    (void) i->second.in_progress.erase(completed_task);
+	    check_for_cleanup(completed_key);
 	}
 	i = queues.find(key);
 	is_finished = false;
@@ -456,6 +501,7 @@ class TaskQueueGroup {
 	queue.queue.pop();
 	queue.in_progress.insert(resultptr.get());
 	//printf("pop_from: queue %s now has %d items\n\n", key.c_str(), queue.queue.size());
+	check_for_cleanup(key);
 	cond.broadcast();
 	return resultptr.release();
     }
@@ -507,6 +553,7 @@ class TaskQueueGroup {
 	    queue_val["size"] = Json::UInt64(i->second.queue.size());
 	    queue_val["active"] = i->second.active;
 	    queue_val["assigned"] = i->second.assigned;
+	    queue_val["in_progress"] = i->second.in_progress.size();
 	}
     }
 };

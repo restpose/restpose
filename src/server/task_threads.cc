@@ -54,7 +54,7 @@ ProcessingThread::run()
 	    }
 	}
 
-	Task * newtask = queuegroup.pop_any(coll_name, task, coll_name);
+	Task * newtask = queuegroup.pop_any(coll_name, task);
 	delete task;
 	task = newtask;
 
@@ -155,6 +155,7 @@ IndexingThread::cleanup()
 void
 SearchThread::run()
 {
+    string group_name;
     while (true) {
 	{
 	    ContextLocker lock(cond);
@@ -163,8 +164,7 @@ SearchThread::run()
 	    }
 	}
 
-	string group_name;
-	Task * newtask = queuegroup.pop_any(group_name, task, coll_name);
+	Task * newtask = queuegroup.pop_any(group_name, task);
 	delete task;
 	task = newtask;
 
