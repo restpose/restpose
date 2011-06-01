@@ -25,6 +25,7 @@
 #define RESTPOSE_INCLUDED_HTTPSERVER_H
 
 #include <string>
+#include "server/result_handle.h"
 #include "server/server.h"
 #include <vector>
 
@@ -45,7 +46,24 @@ enum HTTPMethod {
     HTTP_METHODMASK_MAX = 31 // Set this to the bitwise or of all HTTPMethod values.
 };
 
-struct ConnectionInfo {
+/** Per connection state.
+ *
+ *  FIXME - this could probably usefully be split into a Request object holding
+ *  the details of the request, and a ConnectionInstance object, pointing to
+ *  the Request object and the ResultHandle.
+ */
+class ConnectionInfo {
+    /// The handle holding the response.
+    RestPose::ResultHandle resulthandle;
+
+    /** Respond to a request.
+     *
+     *  The resulthandle should have the response set in it, and be marked as
+     *  ready, before this is called.
+     */
+    void respond();
+
+  public:
     struct MHD_Connection * connection;
     HTTPMethod method;
     const char * url;
@@ -76,12 +94,8 @@ struct ConnectionInfo {
      */
     void parse_url_components();
 
-    /** Respond to a request.
-     *
-     *  The connection.response object should have the response set in it
-     *  before this is called.
-     */
-    void respond(Response & response);
+    /// Respond to a request using the response in a handle.
+    void respond(const RestPose::ResultHandle & resulthandle_);
 
     /** Respond to a request.
      *

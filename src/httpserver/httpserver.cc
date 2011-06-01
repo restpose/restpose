@@ -34,6 +34,7 @@
 #include <sys/socket.h>
 #include <microhttpd.h>
 
+#include "omassert.h"
 #include "rest/handler.h"
 #include "rest/router.h"
 #include "server/ignore_sigpipe.h"
@@ -173,17 +174,24 @@ ConnectionInfo::respond(int status_code,
 			const string & outbuf,
 			const string & content_type)
 {
-    Response response;
+    Response & response(resulthandle.response());
     response.set_status(status_code);
     response.set_data(outbuf);
     response.set_content_type(content_type);
-    respond(response);
+    respond();
 }
 
+void
+ConnectionInfo::respond(const ResultHandle & resulthandle_)
+{
+    resulthandle = resulthandle_;
+    respond();
+}
 
 void
-ConnectionInfo::respond(Response & response)
+ConnectionInfo::respond()
 {
+    Response & response(resulthandle.response());
     struct MHD_Response * response_ptr = response.get_response();
     if (!response_ptr) {
 	throw RestPose::HTTPServerError("No response to send");
@@ -202,7 +210,7 @@ ConnectionInfo::require_method(int allowed_methods)
     if (method & allowed_methods) {
 	return true;
     }
-    Response response;
+    Response & response(resulthandle.response());
     response.set_status(MHD_HTTP_METHOD_NOT_ALLOWED);
     response.set_data("Invalid HTTP method");
     response.set_content_type("text/plain");
@@ -218,7 +226,7 @@ ConnectionInfo::require_method(int allowed_methods)
     }
     response.add_header("Allow", allowed);
 
-    respond(response);
+    respond();
     return false;
 }
 
