@@ -24,8 +24,11 @@
 #ifndef RESTPOSE_INCLUDED_HANDLER_H
 #define RESTPOSE_INCLUDED_HANDLER_H
 
+#include "json/value.h"
 #include "server/result_handle.h"
+#include <string>
 #include "utils/queueing.h"
+#include <vector>
 
 class TaskManager;
 class Server;
