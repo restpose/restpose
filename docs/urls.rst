@@ -1,4 +1,6 @@
 
+FIXME - this file is largely wrong, and mainly just me thinking "out loud".
+
 
 Inserting documents
 ===================
