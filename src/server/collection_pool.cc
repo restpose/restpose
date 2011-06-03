@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include "collection_pool.h"
+#include "diritor.h"
 #include <memory>
 #include "omassert.h"
 #include "utils/stringutils.h"
@@ -131,6 +132,19 @@ CollectionPool::release(Collection * collection)
 	if (i->second.size() < max_cached_readers_per_collection) {
 	    i->second.push_back(NULL);
 	    i->second.back() = collptr.release();
+	}
+    }
+}
+
+void
+CollectionPool::get_names(std::vector<std::string> & result)
+{
+    result.clear();
+    DirectoryIterator diriter(false);
+    diriter.start(datadir);
+    while (diriter.next()) {
+	if (diriter.get_type() == DirectoryIterator::DIRECTORY) {
+	    result.push_back(diriter.leafname());
 	}
     }
 }

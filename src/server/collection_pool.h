@@ -27,6 +27,7 @@
 #include "jsonxapian/collection.h"
 #include <string>
 #include "utils/threading.h"
+#include <vector>
 
 /** A pool of Collection objects.
  *
@@ -84,6 +85,10 @@ class CollectionPool {
     /** Release a collection back to the pool.
      */
     void release(RestPose::Collection * collection);
+
+    /** Get a list of the names of all collections which exist.
+     */
+    void get_names(std::vector<std::string> & result);
 };
 
 #endif /* RESTPOSE_INCLUDED_COLLECTION_POOL_H */
