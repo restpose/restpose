@@ -66,7 +66,7 @@ JSONPath::from_json(const Json::Value & value)
 {
     json_check_array(value, "path");
     path.clear();
-    for (Json::ValueIterator it = value.begin();
+    for (Json::Value::const_iterator it = value.begin();
 	 it != value.end(); ++it) {
 	if ((*it).isIntegral()) {
 	    if (*it < Json::Value::Int(0)) {
