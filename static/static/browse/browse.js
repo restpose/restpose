@@ -2,7 +2,7 @@ function display_obj(obj) {
   var i, output, value;
   output = "<ul>";
   for (i in obj) {
-    output += "<li>" + i;
+    output += "<li>&quot;" + i + "&quot;";
     value = obj[i];
     if (typeof value == "object") {
       output += display_obj(value);
