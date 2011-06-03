@@ -112,6 +112,10 @@ class TaskManager : public SubServer {
     TaskManager(CollectionPool & collections_);
     ~TaskManager();
 
+    CollectionPool & get_collections() {
+	return collections;
+    }
+
     /** Get the write end of the nudge pipe.
      *
      *  This is used by resulthandlers to nudge the server when results are
