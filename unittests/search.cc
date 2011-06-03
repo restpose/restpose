@@ -34,8 +34,8 @@ using namespace RestPose;
 
 TEST(SearchIntegerExactFields)
 {
-    Schema s;
-    s.set("id", new IDFieldConfig());
+    Schema s("");
+    s.set("id", new IDFieldConfig(""));
     s.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
 
     Xapian::WritableDatabase db(Xapian::InMemory::open());
@@ -47,8 +47,8 @@ TEST(SearchIntegerExactFields)
 	CHECK(reader.parse("{\"id\": 32, \"intid\": 18446744073709551615}", value, false)); // 2**64-1
 	std::string idterm;
 	Xapian::Document doc(s.process(value, idterm));
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"\\t32\":{},\"intid\\t18446744073709551615\":{}}}");
-	CHECK_EQUAL(idterm, "\t32");
+	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"\\t\\t32\":{},\"intid\\t18446744073709551615\":{}}}");
+	CHECK_EQUAL(idterm, "\t\t32");
 	db.add_document(doc);
     }
     {
@@ -57,8 +57,8 @@ TEST(SearchIntegerExactFields)
 	CHECK(reader.parse("{\"id\": 18446744073709551615, \"intid\": 31}", value, false)); // 2**64-1
 	std::string idterm;
 	Xapian::Document doc(s.process(value, idterm));
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[31]},\"terms\":{\"\\t18446744073709551615\":{},\"intid\\t31\":{}}}");
-	CHECK_EQUAL(idterm, "\t18446744073709551615");
+	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[31]},\"terms\":{\"\\t\\t18446744073709551615\":{},\"intid\\t31\":{}}}");
+	CHECK_EQUAL(idterm, "\t\t18446744073709551615");
 	db.add_document(doc);
     }
 

@@ -34,24 +34,24 @@ using namespace RestPose;
 
 TEST(SchemaParams)
 {
-    Schema s;
+    Schema s("");
     Json::Value tmp;
     CHECK_THROW(s.from_json(json_unserialise("", tmp)), InvalidValueError);
 
     // Check encoding of an empty schema.
     s.from_json(json_unserialise("{}", tmp));
-    CHECK_EQUAL("{}", s.to_json_string());
+    CHECK_EQUAL("{\"patterns\":[]}", s.to_json_string());
 
     CHECK(s.get("id") == NULL);
     CHECK(s.get("url") == NULL);
     CHECK(s.get("missing") == NULL);
 
-    s.set("id", new IDFieldConfig());
+    s.set("id", new IDFieldConfig(""));
     CHECK_EQUAL("{\"fields\":{"
 		"\"id\":{\"max_length\":64,"
 		        "\"store_field\":\"\","
 		        "\"too_long_action\":\"error\",\"type\":\"id\"}"
-		"}}",
+		"},\"patterns\":[]}",
 		s.to_json_string());
 
     s.set("url", new ExactFieldConfig("url", 120, ExactFieldConfig::TOOLONG_HASH, "url", 0));
@@ -65,14 +65,14 @@ TEST(SchemaParams)
 		         "\"too_long_action\":\"hash\","
 			 "\"type\":\"exact\","
 		         "\"wdfinc\":0}"
-		"}}",
+		"},\"patterns\":[]}",
 		s.to_json_string());
 
     CHECK(s.get("id") != NULL);
     CHECK(s.get("url") != NULL);
     CHECK(s.get("missing") == NULL);
 
-    Schema s2;
+    Schema s2("");
     CHECK(s2.to_json_string() != s.to_json_string());
     s2.from_json(json_unserialise(s.to_json_string(), tmp));
     CHECK_EQUAL(s2.to_json_string(), s.to_json_string());
@@ -80,8 +80,8 @@ TEST(SchemaParams)
 
 TEST(SchemaToDoc)
 {
-    Schema s;
-    s.set("id", new IDFieldConfig());
+    Schema s("");
+    s.set("id", new IDFieldConfig(""));
     s.set("url", new ExactFieldConfig("url", 120, ExactFieldConfig::TOOLONG_HASH, "url", 0));
     s.set("nostore", new ExactFieldConfig("ns", 120, ExactFieldConfig::TOOLONG_ERROR, "", 0));
 
@@ -101,9 +101,9 @@ TEST(SchemaToDoc)
 	v["url"] = "http://example.com/";
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
-	CHECK_EQUAL(idterm, "\tabcd");
+	CHECK_EQUAL(idterm, "\t\tabcd");
 	CHECK_EQUAL(doc.get_data(), "\003url\027[\"http://example.com/\"]");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"url\":[\"http://example.com/\"]},\"terms\":{\"\\tabcd\":{},\"url\\thttp://example.com/\":{}}}");
+	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"url\":[\"http://example.com/\"]},\"terms\":{\"\\t\\tabcd\":{},\"url\\thttp://example.com/\":{}}}");
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"url\":[\"http://example.com/\"]}");
     }
 
@@ -121,13 +121,13 @@ TEST(SchemaToDoc)
 
 TEST(LongExactFields)
 {
-    Schema s2;
-    s2.set("id", new IDFieldConfig()); // ID terms have a default max length of 64
+    Schema s2("");
+    s2.set("id", new IDFieldConfig("")); // ID terms have a default max length of 64
     s2.set("url", new ExactFieldConfig("url", 30, ExactFieldConfig::TOOLONG_HASH, "url", 0));
     s2.set("tags", new ExactFieldConfig("tags", 30, ExactFieldConfig::TOOLONG_TRUNCATE, "tags", 0));
     s2.set("valuable", new ExactFieldConfig("valuable", 30, ExactFieldConfig::TOOLONG_ERROR, "valuable", 0));
 
-    Schema s;
+    Schema s("");
     Json::Value tmp;
     s.from_json(s2.to_json(tmp));
 
@@ -138,8 +138,8 @@ TEST(LongExactFields)
 	CHECK_THROW(s.process(v, idterm), InvalidValueError);
 	v["id"] = "0123456789012345678901234567890123456789012345678901234567890123";
 	Xapian::Document doc = s.process(v, idterm);
-	CHECK_EQUAL(idterm, "\t0123456789012345678901234567890123456789012345678901234567890123");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"terms\":{\"\\t0123456789012345678901234567890123456789012345678901234567890123\":{}}}");
+	CHECK_EQUAL(idterm, "\t\t0123456789012345678901234567890123456789012345678901234567890123");
+	CHECK_EQUAL(doc_to_json_string(doc), "{\"terms\":{\"\\t\\t0123456789012345678901234567890123456789012345678901234567890123\":{}}}");
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{}");
     }
 
@@ -178,12 +178,13 @@ TEST(LongExactFields)
 
 TEST(IntegerExactFields)
 {
-    Schema s2;
+    Schema s2("");
     s2.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
 
-    CHECK_EQUAL(s2.to_json_string(), "{\"fields\":{\"intid\":{\"max_length\":30,\"prefix\":\"intid\",\"store_field\":\"intid\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}}}");
+    CHECK_EQUAL("{\"fields\":{\"intid\":{\"max_length\":30,\"prefix\":\"intid\",\"store_field\":\"intid\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}},\"patterns\":[]}",
+		s2.to_json_string());
 
-    Schema s;
+    Schema s("");
     Json::Value tmp;
     s.from_json(s2.to_json(tmp));
     CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
@@ -245,11 +246,12 @@ TEST(IntegerExactFields)
 
 TEST(DateFields)
 {
-    Schema s2;
+    Schema s2("");
     s2.set("date", new DateFieldConfig(0, "date"));
-    CHECK_EQUAL(s2.to_json_string(), "{\"fields\":{\"date\":{\"slot\":0,\"store_field\":\"date\",\"type\":\"date\"}}}");
+    CHECK_EQUAL("{\"fields\":{\"date\":{\"slot\":0,\"store_field\":\"date\",\"type\":\"date\"}},\"patterns\":[]}",
+		s2.to_json_string());
 
-    Schema s;
+    Schema s("");
     Json::Value tmp;
     s.from_json(s2.to_json(tmp));
     CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
@@ -267,11 +269,12 @@ TEST(DateFields)
 
 TEST(StoreFields)
 {
-    Schema s2;
+    Schema s2("");
     s2.set("store", new StoredFieldConfig(std::string("store")));
-    CHECK_EQUAL(s2.to_json_string(), "{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"}}}");
+    CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"}},\"patterns\":[]}",
+		s2.to_json_string());
 
-    Schema s;
+    Schema s("");
     Json::Value tmp;
     s.from_json(s2.to_json(tmp));
     CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
@@ -299,11 +302,12 @@ TEST(StoreFields)
 
 TEST(EnglishStemmedFields)
 {
-    Schema s2;
+    Schema s2("");
     s2.set("text", new TextFieldConfig("t", "text", "stem_en"));
-    CHECK_EQUAL(s2.to_json_string(), "{\"fields\":{\"text\":{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}}}");
+    CHECK_EQUAL("{\"fields\":{\"text\":{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}},\"patterns\":[]}",
+		s2.to_json_string());
 
-    Schema s;
+    Schema s("");
     Json::Value tmp;
     s.from_json(s2.to_json(tmp));
     CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
@@ -330,11 +334,12 @@ TEST(EnglishStemmedFields)
 
 TEST(CJKFields)
 {
-    Schema s2;
+    Schema s2("");
     s2.set("text", new TextFieldConfig("t", "text", "cjk"));
-    CHECK_EQUAL(s2.to_json_string(), "{\"fields\":{\"text\":{\"prefix\":\"t\",\"processor\":\"cjk\",\"store_field\":\"text\",\"type\":\"text\"}}}");
+    CHECK_EQUAL("{\"fields\":{\"text\":{\"prefix\":\"t\",\"processor\":\"cjk\",\"store_field\":\"text\",\"type\":\"text\"}},\"patterns\":[]}",
+		s2.to_json_string());
 
-    Schema s;
+    Schema s("");
     Json::Value tmp;
     s.from_json(s2.to_json(tmp));
     CHECK_EQUAL(s.to_json_string(), s2.to_json_string());

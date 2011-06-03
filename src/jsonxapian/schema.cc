@@ -46,7 +46,8 @@ using namespace RestPose;
 using namespace std;
 
 FieldConfig *
-FieldConfig::from_json(const Json::Value & value)
+FieldConfig::from_json(const Json::Value & value,
+		       const string & doc_type)
 {
     json_check_object(value, "field configuration");
     string type = json_get_string_member(value, "type", string());
@@ -59,7 +60,7 @@ FieldConfig::from_json(const Json::Value & value)
 		if (type == "exact") return new ExactFieldConfig(value);
 		break;
 	    case 'i':
-		if (type == "id") return new IDFieldConfig(value);
+		if (type == "id") return new IDFieldConfig(value, doc_type);
 		if (type == "ignore") return new IgnoredFieldConfig();
 		break;
 	    case 's':
@@ -115,16 +116,27 @@ MaxLenFieldConfig::to_json(Json::Value & value) const
     }
 }
 
-IDFieldConfig::IDFieldConfig(const Json::Value & value)
-	: MaxLenFieldConfig(value)
+IDFieldConfig::IDFieldConfig(const Json::Value & value,
+			     const string & doc_type)
+	: MaxLenFieldConfig(value),
+	  prefix("\t" + doc_type + "\t")
 {
     store_field = json_get_string_member(value, "store_field", string());
 }
 
+IDFieldConfig::IDFieldConfig(const std::string & doc_type,
+			     unsigned int max_length_,
+			     MaxLenFieldConfig::TooLongAction too_long_action_,
+			     const std::string & store_field_)
+	: MaxLenFieldConfig(max_length_, too_long_action_),
+	  store_field(store_field_),
+	  prefix("\t" + doc_type + "\t")
+{}
+
 FieldIndexer *
-IDFieldConfig::indexer(const string & doc_type) const
+IDFieldConfig::indexer() const
 {
-    return new ExactStringIndexer("\t" + doc_type + "\t", store_field, 0,
+    return new ExactStringIndexer(prefix, store_field, 0,
 				  max_length, too_long_action, true);
 }
 
@@ -141,7 +153,7 @@ IDFieldConfig::query(const string & qtype,
     for (Json::Value::const_iterator iter = value.begin();
 	 iter != value.end(); ++iter) {
 	if ((*iter).isString()) {
-	    terms.push_back("\t" + (*iter).asString());
+	    terms.push_back(prefix + (*iter).asString());
 	} else {
 	    if (!(*iter).isConvertibleTo(Json::uintValue)) {
 		throw InvalidValueError("ID value must be an integer or a string");
@@ -155,7 +167,7 @@ IDFieldConfig::query(const string & qtype,
 					Json::valueToString(Json::Value::maxUInt64) +
 					")");
 	    }
-	    terms.push_back("\t" + Json::valueToString((*iter).asUInt64()));
+	    terms.push_back(prefix + Json::valueToString((*iter).asUInt64()));
 	}
     }
     return Xapian::Query(Xapian::Query::OP_OR, terms.begin(), terms.end());
@@ -193,7 +205,7 @@ ExactFieldConfig::ExactFieldConfig(const Json::Value & value)
 }
 
 FieldIndexer *
-ExactFieldConfig::indexer(const string &) const
+ExactFieldConfig::indexer() const
 {
     return new ExactStringIndexer(prefix, store_field, wdfinc,
 				  max_length, too_long_action, false);
@@ -266,7 +278,7 @@ TextFieldConfig::~TextFieldConfig()
 {}
 
 FieldIndexer *
-TextFieldConfig::indexer(const string &) const
+TextFieldConfig::indexer() const
 {
     if (processor == "cjk") {
 	return new CJKIndexer(prefix, store_field);
@@ -473,7 +485,7 @@ DateFieldConfig::~DateFieldConfig()
 {}
 
 FieldIndexer *
-DateFieldConfig::indexer(const string &) const
+DateFieldConfig::indexer() const
 {
     return new DateIndexer(slot, store_field);
 }
@@ -517,7 +529,7 @@ StoredFieldConfig::~StoredFieldConfig()
 {}
 
 FieldIndexer *
-StoredFieldConfig::indexer(const string &) const
+StoredFieldConfig::indexer() const
 {
     return new StoredIndexer(store_field);
 }
@@ -540,7 +552,7 @@ IgnoredFieldConfig::~IgnoredFieldConfig()
 {}
 
 FieldIndexer *
-IgnoredFieldConfig::indexer(const string &) const
+IgnoredFieldConfig::indexer() const
 {
     return NULL;
 }
@@ -733,7 +745,7 @@ Schema::from_json(const Json::Value & value)
 	for (Json::Value::iterator i = fields_value.begin();
 	     i != fields_value.end();
 	     ++i) {
-	    set(i.memberName(), FieldConfig::from_json(*i));
+	    set(i.memberName(), FieldConfig::from_json(*i, doc_type));
 	}
     }
     patterns.from_json(value.get("patterns", Json::Value::null));
@@ -750,7 +762,7 @@ Schema::merge_from(const Schema & other)
 	i->second->to_json(tmp);
 	if (j == fields.end()) {
 	    // FIXME - copy directly, rather than going through json.
-	    set(i->first, FieldConfig::from_json(tmp));
+	    set(i->first, FieldConfig::from_json(tmp, doc_type));
 	} else {
 	    // Complain if configuration is not identical.
 	    //
@@ -779,7 +791,7 @@ Schema::get(const string & fieldname) const
 }
 
 const FieldIndexer *
-Schema::get_indexer(const string & fieldname, const string & doc_type) const
+Schema::get_indexer(const string & fieldname) const
 {
     map<string, FieldIndexer *>::const_iterator i;
     i = indexers.find(fieldname);
@@ -794,7 +806,7 @@ Schema::get_indexer(const string & fieldname, const string & doc_type) const
     }
 
     // Make a new FieldIndexer, store it, and return it.
-    auto_ptr<FieldIndexer> newptr(j->second->indexer(doc_type));
+    auto_ptr<FieldIndexer> newptr(j->second->indexer());
     const FieldIndexer * result = newptr.get();
     pair<map<string, FieldIndexer *>::iterator, bool> ret;
     pair<string, FieldIndexer *> item(fieldname, NULL);
@@ -833,12 +845,11 @@ Schema::process(const Json::Value & value,
 
     Xapian::Document result;
     DocumentData docdata;
-    string doc_type("");
 
     for (Json::Value::const_iterator viter = value.begin();
 	 viter != value.end();
 	 ++viter) {
-	const FieldIndexer * indexer = get_indexer(viter.memberName(), "");
+	const FieldIndexer * indexer = get_indexer(viter.memberName());
 	if (indexer) {
 	    //fprintf(stderr, "field '%s'\n", viter.memberName());
 	    if ((*viter).isNull()) {

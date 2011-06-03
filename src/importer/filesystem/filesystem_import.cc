@@ -158,7 +158,7 @@ RestPose::do_cmd(std::string datadir, std::string dbname,
 	std::string database_path = datadir + "/" + dbname;
 
 	{
-	    Schema schema;
+	    Schema schema("FIXME");
 	    Xapian::WritableDatabase db = 
 		    jxdb_create_or_open(database_path, schema_path, schema);
 
@@ -179,7 +179,7 @@ RestPose::do_cmd(std::string datadir, std::string dbname,
 	    std::string searchfile = *i;
 	    if (!searchfile.empty()) {
 		Xapian::Database db(database_path);
-		Schema schema;
+		Schema schema("FIXME");
 		std::string schema_str = db.get_metadata("_schema");
 		schema.from_json(schema_str);
 		std::string search_str;

@@ -42,10 +42,10 @@ using namespace RestPose;
 // The current configuration format number.
 // This should be incremented whenever a change is made to the configuration
 // format.
-static const unsigned int CONFIG_FORMAT = 2u;
+static const unsigned int CONFIG_FORMAT = 3u;
 
 // The oldest supported configuration format number.
-static const unsigned int CONFIG_FORMAT_OLDEST = 2u;
+static const unsigned int CONFIG_FORMAT_OLDEST = 3u;
 
 static void
 check_format_number(unsigned int format)
@@ -124,8 +124,6 @@ Collection::Collection(const string & coll_name_,
 	: coll_name(coll_name_),
 	  group(coll_path_)
 {
-    set_default_schema();
-    set_pipe_internal("default", Pipe());
 }
 
 Collection::~Collection()
@@ -185,7 +183,7 @@ Collection::set_default_schema()
     id_field = "id";
     type_field = "type";
 
-    Schema defschema;
+    Schema defschema("");
     Json::Value tmp;
     defschema.from_json(json_unserialise(
 "{"
@@ -216,11 +214,12 @@ Collection::read_schemas_config()
     last_schemas_config = schemas_config_str;
 
     if (schemas_config_str.empty()) {
+	set_default_schema();
+	set_pipe_internal("default", Pipe());
 	return;
     }
 
     // Set the schema.
-    set_default_schema();
     Json::Value config_obj;
     json_unserialise(schemas_config_str, config_obj);
     schemas_config_from_json(config_obj);
@@ -234,7 +233,7 @@ Collection::schemas_config_from_json(const Json::Value & value)
 	json_check_object(types_obj, "types definition");
 	for (Json::Value::iterator i = types_obj.begin();
 	     i != types_obj.end(); ++i) {
-	    Schema schema;
+	    Schema schema(i.memberName());
 	    schema.from_json(*i);
 	    set_schema_internal(i.memberName(), schema);
 	}
@@ -243,7 +242,7 @@ Collection::schemas_config_from_json(const Json::Value & value)
     const Json::Value & deftype_obj(value["default_type"]);
     if (!deftype_obj.isNull()) {
 	// Load the config into a Schema object to verify it.
-	Schema schema;
+	Schema schema("");
 	schema.from_json(deftype_obj);
 	default_type_config = deftype_obj;
     }
@@ -461,7 +460,7 @@ Collection::set_schema_internal(const string & type,
 	pair<map<string, Schema *>::iterator, bool> ret;
 	pair<string, Schema *> item(type, NULL);
 	ret = types.insert(item);
-	schemaptr = new Schema();
+	schemaptr = new Schema(type);
 	ret.first->second = schemaptr;
     } else {
 	schemaptr = i->second;
@@ -587,7 +586,7 @@ Collection::from_json(const Json::Value & value)
     check_format_number(json_get_uint64_member(value, "format",
 					       Json::Value::maxInt));
 
-    schemas_config_from_json(value.get("types", Json::nullValue));
+    schemas_config_from_json(value);
     pipes_config_from_json(value.get("pipes", Json::nullValue));
     categorisers_config_from_json(value.get("categorisers", Json::nullValue));
 
@@ -627,7 +626,9 @@ Collection::send_to_pipe(TaskManager * taskman,
 
     if (pipe_name.empty()) {
 	string idterm;
-	Xapian::Document xdoc = process_doc("", obj, idterm);
+	// FIXME - remove hardcoded "default" here - pipes should have a way to
+	// say what type the output document is.
+	Xapian::Document xdoc = process_doc("default", obj, idterm);
 	taskman->queue_index_processed_doc(get_name(), xdoc, idterm);
 	return;
     }
@@ -721,10 +722,12 @@ Collection::get_doc_fields(const Xapian::Document & doc,
 }
 
 void
-Collection::get_document(const string & docid, Json::Value & result) const
+Collection::get_document(const string & type,
+			 const string & docid,
+			 Json::Value & result) const
 {
     bool found;
-    string idterm = "\t" + docid;
+    string idterm = "\t" + type + "\t" + docid;
     Xapian::Document doc = group.get_document(idterm, found);
     if (found) {
 	doc_to_json(doc, result);

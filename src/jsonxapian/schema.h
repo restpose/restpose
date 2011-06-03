@@ -39,7 +39,7 @@ namespace RestPose {
      */
     struct FieldConfig {
 	/// Create an indexer for the field.
-	virtual FieldIndexer * indexer(const std::string & doc_type) const = 0;
+	virtual FieldIndexer * indexer() const = 0;
 
 	/// Create a query to search this field.
 	virtual Xapian::Query query(const std::string & qtype,
@@ -49,7 +49,8 @@ namespace RestPose {
 	virtual void to_json(Json::Value & value) const = 0;
 
 	/// Create a new FieldConfig from a JSON object.
-	static FieldConfig * from_json(const Json::Value & value);
+	static FieldConfig * from_json(const Json::Value & value,
+				       const std::string & doc_type);
 
 	/// Virtual destructor, to clean up subclasses correctly.
 	virtual ~FieldConfig();
@@ -105,21 +106,22 @@ namespace RestPose {
 	/// The fieldname to store field values under (empty to not store).
 	std::string store_field;
 
+	/// The prefix to use for this field.
+	std::string prefix;
+
 	/// Create from a JSON object.
-	IDFieldConfig(const Json::Value & value);
+	IDFieldConfig(const Json::Value & value, const std::string & doc_type);
 
 	/// Create from parameters.
-	IDFieldConfig(unsigned int max_length_ = 64,
+	IDFieldConfig(const std::string & doc_type,
+		      unsigned int max_length_ = 64,
 		      MaxLenFieldConfig::TooLongAction too_long_action_ = TOOLONG_ERROR,
-		      const std::string & store_field_ = std::string())
-		: MaxLenFieldConfig(max_length_, too_long_action_),
-		  store_field(store_field_)
-	{}
+		      const std::string & store_field_ = std::string());
 
 	virtual ~IDFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer(const std::string & doc_type) const;
+	FieldIndexer * indexer() const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -157,7 +159,7 @@ namespace RestPose {
 	virtual ~ExactFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer(const std::string & doc_type) const;
+	FieldIndexer * indexer() const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -192,7 +194,7 @@ namespace RestPose {
 	virtual ~TextFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer(const std::string & doc_type) const;
+	FieldIndexer * indexer() const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -226,7 +228,7 @@ namespace RestPose {
 	virtual ~DateFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer(const std::string & doc_type) const;
+	FieldIndexer * indexer() const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -251,7 +253,7 @@ namespace RestPose {
 	virtual ~StoredFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer(const std::string & doc_type) const;
+	FieldIndexer * indexer() const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -265,7 +267,7 @@ namespace RestPose {
 	virtual ~IgnoredFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer(const std::string & doc_type) const;
+	FieldIndexer * indexer() const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -340,6 +342,10 @@ namespace RestPose {
     /** A schema, containing the configuration for a set of fields.
      */
     class Schema {
+	/** The type that this schema is for.
+	 */
+	std::string doc_type;
+
 	/** A mapping from fieldname to configuration for that field.
 	 */
 	std::map<std::string, FieldConfig *> fields;
@@ -365,7 +371,7 @@ namespace RestPose {
 			   const Json::Value & search) const;
 
       public:
-	Schema() {}
+	Schema(const std::string & doc_type_) : doc_type(doc_type_) {}
 
 	/// Destructor - frees the FieldConfig objects owned by the schema.
 	~Schema();
@@ -403,8 +409,7 @@ namespace RestPose {
 	 *
 	 *  Returns NULL if there is no indexer for the field.
 	 */
-	const FieldIndexer * get_indexer(const std::string & fieldname,
-					 const std::string & doc_type) const;
+	const FieldIndexer * get_indexer(const std::string & fieldname) const;
 
 	/** Set the field config for a field.
 	 *

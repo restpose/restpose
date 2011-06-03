@@ -36,6 +36,23 @@
 
 using namespace RestPose;
 
+#define DEFAULT_TYPE_SCHEMA \
+"\"default_type\":{" \
+  "\"fields\":{" \
+    "\"id\":{\"max_length\":64,\"store_field\":\"id\",\"too_long_action\":\"error\",\"type\":\"id\"}," \
+    "\"type\":{\"max_length\":64,\"prefix\":\"!\",\"store_field\":\"type\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}" \
+  "}," \
+  "\"patterns\":[" \
+    "[\"*_text\",{\"prefix\":\"t*\",\"processor\":\"stem_en\",\"store_field\":\"*_text\",\"type\":\"text\"}]," \
+    "[\"*_date\",{\"slot\":\"d*\",\"store_field\":\"*_date\",\"type\":\"date\"}]," \
+    "[\"*_tag\",{\"prefix\":\"g*\",\"store_field\":\"*_tag\",\"type\":\"exact\"}]," \
+    "[\"*url\",{\"max_length\":100,\"prefix\":\"u*\",\"store_field\":\"*url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"*\",{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"*\",\"type\":\"text\"}]" \
+  "]" \
+"}"
+
+#define DEFAULT_SPECIAL_FIELDS "\"special_fields\":{\"id_field\":\"id\",\"type_field\":\"type\"}"
+
 class TempDir {
     std::string path;
 
@@ -84,9 +101,14 @@ TEST(CollectionConfigFormatCheck)
 
     // Check encoding of an empty config.
     Json::Value tmp;
-    c.from_json(json_unserialise(std::string("{\"format\": 2}"), tmp));
+    c.from_json(json_unserialise(std::string("{\"format\": 3}"), tmp));
     tmp = Json::nullValue;
-    CHECK_EQUAL("{\"format\":2,\"pipes\":{\"default\":{}},\"schemas\":{\"default\":{}}}", json_serialise(c.to_json(tmp)));
+    CHECK_EQUAL("{" DEFAULT_TYPE_SCHEMA ","
+		"\"format\":3,\"pipes\":{\"default\":{}},"
+		DEFAULT_SPECIAL_FIELDS ","
+		"\"types\":{}"
+		"}",
+		json_serialise(c.to_json(tmp)));
 }
 
 /// Test setting and getting collection schemas.
@@ -96,7 +118,7 @@ TEST(CollectionSchemas)
     Collection c("test", path.get() + "/test");
     c.open_writable();
 
-    Schema s;
+    Schema s("");
     Json::Value tmp;
 
     // Set the schema for a type, and retrieve it.
@@ -106,7 +128,7 @@ TEST(CollectionSchemas)
 	const Schema & s2 = c.get_schema("default");
 	tmp = Json::nullValue;
 	s2.to_json(tmp);
-	CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"}}}", json_serialise(tmp));
+	CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"}},\"patterns\":[]}", json_serialise(tmp));
     }
 
     // Check that trying to change the configuration for a field raises an
@@ -117,7 +139,7 @@ TEST(CollectionSchemas)
 	const Schema & s2 = c.get_schema("default");
 	tmp = Json::nullValue;
 	s2.to_json(tmp);
-	CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"}}}", json_serialise(tmp));
+	CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"}},\"patterns\":[]}", json_serialise(tmp));
     }
 
     // Check that trying to set the configuration for a field to the same
@@ -132,7 +154,7 @@ TEST(CollectionSchemas)
 	const Schema & s2 = c.get_schema("default");
 	tmp = Json::nullValue;
 	s2.to_json(tmp);
-	CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"},\"store2\":{\"store_field\":\"store2\",\"type\":\"stored\"}}}", json_serialise(tmp));
+	CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"},\"store2\":{\"store_field\":\"store2\",\"type\":\"stored\"}},\"patterns\":[]}", json_serialise(tmp));
     }
 
     c.close();
@@ -143,7 +165,7 @@ TEST(CollectionSchemas)
 	const Schema & s2 = c.get_schema("default");
 	tmp = Json::nullValue;
 	s2.to_json(tmp);
-	CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"},\"store2\":{\"store_field\":\"store2\",\"type\":\"stored\"}}}", json_serialise(tmp));
+	CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"},\"store2\":{\"store_field\":\"store2\",\"type\":\"stored\"}},\"patterns\":[]}", json_serialise(tmp));
     }
     CHECK_THROW(c.set_schema("default", s), InvalidStateError);
 }
@@ -189,9 +211,11 @@ TEST(CollectionPipes)
     CHECK_THROW(c.set_pipe("default", p), InvalidStateError);
 
     CHECK_EQUAL("{"
-		"\"format\":2,"
+		DEFAULT_TYPE_SCHEMA ","
+		"\"format\":3,"
 		"\"pipes\":{\"default\":{\"mappings\":[{\"map\":[{\"from\":[\"foo\"],\"to\":\"baz\"}]}]}},"
-		"\"schemas\":{\"default\":{}}"
+		DEFAULT_SPECIAL_FIELDS ","
+		"\"types\":{}"
 		"}", json_serialise(c.to_json(tmp)));
     CHECK_THROW(c.from_json(tmp), InvalidStateError);
 }
@@ -208,9 +232,9 @@ TEST(CollectionAddViaPipe)
 
     Json::Value tmp;
     c->from_json(json_unserialise("{"
-		"\"format\":2,"
+		"\"format\":3,"
 	  "\"pipes\":{\"default\":{\"mappings\":[{\"map\":[{\"from\":[\"foo\"],\"to\":\"bar\"}]}]}},"
-	  "\"schemas\":{\"default\":{\"fields\":{"
+	  "\"types\":{\"default\":{\"fields\":{"
 	    "\"id\":{\"max_length\":64,"
 	            "\"store_field\":\"\","
 	            "\"too_long_action\":\"error\",\"type\":\"id\"},"
@@ -224,15 +248,17 @@ TEST(CollectionAddViaPipe)
     c = pool.get_readonly("default");
 
     CHECK_EQUAL("{"
-		"\"format\":2,"
+		DEFAULT_TYPE_SCHEMA ","
+		"\"format\":3,"
 		"\"pipes\":{\"default\":{\"mappings\":[{\"map\":[{\"from\":[\"foo\"],\"to\":\"bar\"}]}]}},"
-		"\"schemas\":{\"default\":{\"fields\":{"
+		DEFAULT_SPECIAL_FIELDS ","
+		"\"types\":{\"default\":{\"fields\":{"
 		  "\"bar\":{\"store_field\":\"bar\",\"type\":\"stored\"},"
 		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"stored\"},"
 		  "\"id\":{\"max_length\":64,"
 	                  "\"store_field\":\"\","
 	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
-		  "}}}"
+		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
     CHECK_EQUAL(0u, c->doc_count());
@@ -267,25 +293,27 @@ TEST(CollectionCategoriser)
     Collection * c = pool.get_writable("default");
 
     c->from_json(json_unserialise("{"
-		"\"format\": 2,"
-		"\"schemas\":{\"default\":{\"fields\":{"
+		"\"format\": 3,"
+		"\"types\":{\"default\":{\"fields\":{"
 		  "\"text\":{\"store_field\":\"text\",\"type\":\"stored\"},"
 		  "\"lang\":{\"store_field\":\"lang\",\"type\":\"stored\"},"
 		  "\"id\":{\"max_length\":64,"
 	                  "\"store_field\":\"\","
 	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
-		  "},\"schema_format\":2}}"
+		  "}}}"
 	"}", tmp));
     CHECK_EQUAL("{"
-		"\"format\":2,"
+		DEFAULT_TYPE_SCHEMA ","
+		"\"format\":3,"
 		"\"pipes\":{\"default\":{}},"
-		"\"schemas\":{\"default\":{\"fields\":{"
+		DEFAULT_SPECIAL_FIELDS ","
+		"\"types\":{\"default\":{\"fields\":{"
 		  "\"id\":{\"max_length\":64,"
 	                  "\"store_field\":\"\","
 	                  "\"too_long_action\":\"error\",\"type\":\"id\"},"
 		  "\"lang\":{\"store_field\":\"lang\",\"type\":\"stored\"},"
 		  "\"text\":{\"store_field\":\"text\",\"type\":\"stored\"}"
-		  "}}}"
+		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
     Categoriser cat(1.03, 4, 10, 1);
@@ -319,15 +347,17 @@ TEST(CollectionCategoriser)
 		  "\"type\":\"ngram_rank\""
 		 "}"
 		"},"
-		"\"format\":2,"
+		DEFAULT_TYPE_SCHEMA ","
+		"\"format\":3,"
 		"\"pipes\":{\"default\":{}},"
-		"\"schemas\":{\"default\":{\"fields\":{"
+		DEFAULT_SPECIAL_FIELDS ","
+		"\"types\":{\"default\":{\"fields\":{"
 		  "\"id\":{\"max_length\":64,"
 	                  "\"store_field\":\"\","
 	                  "\"too_long_action\":\"error\",\"type\":\"id\"},"
 		  "\"lang\":{\"store_field\":\"lang\",\"type\":\"stored\"},"
 		  "\"text\":{\"store_field\":\"text\",\"type\":\"stored\"}"
-		  "}}}"
+		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
     Pipe p;
@@ -362,17 +392,17 @@ TEST(CollectionCategoriser)
     pool.release(c);
     c = pool.get_readonly("default");
     CHECK_EQUAL(1u, c->doc_count());
-    c->get_document("1", tmp);
+    c->get_document("default", "1", tmp);
     CHECK_EQUAL("null", json_serialise(tmp));
 
     tmp = Json::objectValue;
     tmp["foo"] = "regression"; // check that get_document clears its result
 
-    c->get_document("2", tmp);
+    c->get_document("default", "2", tmp);
     CHECK_EQUAL("{\"data\":{"
 		   "\"lang\":[\"english\"],"
 		   "\"text\":[\"Hello world\"]"
 		 "},"
-		 "\"terms\":{\"\\t2\":{}}"
+		 "\"terms\":{\"\\tdefault\\t2\":{}}"
 		"}", json_serialise(tmp));
 }
