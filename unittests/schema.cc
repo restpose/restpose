@@ -40,7 +40,8 @@ TEST(SchemaParams)
 
     // Check encoding of an empty schema.
     s.from_json(json_unserialise("{}", tmp));
-    CHECK_EQUAL("{\"patterns\":[]}", s.to_json_string());
+    CHECK_EQUAL("{\"patterns\":[]}",
+		json_serialise(s.to_json(tmp)));
 
     CHECK(s.get("id") == NULL);
     CHECK(s.get("url") == NULL);
@@ -52,7 +53,7 @@ TEST(SchemaParams)
 		        "\"store_field\":\"\","
 		        "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		"},\"patterns\":[]}",
-		s.to_json_string());
+		json_serialise(s.to_json(tmp)));
 
     s.set("url", new ExactFieldConfig("url", 120, ExactFieldConfig::TOOLONG_HASH, "url", 0));
     CHECK_EQUAL("{\"fields\":{"
@@ -66,16 +67,17 @@ TEST(SchemaParams)
 			 "\"type\":\"exact\","
 		         "\"wdfinc\":0}"
 		"},\"patterns\":[]}",
-		s.to_json_string());
+		json_serialise(s.to_json(tmp)));
 
     CHECK(s.get("id") != NULL);
     CHECK(s.get("url") != NULL);
     CHECK(s.get("missing") == NULL);
 
     Schema s2("");
-    CHECK(s2.to_json_string() != s.to_json_string());
-    s2.from_json(json_unserialise(s.to_json_string(), tmp));
-    CHECK_EQUAL(s2.to_json_string(), s.to_json_string());
+    Json::Value tmp2;
+    CHECK(json_serialise(s2.to_json(tmp2)) != json_serialise(s.to_json(tmp)));
+    s2.from_json(json_unserialise(json_serialise(s.to_json(tmp)), tmp2));
+    CHECK_EQUAL(json_serialise(s2.to_json(tmp2)), json_serialise(s.to_json(tmp)));
 }
 
 TEST(SchemaToDoc)
@@ -91,7 +93,8 @@ TEST(SchemaToDoc)
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(doc.get_data(), "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{}");
+	Json::Value tmp;
+	CHECK_EQUAL("{}", json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{}");
     }
 
@@ -103,7 +106,9 @@ TEST(SchemaToDoc)
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "\t\tabcd");
 	CHECK_EQUAL(doc.get_data(), "\003url\027[\"http://example.com/\"]");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"url\":[\"http://example.com/\"]},\"terms\":{\"\\t\\tabcd\":{},\"url\\thttp://example.com/\":{}}}");
+	Json::Value tmp;
+	CHECK_EQUAL("{\"data\":{\"url\":[\"http://example.com/\"]},\"terms\":{\"\\t\\tabcd\":{},\"url\\thttp://example.com/\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"url\":[\"http://example.com/\"]}");
     }
 
@@ -114,7 +119,9 @@ TEST(SchemaToDoc)
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(doc.get_data(), "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"terms\":{\"ns\\tabcd\":{}}}");
+	Json::Value tmp;
+	CHECK_EQUAL("{\"terms\":{\"ns\\tabcd\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{}");
     }
 }
@@ -129,6 +136,7 @@ TEST(LongExactFields)
 
     Schema s("");
     Json::Value tmp;
+    Json::Value tmp2;
     s.from_json(s2.to_json(tmp));
 
     {
@@ -139,7 +147,8 @@ TEST(LongExactFields)
 	v["id"] = "0123456789012345678901234567890123456789012345678901234567890123";
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "\t\t0123456789012345678901234567890123456789012345678901234567890123");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"terms\":{\"\\t\\t0123456789012345678901234567890123456789012345678901234567890123\":{}}}");
+	CHECK_EQUAL("{\"terms\":{\"\\t\\t0123456789012345678901234567890123456789012345678901234567890123\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{}");
     }
 
@@ -149,7 +158,8 @@ TEST(LongExactFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"url\":[\"0123456789012345678901234567890\"]},\"terms\":{\"url\\t012345678901234567890123Y]^J/ \":{}}}");
+	CHECK_EQUAL("{\"data\":{\"url\":[\"0123456789012345678901234567890\"]},\"terms\":{\"url\\t012345678901234567890123Y]^J/ \":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"url\":[\"0123456789012345678901234567890\"]}");
     }
 
@@ -159,7 +169,8 @@ TEST(LongExactFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"tags\":[\"0123456789012345678901234567890\"]},\"terms\":{\"tags\\t012345678901234567890123456789\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"tags\":[\"0123456789012345678901234567890\"]},\"terms\":{\"tags\\t012345678901234567890123456789\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"tags\":[\"0123456789012345678901234567890\"]}");
     }
 
@@ -171,23 +182,26 @@ TEST(LongExactFields)
 	v["valuable"] = "012345678901234567890123456789";
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"valuable\":[\"012345678901234567890123456789\"]},\"terms\":{\"valuable\\t012345678901234567890123456789\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"valuable\":[\"012345678901234567890123456789\"]},\"terms\":{\"valuable\\t012345678901234567890123456789\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"valuable\":[\"012345678901234567890123456789\"]}");
     }
 }
 
 TEST(IntegerExactFields)
 {
+    Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
 
     CHECK_EQUAL("{\"fields\":{\"intid\":{\"max_length\":30,\"prefix\":\"intid\",\"store_field\":\"intid\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}},\"patterns\":[]}",
-		s2.to_json_string());
+		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
-    Json::Value tmp;
     s.from_json(s2.to_json(tmp));
-    CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
+    tmp = tmp2 = Json::nullValue;
+    CHECK_EQUAL(json_serialise(s.to_json(tmp)),
+		json_serialise(s2.to_json(tmp2)));
 
     {
 	Json::Value v(Json::objectValue);
@@ -195,7 +209,8 @@ TEST(IntegerExactFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[5000000000]},\"terms\":{\"intid\\t5000000000\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"intid\":[5000000000]},\"terms\":{\"intid\\t5000000000\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"intid\":[5000000000]}");
     }
 
@@ -210,32 +225,38 @@ TEST(IntegerExactFields)
 
 	CHECK(reader.parse("{\"intid\": 0}", v, false));
 	Xapian::Document doc = s.process(v, idterm);
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[0]},\"terms\":{\"intid\\t0\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"intid\":[0]},\"terms\":{\"intid\\t0\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 
 	CHECK(reader.parse("{\"intid\": 1}", v, false));
 	doc = s.process(v, idterm);
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[1]},\"terms\":{\"intid\\t1\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"intid\":[1]},\"terms\":{\"intid\\t1\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 
 	CHECK(reader.parse("{\"intid\": 4294967295}", v, false)); // 2**32-1
 	doc = s.process(v, idterm);
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[4294967295]},\"terms\":{\"intid\\t4294967295\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"intid\":[4294967295]},\"terms\":{\"intid\\t4294967295\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 
 	CHECK(reader.parse("{\"intid\": 9223372036854775807}", v, false)); // 2**63-1
 	doc = s.process(v, idterm);
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[9223372036854775807]},\"terms\":{\"intid\\t9223372036854775807\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"intid\":[9223372036854775807]},\"terms\":{\"intid\\t9223372036854775807\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 
 	CHECK(reader.parse("{\"intid\": 9223372036854775808}", v, false)); // 2**63
 	doc = s.process(v, idterm);
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[9223372036854775808]},\"terms\":{\"intid\\t9223372036854775808\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"intid\":[9223372036854775808]},\"terms\":{\"intid\\t9223372036854775808\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 
 	CHECK(reader.parse("{\"intid\": 18446744073709551615}", v, false)); // 2**64-1
 	doc = s.process(v, idterm);
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"intid\\t18446744073709551615\":{}}}");
+	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"intid\\t18446744073709551615\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 
 	CHECK(reader.parse("{\"intid\": 18446744073709551616}", v, false));
@@ -246,15 +267,17 @@ TEST(IntegerExactFields)
 
 TEST(DateFields)
 {
+    Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("date", new DateFieldConfig(0, "date"));
     CHECK_EQUAL("{\"fields\":{\"date\":{\"slot\":0,\"store_field\":\"date\",\"type\":\"date\"}},\"patterns\":[]}",
-		s2.to_json_string());
+		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
-    Json::Value tmp;
     s.from_json(s2.to_json(tmp));
-    CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
+    tmp = tmp2 = Json::nullValue;
+    CHECK_EQUAL(json_serialise(s.to_json(tmp)),
+		json_serialise(s2.to_json(tmp2)));
 
     {
 	Json::Value v(Json::objectValue);
@@ -262,22 +285,25 @@ TEST(DateFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"date\":[1283400000]},\"values\":{\"0\":\"\340\\\\\307\362\\u0014\"}}");
+	CHECK_EQUAL("{\"data\":{\"date\":[1283400000]},\"values\":{\"0\":\"\340\\\\\307\362\\u0014\"}}",
+		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"date\":[1283400000]}");
     }
 }
 
 TEST(StoreFields)
 {
+    Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("store", new StoredFieldConfig(std::string("store")));
     CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"}},\"patterns\":[]}",
-		s2.to_json_string());
+		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
-    Json::Value tmp;
     s.from_json(s2.to_json(tmp));
-    CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
+    tmp = tmp2 = Json::nullValue;
+    CHECK_EQUAL(json_serialise(s.to_json(tmp)),
+		json_serialise(s2.to_json(tmp2)));
 
     {
 	Json::Value v(Json::objectValue);
@@ -285,7 +311,8 @@ TEST(StoreFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"store\":[\"Well, can you store me?\"]}}");
+	CHECK_EQUAL("{\"data\":{\"store\":[\"Well, can you store me?\"]}}",
+		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"store\":[\"Well, can you store me?\"]}");
     }
 
@@ -295,22 +322,25 @@ TEST(StoreFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"store\":[1283400000]}}");
+	CHECK_EQUAL("{\"data\":{\"store\":[1283400000]}}",
+		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"store\":[1283400000]}");
     }
 }
 
 TEST(EnglishStemmedFields)
 {
+    Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("text", new TextFieldConfig("t", "text", "stem_en"));
     CHECK_EQUAL("{\"fields\":{\"text\":{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}},\"patterns\":[]}",
-		s2.to_json_string());
+		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
-    Json::Value tmp;
     s.from_json(s2.to_json(tmp));
-    CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
+    tmp = tmp2 = Json::nullValue;
+    CHECK_EQUAL(json_serialise(s.to_json(tmp)),
+		json_serialise(s2.to_json(tmp2)));
 
     {
 	Json::Value v(Json::objectValue);
@@ -327,22 +357,25 @@ TEST(EnglishStemmedFields)
 		    "\"t\\tsome\":{\"positions\":[1],\"wdf\":1},"
 		    "\"t\\twords\":{\"positions\":[3],\"wdf\":1}"
 		    
-		    "}}", doc_to_json_string(doc));
+		    "}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL("{\"text\":[\"Some english words\"]}", s.display_doc_as_string(doc));
     }
 }
 
 TEST(CJKFields)
 {
+    Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("text", new TextFieldConfig("t", "text", "cjk"));
     CHECK_EQUAL("{\"fields\":{\"text\":{\"prefix\":\"t\",\"processor\":\"cjk\",\"store_field\":\"text\",\"type\":\"text\"}},\"patterns\":[]}",
-		s2.to_json_string());
+		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
-    Json::Value tmp;
     s.from_json(s2.to_json(tmp));
-    CHECK_EQUAL(s.to_json_string(), s2.to_json_string());
+    tmp = tmp2 = Json::nullValue;
+    CHECK_EQUAL(json_serialise(s.to_json(tmp)),
+		json_serialise(s2.to_json(tmp2)));
 
     {
 	Json::Value v(Json::objectValue);
@@ -350,7 +383,8 @@ TEST(CJKFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"text\":[\"Some english text\"]},\"terms\":{\"t\\tenglish\":{\"positions\":[2],\"wdf\":1},\"t\\tsome\":{\"positions\":[1],\"wdf\":1},\"t\\ttext\":{\"positions\":[3],\"wdf\":1}}}");
+	CHECK_EQUAL("{\"data\":{\"text\":[\"Some english text\"]},\"terms\":{\"t\\tenglish\":{\"positions\":[2],\"wdf\":1},\"t\\tsome\":{\"positions\":[1],\"wdf\":1},\"t\\ttext\":{\"positions\":[3],\"wdf\":1}}}",
+		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"text\":[\"Some english text\"]}");
     }
 }

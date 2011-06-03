@@ -33,16 +33,7 @@
 
 using namespace RestPose;
 
-std::string
-RestPose::doc_to_json_string(const Xapian::Document & doc)
-{
-    Json::Value value(Json::objectValue);
-    doc_to_json(doc, value);
-    Json::FastWriter writer;
-    return writer.write(value);
-}
-
-void
+Json::Value &
 RestPose::doc_to_json(const Xapian::Document & doc, Json::Value & result)
 {
     json_check_object(result, "target for doc_to_json");
@@ -92,4 +83,5 @@ RestPose::doc_to_json(const Xapian::Document & doc, Json::Value & result)
 	if (!valuesval.empty())
 	    result["values"] = valuesval;
     }
+    return result;
 }

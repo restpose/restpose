@@ -22,26 +22,35 @@
  * IN THE SOFTWARE.
  */
 
+#include <config.h>
+
 #include "UnitTest++.h"
 #include "jsonxapian/doctojson.h"
+
+#include "utils/jsonutils.h"
 
 using namespace RestPose;
 
 TEST(DocToJson)
 {
     Xapian::Document doc;
-    CHECK_EQUAL(doc_to_json_string(doc), "{}");
+    Json::Value tmp;
+    CHECK_EQUAL("{}",
+		json_serialise(doc_to_json(doc, tmp)));
 
     doc.add_value(10, "ten");
-    CHECK_EQUAL(doc_to_json_string(doc), "{\"values\":{\"10\":\"ten\"}}");
+    CHECK_EQUAL("{\"values\":{\"10\":\"ten\"}}",
+		json_serialise(doc_to_json(doc, tmp)));
 
     doc.clear_values();
     doc.add_boolean_term("foo");
-    CHECK_EQUAL(doc_to_json_string(doc), "{\"terms\":{\"foo\":{}}}");
+    CHECK_EQUAL("{\"terms\":{\"foo\":{}}}",
+		json_serialise(doc_to_json(doc, tmp)));
     doc.add_term("foo", 5);
-    CHECK_EQUAL(doc_to_json_string(doc), "{\"terms\":{\"foo\":{\"wdf\":5}}}");
+    CHECK_EQUAL("{\"terms\":{\"foo\":{\"wdf\":5}}}",
+		json_serialise(doc_to_json(doc, tmp)));
     doc.add_posting("foo", 1);
     doc.add_posting("foo", 7);
-    CHECK_EQUAL(doc_to_json_string(doc), "{\"terms\":{\"foo\":{\"positions\""
-		":[1,7],\"wdf\":7}}}");
+    CHECK_EQUAL("{\"terms\":{\"foo\":{\"positions\":[1,7],\"wdf\":7}}}",
+		json_serialise(doc_to_json(doc, tmp)));
 }

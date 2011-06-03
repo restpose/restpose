@@ -382,9 +382,6 @@ namespace RestPose {
 	/// Convert the schema to a JSON object.
 	Json::Value & to_json(Json::Value & value) const;
 
-	/// Cnvert the schema to a string encoding of a JSON object.
-	std::string to_json_string() const;
-
 	/// Initialise the schema from a JSON object.
 	void from_json(const Json::Value & value);
 

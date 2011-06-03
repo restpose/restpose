@@ -47,7 +47,9 @@ TEST(SearchIntegerExactFields)
 	CHECK(reader.parse("{\"id\": 32, \"intid\": 18446744073709551615}", value, false)); // 2**64-1
 	std::string idterm;
 	Xapian::Document doc(s.process(value, idterm));
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"\\t\\t32\":{},\"intid\\t18446744073709551615\":{}}}");
+	Json::Value tmp;
+	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"\\t\\t32\":{},\"intid\\t18446744073709551615\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(idterm, "\t\t32");
 	db.add_document(doc);
     }
@@ -57,7 +59,9 @@ TEST(SearchIntegerExactFields)
 	CHECK(reader.parse("{\"id\": 18446744073709551615, \"intid\": 31}", value, false)); // 2**64-1
 	std::string idterm;
 	Xapian::Document doc(s.process(value, idterm));
-	CHECK_EQUAL(doc_to_json_string(doc), "{\"data\":{\"intid\":[31]},\"terms\":{\"\\t\\t18446744073709551615\":{},\"intid\\t31\":{}}}");
+	Json::Value tmp;
+	CHECK_EQUAL("{\"data\":{\"intid\":[31]},\"terms\":{\"\\t\\t18446744073709551615\":{},\"intid\\t31\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(idterm, "\t\t18446744073709551615");
 	db.add_document(doc);
     }

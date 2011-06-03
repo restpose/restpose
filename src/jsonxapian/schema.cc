@@ -723,15 +723,6 @@ Schema::to_json(Json::Value & value) const
     return value;
 }
 
-string
-Schema::to_json_string() const
-{
-    Json::Value value(Json::objectValue);
-    to_json(value);
-    Json::FastWriter writer;
-    return writer.write(value);
-}
-
 void
 Schema::from_json(const Json::Value & value)
 {

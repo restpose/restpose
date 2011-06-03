@@ -30,13 +30,9 @@
 #include <xapian.h>
 
 namespace RestPose {
-    /** Convert a document to a string holding a JSON encoding of it.
-     */
-    std::string doc_to_json_string(const Xapian::Document & doc);
-
     /** Convert a document to a JSON object representing it.
      */
-    void doc_to_json(const Xapian::Document & doc, Json::Value & result);
+    Json::Value & doc_to_json(const Xapian::Document & doc, Json::Value & result);
 };
 
 #endif /* RESTPOSE_INCLUDED_DOCTOJSON_H */
