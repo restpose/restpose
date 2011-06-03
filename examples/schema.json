@@ -1,21 +1,21 @@
-/* An example schema.
+/* An example configuration for a collection.
  *
  * Note that C-style comments are allowed in the schema.
  */
 {
-  "format": 2,
+  "format": 3,
   "pipes": {
     /* This mapping performs the language guessing */
     "default": {
       "mappings": [
         {
-	  "map": [
-	    {"from": "text", "to": "lang_guess", "categoriser": "guess_lang"},
-	    {"from": "text", "to": "text"}
-	    {"from": "title", "to": "lang_guess", "categoriser": "guess_lang"},
-	    {"from": "title", "to": "title"}
-	  ]
-	}
+          "map": [
+            {"from": "text", "to": "lang_guess", "categoriser": "guess_lang"},
+            {"from": "text", "to": "text"}
+            {"from": "title", "to": "lang_guess", "categoriser": "guess_lang"},
+            {"from": "title", "to": "title"}
+          ]
+        }
       ],
       "target": "pick_lang"
     },
@@ -215,10 +215,47 @@
       ]
     }
   },
-  "schemas": {
-    "default": {
+
+  "defaulttype": {
+    "patterns": [
+      [ "*_text", { "type": "text", "prefix": "t*", "store_field": "*_text", "processor": "stem_en" } ],
+      [ "*_date", { "type": "date", "slot": "d*", "store_field": "*_date" } ],
+      [ "*_tag", { "type": "exact", "prefix": "g*", "store_field": "*_tag" } ],
+      [ "*url", { "type": "exact", "prefix": "u*", "store_field": "*url", "max_length": 100, "too_long_action": "hash" } ],
+      [ "*", { "type": "text", "prefix": "t", "store_field": "*", "processor": "stem_en" } ]
+    ],
+    "fields": {
+      "id": { "type": "id", "store_field": "id" },
+      "type": { "type": "exact", "prefix": "!", "store_field": "type" }
+    }
+  },
+
+  /* Special fields. */
+  "special_fields": {
+    "idfield": "id",
+    "typefield": "type"
+  },
+
+  /* Schemas for each type. */
+  "types": {
+    "": {
+      "patterns": [
+        /* A list of patterns to apply in order to unknown fields, to determine
+         * how to handle them.  The first matching pattern is used.
+         */
+        [ "*_text", { "type": "text", "prefix": "t*", "store_field": "*_text", "processor": "stem_en" } ],
+        [ "*_date", { "type": "date", "slot": "d*", "store_field": "*_date" } ],
+        [ "*_tag", { "type": "exact", "prefix": "g*", "store_field": "*_tag" } ],
+        [ "*url", { "type": "exact", "prefix": "u*", "store_field": "*url", "max_length": 100, "too_long_action": "hash" } ],
+        [ "*", { "type": "text", "prefix": "t", "store_field": "*", "processor": "stem_en" } ]
+      ],
+
       "fields": {
+        /* A special field for storing the id. */
         "id": { "type": "id", "store_field": "id" },
+
+        /* An exact field for storing the type. */
+        "type": { "type": "exact", "prefix": "!", "store_field": "type" },
 
         /* Several date fields, but only the pub_date field is searchable. */
         "pub_date": { "type": "date", "slot": 0, "store_field": "pub_date" },
@@ -257,48 +294,48 @@
         "title_it": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_it" },
 
         "text_no": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_no" },
-	"title_no": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_no" },
+        "title_no": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_no" },
 
-	"text_pt": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_pt" },
-	"title_pt": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_pt" },
+        "text_pt": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_pt" },
+        "title_pt": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_pt" },
 
-	"text_ru": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_ru" },
-	"title_ru": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_ru" },
+        "text_ru": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_ru" },
+        "title_ru": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_ru" },
 
-	"text_ro": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_ro" },
-	"title_ro": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_ro" },
+        "text_ro": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_ro" },
+        "title_ro": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_ro" },
 
-	"text_sv": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_sv" },
-	"title_sv": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_sv" },
+        "text_sv": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_sv" },
+        "title_sv": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_sv" },
 
-	"text_tr": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_tr" },
-	"title_tr": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_tr" },
+        "text_tr": { "type": "text", "prefix": "t", "store_field": "text", "processor": "stem_tr" },
+        "title_tr": { "type": "text", "prefix": "t", "store_field": "title", "processor": "stem_tr" },
 
-	/* CJK fields */
-	"text_ko": { "type": "text", "prefix": "t", "store_field": "text", "processor": "cjk" },
-	"title_ko": { "type": "text", "prefix": "t", "store_field": "title", "processor": "cjk" },
+        /* CJK fields */
+        "text_ko": { "type": "text", "prefix": "t", "store_field": "text", "processor": "cjk" },
+        "title_ko": { "type": "text", "prefix": "t", "store_field": "title", "processor": "cjk" },
 
-	"text_zh": { "type": "text", "prefix": "t", "store_field": "text", "processor": "cjk" },
-	"title_zh": { "type": "text", "prefix": "t", "store_field": "title", "processor": "cjk" },
+        "text_zh": { "type": "text", "prefix": "t", "store_field": "text", "processor": "cjk" },
+        "title_zh": { "type": "text", "prefix": "t", "store_field": "title", "processor": "cjk" },
 
-	"text_ja": { "type": "text", "prefix": "t", "store_field": "text", "processor": "cjk" },
-	"title_ja": { "type": "text", "prefix": "t", "store_field": "title", "processor": "cjk" },
+        "text_ja": { "type": "text", "prefix": "t", "store_field": "text", "processor": "cjk" },
+        "title_ja": { "type": "text", "prefix": "t", "store_field": "title", "processor": "cjk" },
 
-	/* Exact match fields - these raise an error if values are too long */
-	"node_id": { "type": "exact", "prefix": "n", "store_field": "node_id" },
-	"publisher": { "type": "exact", "prefix": "p", "store_field": "primary_lang_guess" },
-	"lang_guess": { "type": "exact", "prefix": "g", "store_field": "lang_guess" },
+        /* Exact match fields - these raise an error if values are too long */
+        "node_id": { "type": "exact", "prefix": "n", "store_field": "node_id" },
+        "publisher": { "type": "exact", "prefix": "p", "store_field": "primary_lang_guess" },
+        "lang_guess": { "type": "exact", "prefix": "g", "store_field": "lang_guess" },
 
-	/* A url exact match field - the tail of this is hashed if values are
-	 * too long */
-	"url": { "type": "exact", "prefix": "u", "store_field": "url",
-	    "max_length": 120, "too_long_action": "hash" },
+        /* A url exact match field - the tail of this is hashed if values are
+         * too long */
+        "url": { "type": "exact", "prefix": "u", "store_field": "url",
+            "max_length": 120, "too_long_action": "hash" },
 
-	/* Fields to be ignored. */
-	"updated_at": { "type": "ignore" },
+        /* Fields to be ignored. */
+        "updated_at": { "type": "ignore" },
 
-	/* Fields to be stored. */
-	"source": { "type": "stored", "store_field": "source" },
+        /* Fields to be stored. */
+        "source": { "type": "stored", "store_field": "source" },
       }
     }
   },
