@@ -640,7 +640,7 @@ Schema::merge_from(const Schema & other)
 	    // Complain if configuration is not identical.
 	    //
 	    // Note, if this is changed in future to allow field
-	    // configuratino to be changed, don't forget to clear the cache
+	    // configuration to be changed, don't forget to clear the cache
 	    // (in indexers).
 
 	    Json::Value tmp2;
