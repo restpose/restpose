@@ -103,7 +103,7 @@ void
 PerformSearchTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
-    collection->perform_search(search, result);
+    collection->perform_search(search, doc_type, result);
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
@@ -144,7 +144,7 @@ ProcessorProcessDocumentTask::perform(RestPose::Collection & collection,
 				      TaskManager * taskman)
 {
     string idterm;
-    Xapian::Document xdoc = collection.process_doc(type, doc, idterm);
+    Xapian::Document xdoc = collection.process_doc(doc, doc_type, idterm);
     taskman->queue_index_processed_doc(collection.get_name(), xdoc, idterm);
 }
 

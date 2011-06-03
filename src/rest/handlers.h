@@ -108,9 +108,12 @@ class SearchHandlerFactory : public HandlerFactory {
 
 class SearchHandler : public QueuedHandler {
     std::string coll_name;
+    std::string doc_type;
   public:
-    SearchHandler(const std::string & coll_name_)
-	    : coll_name(coll_name_)
+    SearchHandler(const std::string & coll_name_,
+		  const std::string & doc_type_)
+	    : coll_name(coll_name_),
+	      doc_type(doc_type_)
     {}
 
     Queue::QueueState enqueue(const Json::Value & body) const;

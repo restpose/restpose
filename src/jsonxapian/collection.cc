@@ -628,7 +628,7 @@ Collection::send_to_pipe(TaskManager * taskman,
 	string idterm;
 	// FIXME - remove hardcoded "default" here - pipes should have a way to
 	// say what type the output document is.
-	Xapian::Document xdoc = process_doc("default", obj, idterm);
+	Xapian::Document xdoc = process_doc(obj, "default", idterm);
 	taskman->queue_index_processed_doc(get_name(), xdoc, idterm);
 	return;
     }
@@ -649,22 +649,21 @@ Collection::send_to_pipe(TaskManager * taskman,
 }
 
 void
-Collection::add_doc(const Json::Value & doc_obj)
+Collection::add_doc(const Json::Value & doc_obj,
+		    const string & doc_type)
 {
-    string type("default"); // FIXME - allow this to be something other than default.
-
     string idterm;
-    const Schema & schema = get_schema(type);
+    const Schema & schema = get_schema(doc_type);
     Xapian::Document doc(schema.process(doc_obj, idterm));
     raw_update_doc(doc, idterm);
 }
 
 Xapian::Document
-Collection::process_doc(const string & type,
-			const Json::Value & doc_obj,
+Collection::process_doc(const Json::Value & doc_obj,
+			const string & doc_type,
 			string & idterm)
 {
-    const Schema & schema = get_schema(type);
+    const Schema & schema = get_schema(doc_type);
     return schema.process(doc_obj, idterm);
 }
 
@@ -704,20 +703,20 @@ Collection::doc_count() const
 
 void
 Collection::perform_search(const Json::Value & search,
+			   const string & doc_type,
 			   Json::Value & results) const
 {
-    string type("default"); // FIXME - allow this to be something other than default.
-    const Schema & schema = get_schema(type);
+    const Schema & schema = get_schema(doc_type);
     schema.perform_search(get_db(), search, results);
 }
 
 void
 Collection::get_doc_fields(const Xapian::Document & doc,
+			   const string & doc_type,
 			   const Json::Value & fieldlist,
 			   Json::Value & result) const
 {
-    string type("default"); // FIXME - allow this to be something other than default.
-    const Schema & schema = get_schema(type);
+    const Schema & schema = get_schema(doc_type);
     schema.display_doc(doc, fieldlist, result);
 }
 

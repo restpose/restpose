@@ -44,7 +44,6 @@ setup_routes(Router & router)
     //router.add("/coll/?/type/?/id/?", HTTP_POST, new IndexDocumentHandlerFactory);
     //router.add("/coll/?/type/?/id/?", HTTP_GET, new GetDocumentHandlerFactory);
     //router.add("/coll/?/docs/?/?", HTTP_POST, new IndexDocumentHandlerFactory);
-    router.add("/coll/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
-    //router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
+    router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
     router.set_default(new NotFoundHandlerFactory);
 }

@@ -97,7 +97,9 @@ main_do(int argc, char * const* argv)
 		}
 		Json::Value search;
 		Json::Value search_results;
-		coll.perform_search(json_unserialise(search_str, search), search_results);
+		coll.perform_search(json_unserialise(search_str, search),
+				    "default", // FIXME - make the type configurable
+				    search_results);
 
 		std::cout << json_serialise(search_results) << std::endl;
 	    }

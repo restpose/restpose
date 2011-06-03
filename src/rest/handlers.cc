@@ -122,14 +122,15 @@ Handler *
 SearchHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
-    return new SearchHandler(coll_name);
+    string doc_type = path_params[1];
+    return new SearchHandler(coll_name, doc_type);
 }
 
 Queue::QueueState
 SearchHandler::enqueue(const Json::Value & body) const
 {
     return taskman->queue_readonly("search",
-	new PerformSearchTask(resulthandle, coll_name, body));
+	new PerformSearchTask(resulthandle, coll_name, body, doc_type));
 }
 
 Handler *

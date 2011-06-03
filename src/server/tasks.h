@@ -68,12 +68,15 @@ class CollInfoTask : public ReadonlyCollTask {
 
 class PerformSearchTask : public ReadonlyCollTask {
     Json::Value search;
+    std::string doc_type;
   public:
     PerformSearchTask(const RestPose::ResultHandle & resulthandle_,
 		      const std::string & coll_name_,
-		      const Json::Value & search_)
+		      const Json::Value & search_,
+		      const std::string & doc_type_)
 	    : ReadonlyCollTask(resulthandle_, coll_name_),
-	      search(search_)
+	      search(search_),
+	      doc_type(doc_type_)
     {}
 
     void perform(RestPose::Collection * collection);
@@ -114,15 +117,15 @@ class ProcessorPipeDocumentTask : public ProcessingTask {
 /// Process a JSON document.
 class ProcessorProcessDocumentTask : public ProcessingTask {
     /// The type of the document to process.
-    std::string type;
+    std::string doc_type;
 
     /// The serialised document to process.
     Json::Value doc;
 
   public:
-    ProcessorProcessDocumentTask(const std::string & type_,
+    ProcessorProcessDocumentTask(const std::string & doc_type_,
 				 const Json::Value & doc_)
-	    : type(type_), doc(doc_)
+	    : doc_type(doc_type_), doc(doc_)
     {}
 
     /// Perform the processing task, given a collection (open for reading).

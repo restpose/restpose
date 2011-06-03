@@ -327,12 +327,13 @@ class Collection {
 
     /** Add (or replace) a document.
      */
-    void add_doc(const Json::Value & doc_obj);
+    void add_doc(const Json::Value & doc_obj,
+		 const std::string & doc_type);
 
     /** Process a JSON document into a Xapian document.
      */
-    Xapian::Document process_doc(const std::string & type,
-				 const Json::Value & doc_obj,
+    Xapian::Document process_doc(const Json::Value & doc_obj,
+				 const std::string & doc_type,
 				 std::string & idterm);
 
     /** Update (or add) a Xapian document, given its unique id term.
@@ -355,11 +356,13 @@ class Collection {
     /** Perform a search.
      */
     void perform_search(const Json::Value & search,
+			const std::string & doc_type,
 			Json::Value & results) const;
 
     /** Get a set of stored fields from a Xapian document.
      */
     void get_doc_fields(const Xapian::Document & doc,
+			const std::string & doc_type,
 			const Json::Value & fieldlist,
 			Json::Value & result) const;
 
