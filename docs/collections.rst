@@ -245,11 +245,11 @@ Special fields
 The "`special_fields`" property of a collection defines the field names which
 are used for two special purposes.
 
-*idfield*
+*id_field*
      The field which is used for id lookups.  This should normally be a field
      of type id.  The terms generated from the id field will be used for
      replacing older versions of documents.
-*typefield*
+*type_field*
      The field which is used for type lookups.
 
 ------------
