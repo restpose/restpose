@@ -74,6 +74,17 @@ class CollCreateHandler : public QueuedHandler {
 };
 
 
+class CollListHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> &) const;
+};
+
+class CollListHandler : public QueuedHandler {
+  public:
+    Queue::QueueState enqueue(const Json::Value &) const;
+};
+
+
 class CollInfoHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;

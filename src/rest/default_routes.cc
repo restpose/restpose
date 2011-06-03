@@ -37,10 +37,13 @@ setup_routes(Router & router)
     router.add("/", HTTP_GETHEAD, new RootHandlerFactory);
     router.add("/static/*", HTTP_GETHEAD, new FileHandlerFactory);
     router.add("/status", HTTP_GETHEAD, new ServerStatusHandlerFactory);
+    router.add("/coll", HTTP_GETHEAD, new CollListHandlerFactory);
     router.add("/coll/?", HTTP_GETHEAD, new CollInfoHandlerFactory);
     router.add("/coll/?", HTTP_PUT, new CollCreateHandlerFactory);
-    //router.add("/coll/?/type/?", HTTP_GET, new GetDocumentHandlerFactory);
-    //router.add("/coll/?/type/?", HTTP_POST, new IndexDocumentHandlerFactory);
+    //router.add("/coll/?/id/?", HTTP_POST, new IndexDocumentHandlerFactory);
+    //router.add("/coll/?/type/?/id/?", HTTP_POST, new IndexDocumentHandlerFactory);
+    //router.add("/coll/?/type/?/id/?", HTTP_GET, new GetDocumentHandlerFactory);
+    //router.add("/coll/?/docs/?/?", HTTP_POST, new IndexDocumentHandlerFactory);
     router.add("/coll/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
     //router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
     router.set_default(new NotFoundHandlerFactory);

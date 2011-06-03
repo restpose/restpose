@@ -91,6 +91,19 @@ CollCreateHandler::enqueue(const Json::Value &) const
 }
 
 Handler *
+CollListHandlerFactory::create(const std::vector<std::string> &) const
+{
+    return new CollListHandler;
+}
+
+Queue::QueueState
+CollListHandler::enqueue(const Json::Value &) const
+{
+    return taskman->queue_readonly("info",
+	new CollListTask(resulthandle, taskman->get_collections()));
+}
+
+Handler *
 CollInfoHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
