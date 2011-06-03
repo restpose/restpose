@@ -124,8 +124,7 @@ Collection::Collection(const string & coll_name_,
 	: coll_name(coll_name_),
 	  group(coll_path_)
 {
-    Schema schema;
-    set_schema_internal("default", schema);
+    set_default_schema();
     set_pipe_internal("default", Pipe());
 }
 
@@ -174,9 +173,41 @@ Collection::get_db() const
 }
 
 void
+Collection::set_default_schema()
+{
+    for (map<string, Schema *>::iterator
+	 i = types.begin(); i != types.end(); ++i) {
+	delete i->second;
+	i->second = NULL;
+    }
+    types.clear();
+
+    id_field = "id";
+    type_field = "type";
+
+    Schema defschema;
+    Json::Value tmp;
+    defschema.from_json(json_unserialise(
+"{"
+"  \"patterns\": ["
+"    [ \"*_text\", { \"type\": \"text\", \"prefix\": \"t*\", \"store_field\": \"*_text\", \"processor\": \"stem_en\" } ],"
+"    [ \"*_date\", { \"type\": \"date\", \"slot\": \"d*\", \"store_field\": \"*_date\" } ],"
+"    [ \"*_tag\", { \"type\": \"exact\", \"prefix\": \"g*\", \"store_field\": \"*_tag\" } ],"
+"    [ \"*url\", { \"type\": \"exact\", \"prefix\": \"u*\", \"store_field\": \"*url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
+"    [ \"*\", { \"type\": \"text\", \"prefix\": \"t\", \"store_field\": \"*\", \"processor\": \"stem_en\" } ]"
+"  ],"
+"  \"fields\": {"
+"    \"id\": { \"type\": \"id\", \"store_field\": \"id\" },"
+"    \"type\": { \"type\": \"exact\", \"prefix\": \"!\", \"store_field\": \"type\" }"
+"  }"
+"}", tmp)); 
+    defschema.to_json(default_type_config);
+}
+
+void
 Collection::read_schemas_config()
 {
-    string schemas_config_str(group.get_metadata("_schemas"));
+    string schemas_config_str(group.get_metadata("_types"));
     if (!last_schemas_config.empty()) {
 	if (schemas_config_str == last_schemas_config) {
 	    return;
@@ -184,37 +215,45 @@ Collection::read_schemas_config()
     }
     last_schemas_config = schemas_config_str;
 
-    // Clear the schemas and set built-in defaults.
-    for (map<string, Schema *>::iterator
-	 i = types.begin(); i != types.end(); ++i) {
-	delete i->second;
-	i->second = NULL;
-    }
-    types.clear();
-    Schema schema;
-    set_schema_internal("default", schema);
-
     if (schemas_config_str.empty()) {
 	return;
     }
 
+    // Set the schema.
+    set_default_schema();
     Json::Value config_obj;
     json_unserialise(schemas_config_str, config_obj);
-
-    schemas_config_from_json(config_obj.get("schemas", Json::nullValue));
+    schemas_config_from_json(config_obj);
 }
 
 void
 Collection::schemas_config_from_json(const Json::Value & value)
 {
-    if (!value.isNull()) {
-	json_check_object(value, "schemas");
-	for (Json::Value::iterator i = value.begin();
-	     i != value.end(); ++i) {
+    const Json::Value & types_obj(value["types"]);
+    if (!types_obj.isNull()) {
+	json_check_object(types_obj, "types definition");
+	for (Json::Value::iterator i = types_obj.begin();
+	     i != types_obj.end(); ++i) {
 	    Schema schema;
 	    schema.from_json(*i);
-	    set_schema_internal(i.key().asString(), schema);
+	    set_schema_internal(i.memberName(), schema);
 	}
+    }
+
+    const Json::Value & deftype_obj(value["default_type"]);
+    if (!deftype_obj.isNull()) {
+	// Load the config into a Schema object to verify it.
+	Schema schema;
+	schema.from_json(deftype_obj);
+	default_type_config = deftype_obj;
+    }
+
+    const Json::Value & special_obj(value["special_fields"]);
+    if (!special_obj.isNull()) {
+	json_check_object(special_obj, "special_fields definition");
+	id_field = json_get_string_member(special_obj, "id_field", id_field);
+	type_field = json_get_string_member(special_obj, "type_field",
+					    type_field);
     }
 }
 
@@ -222,20 +261,27 @@ void
 Collection::write_schemas_config()
 {
     Json::Value config_obj(Json::objectValue);
-    schemas_config_to_json(config_obj["schemas"]);
-    group.set_metadata("_schemas", json_serialise(config_obj));
+    schemas_config_to_json(config_obj);
+    group.set_metadata("_types", json_serialise(config_obj));
 }
 
 void
 Collection::schemas_config_to_json(Json::Value & value) const
 {
-    value = Json::objectValue;
-
+    Json::Value & types_obj(value["types"]);
+    types_obj = Json::objectValue;
     for (map<string, Schema *>::const_iterator
 	 i = types.begin(); i != types.end(); ++i) {
-	Json::Value & schema_obj = value[i->first];
-	i->second->to_json(schema_obj);
+	Json::Value & type_obj = types_obj[i->first];
+	i->second->to_json(type_obj);
     }
+
+    Json::Value & deftype_obj(value["default_type"]);
+    deftype_obj = default_type_config;
+
+    Json::Value & special_obj(value["special_fields"]);
+    special_obj["id_field"] = id_field;
+    special_obj["type_field"] = type_field;
 }
 
 void
@@ -277,7 +323,7 @@ Collection::pipes_config_from_json(const Json::Value & value)
 	     i != value.end(); ++i) {
 	    Pipe pipe;
 	    pipe.from_json(*i);
-	    set_pipe_internal(i.key().asString(), pipe);
+	    set_pipe_internal(i.memberName(), pipe);
 	}
     }
 
@@ -341,7 +387,7 @@ Collection::categorisers_config_from_json(const Json::Value & value)
 	     i != value.end(); ++i) {
 	    Categoriser categoriser;
 	    categoriser.from_json(*i);
-	    set_categoriser_internal(i.key().asString(), categoriser);
+	    set_categoriser_internal(i.memberName(), categoriser);
 	}
     }
 
@@ -518,9 +564,7 @@ Json::Value &
 Collection::to_json(Json::Value & value) const
 {
     value = Json::objectValue;
-    if (!types.empty()) {
-	schemas_config_to_json(value["schemas"]);
-    }
+    schemas_config_to_json(value);
     if (!pipes.empty()) {
 	pipes_config_to_json(value["pipes"]);
     }
@@ -543,7 +587,7 @@ Collection::from_json(const Json::Value & value)
     check_format_number(json_get_uint64_member(value, "format",
 					       Json::Value::maxInt));
 
-    schemas_config_from_json(value.get("schemas", Json::nullValue));
+    schemas_config_from_json(value.get("types", Json::nullValue));
     pipes_config_from_json(value.get("pipes", Json::nullValue));
     categorisers_config_from_json(value.get("categorisers", Json::nullValue));
 
@@ -583,7 +627,7 @@ Collection::send_to_pipe(TaskManager * taskman,
 
     if (pipe_name.empty()) {
 	string idterm;
-	Xapian::Document xdoc = process_doc("default", obj, idterm);
+	Xapian::Document xdoc = process_doc("", obj, idterm);
 	taskman->queue_index_processed_doc(get_name(), xdoc, idterm);
 	return;
     }

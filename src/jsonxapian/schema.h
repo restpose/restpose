@@ -39,7 +39,7 @@ namespace RestPose {
      */
     struct FieldConfig {
 	/// Create an indexer for the field.
-	virtual FieldIndexer * indexer() const = 0;
+	virtual FieldIndexer * indexer(const std::string & doc_type) const = 0;
 
 	/// Create a query to search this field.
 	virtual Xapian::Query query(const std::string & qtype,
@@ -119,7 +119,7 @@ namespace RestPose {
 	virtual ~IDFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer() const;
+	FieldIndexer * indexer(const std::string & doc_type) const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -157,7 +157,7 @@ namespace RestPose {
 	virtual ~ExactFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer() const;
+	FieldIndexer * indexer(const std::string & doc_type) const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -192,7 +192,7 @@ namespace RestPose {
 	virtual ~TextFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer() const;
+	FieldIndexer * indexer(const std::string & doc_type) const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -226,7 +226,7 @@ namespace RestPose {
 	virtual ~DateFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer() const;
+	FieldIndexer * indexer(const std::string & doc_type) const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -251,7 +251,7 @@ namespace RestPose {
 	virtual ~StoredFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer() const;
+	FieldIndexer * indexer(const std::string & doc_type) const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -265,7 +265,7 @@ namespace RestPose {
 	virtual ~IgnoredFieldConfig();
 
 	/// Create an indexer for the field.
-	FieldIndexer * indexer() const;
+	FieldIndexer * indexer(const std::string & doc_type) const;
 
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
@@ -273,6 +273,68 @@ namespace RestPose {
 
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
+    };
+
+
+    /** An individual pattern to apply.
+     */
+    class FieldConfigPattern {
+	std::string ending;
+	Json::Value config;
+      public:
+	FieldConfigPattern();
+
+	/** Set the pattern from a JSON object */
+	void from_json(const Json::Value & value);
+
+	/** Convert the pattern to a JSON object.
+	 *
+	 *  Returns the reference passed in.
+	 */
+	Json::Value & to_json(Json::Value & value) const;
+
+	/** Test if this pattern matches.
+	 *
+	 *  If the pattern matches, make and return a new FieldConfig using it.
+	 *  Otherwise, return NULL.
+	 */
+	FieldConfig * test(const std::string & fieldname) const;
+    };
+
+    /** An ordered list of patterns to apply to configure unknown fields.
+     */
+    class FieldConfigPatterns {
+	/** The list of patterns.
+	 */
+	std::vector<FieldConfigPattern> patterns;
+
+      public:
+	FieldConfigPatterns();
+
+	/** Set the patterns from a JSON object.
+	 */
+	void from_json(const Json::Value & value);
+
+	/** Convert the pattern to a JSON object.
+	 *
+	 *  Returns the reference passed in.
+	 */
+	Json::Value & to_json(Json::Value & value) const;
+
+	/** Merge this list of patterns with another list.
+	 *
+	 *  For now, a very simple algorithm for merging is used - it "other"
+	 *  contains any patterns, its list is used, otherwise the patterns in
+	 *  this object are left unchanged.
+	 */
+	void merge_from(const FieldConfigPatterns & other);
+
+	/** Get a new FieldConfig for the fieldname.
+	 *
+	 *  If a pattern matches, this will return a new FieldConfig using it.
+	 *  If no patterns match, this will return NULL.
+	 */
+	FieldConfig * get(const std::string & fieldname) const;
     };
 
     /** A schema, containing the configuration for a set of fields.
@@ -285,6 +347,8 @@ namespace RestPose {
 	/** Cache of mappings from fieldname to indexer for a field.
 	 */
 	mutable std::map<std::string, FieldIndexer *> indexers;
+
+	FieldConfigPatterns patterns;
 
 	/// Copying not allowed.
 	Schema(const Schema &);
@@ -339,7 +403,8 @@ namespace RestPose {
 	 *
 	 *  Returns NULL if there is no indexer for the field.
 	 */
-	const FieldIndexer * get_indexer(const std::string & fieldname) const;
+	const FieldIndexer * get_indexer(const std::string & fieldname,
+					 const std::string & doc_type) const;
 
 	/** Set the field config for a field.
 	 *

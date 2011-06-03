@@ -39,6 +39,7 @@
 #include "infohandlers.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
+#include "utils/stringutils.h"
 #include "utils/utils.h"
 
 using namespace RestPose;
@@ -121,9 +122,9 @@ IDFieldConfig::IDFieldConfig(const Json::Value & value)
 }
 
 FieldIndexer *
-IDFieldConfig::indexer() const
+IDFieldConfig::indexer(const string & doc_type) const
 {
-    return new ExactStringIndexer("\t", store_field, 0,
+    return new ExactStringIndexer("\t" + doc_type + "\t", store_field, 0,
 				  max_length, too_long_action, true);
 }
 
@@ -192,7 +193,7 @@ ExactFieldConfig::ExactFieldConfig(const Json::Value & value)
 }
 
 FieldIndexer *
-ExactFieldConfig::indexer() const
+ExactFieldConfig::indexer(const string &) const
 {
     return new ExactStringIndexer(prefix, store_field, wdfinc,
 				  max_length, too_long_action, false);
@@ -265,7 +266,7 @@ TextFieldConfig::~TextFieldConfig()
 {}
 
 FieldIndexer *
-TextFieldConfig::indexer() const
+TextFieldConfig::indexer(const string &) const
 {
     if (processor == "cjk") {
 	return new CJKIndexer(prefix, store_field);
@@ -472,7 +473,7 @@ DateFieldConfig::~DateFieldConfig()
 {}
 
 FieldIndexer *
-DateFieldConfig::indexer() const
+DateFieldConfig::indexer(const string &) const
 {
     return new DateIndexer(slot, store_field);
 }
@@ -516,7 +517,7 @@ StoredFieldConfig::~StoredFieldConfig()
 {}
 
 FieldIndexer *
-StoredFieldConfig::indexer() const
+StoredFieldConfig::indexer(const string &) const
 {
     return new StoredIndexer(store_field);
 }
@@ -539,7 +540,7 @@ IgnoredFieldConfig::~IgnoredFieldConfig()
 {}
 
 FieldIndexer *
-IgnoredFieldConfig::indexer() const
+IgnoredFieldConfig::indexer(const string &) const
 {
     return NULL;
 }
@@ -555,6 +556,118 @@ void
 IgnoredFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "ignore";
+}
+
+FieldConfigPattern::FieldConfigPattern()
+{}
+
+void
+FieldConfigPattern::from_json(const Json::Value & value)
+{
+    json_check_array(value, "schema pattern");
+    if (value.size() != 2) {
+	throw InvalidValueError("Schema patterns must be arrays of length 2");
+    }
+    const Json::Value & pattern_obj = value[0];
+    const Json::Value & config_obj = value[1];
+    json_check_string(pattern_obj, "field in schema pattern");
+    json_check_object(config_obj, "config in schema pattern");
+
+    string pattern(pattern_obj.asString());
+    if (!string_startswith(pattern, "*")) {
+	throw InvalidValueError("fields in schema patterns must start with a *");
+    }
+    if (pattern.find("*", 1) != pattern.npos) {
+	throw InvalidValueError("fields in schema patterns must not contain a * other than at the start");
+    }
+
+    ending = pattern.substr(1);
+    config = config_obj;
+}
+
+Json::Value &
+FieldConfigPattern::to_json(Json::Value & value) const
+{
+    value = Json::arrayValue;
+    value.append("*" + ending);
+    value.append(config);
+    return value;
+}
+
+FieldConfig *
+FieldConfigPattern::test(const string & fieldname) const
+{
+    if (string_endswith(fieldname, ending)) {
+	string prefix(fieldname.substr(0, fieldname.size() - ending.size()));
+	Json::Value newconfig;
+	for (Json::Value::iterator i = config.begin(); i != config.end(); ++i) {
+	    Json::Value & item = newconfig[i.memberName()] = *i;
+	    if (item.isString()) {
+		// Substitute any * characters in the config with the prefix.
+		string itemstr(item.asString());
+		size_t starpos(itemstr.find("*"));
+		if (starpos != itemstr.npos) {
+		    if (starpos + 1 < itemstr.size()) {
+			item = itemstr.substr(0, starpos) + prefix +
+				itemstr.substr(starpos + 1);
+		    } else {
+			item = itemstr.substr(0, starpos) + prefix;
+		    }
+		}
+	    }
+	}
+    }
+    return NULL;
+}
+
+FieldConfigPatterns::FieldConfigPatterns()
+{
+}
+
+void
+FieldConfigPatterns::from_json(const Json::Value & value)
+{
+    patterns.clear();
+    json_check_array(value, "schema pattern list");
+    for (Json::Value::const_iterator
+	 i = value.begin(); i != value.end(); ++i) {
+	patterns.push_back(FieldConfigPattern());
+	patterns.back().from_json(*i);
+    }
+}
+
+Json::Value &
+FieldConfigPatterns::to_json(Json::Value & value) const
+{
+    value = Json::arrayValue;
+    for (vector<FieldConfigPattern>::const_iterator
+	 i = patterns.begin(); i != patterns.end(); ++i) {
+	i->to_json(value.append(Json::arrayValue));
+    }
+    return value;
+}
+
+void
+FieldConfigPatterns::merge_from(const FieldConfigPatterns & other)
+{
+    // Very simple merge algorithm for now - if the other schema has any
+    // patterns, replace all our patterns with its.
+    if (!other.patterns.empty()) {
+	patterns = other.patterns;
+    }
+}
+
+FieldConfig *
+FieldConfigPatterns::get(const string & fieldname) const
+{
+    for (vector<FieldConfigPattern>::const_iterator
+	 i = patterns.begin(); i != patterns.end(); ++i) {
+	FieldConfig * result = i->test(fieldname);
+	if (result != NULL) {
+	    return result;
+	}
+    }
+    return NULL;
 }
 
 Schema::~Schema()
@@ -587,13 +700,14 @@ Schema::to_json(Json::Value & value) const
 {
     value = Json::objectValue;
     if (!fields.empty()) {
-	static const Json::StaticString fields_key("fields");
-	Json::Value & subval(value[fields_key] = Json::objectValue);
+	Json::Value & subval(value["fields"]);
+	subval = Json::objectValue;
 	map<string, FieldConfig *>::const_iterator i;
 	for (i = fields.begin(); i != fields.end(); ++i) {
 	    i->second->to_json(subval[i->first] = Json::objectValue);
 	}
     }
+    patterns.to_json(value["patterns"]);
     return value;
 }
 
@@ -622,6 +736,7 @@ Schema::from_json(const Json::Value & value)
 	    set(i.memberName(), FieldConfig::from_json(*i));
 	}
     }
+    patterns.from_json(value.get("patterns", Json::Value::null));
 }
 
 void
@@ -650,6 +765,7 @@ Schema::merge_from(const Schema & other)
 	    }
 	}
     }
+    patterns.merge_from(other.patterns);
 }
 
 const FieldConfig *
@@ -663,7 +779,7 @@ Schema::get(const string & fieldname) const
 }
 
 const FieldIndexer *
-Schema::get_indexer(const string & fieldname) const
+Schema::get_indexer(const string & fieldname, const string & doc_type) const
 {
     map<string, FieldIndexer *>::const_iterator i;
     i = indexers.find(fieldname);
@@ -678,7 +794,7 @@ Schema::get_indexer(const string & fieldname) const
     }
 
     // Make a new FieldIndexer, store it, and return it.
-    auto_ptr<FieldIndexer> newptr(j->second->indexer());
+    auto_ptr<FieldIndexer> newptr(j->second->indexer(doc_type));
     const FieldIndexer * result = newptr.get();
     pair<map<string, FieldIndexer *>::iterator, bool> ret;
     pair<string, FieldIndexer *> item(fieldname, NULL);
@@ -717,11 +833,12 @@ Schema::process(const Json::Value & value,
 
     Xapian::Document result;
     DocumentData docdata;
+    string doc_type("");
 
     for (Json::Value::const_iterator viter = value.begin();
 	 viter != value.end();
 	 ++viter) {
-	const FieldIndexer * indexer = get_indexer(viter.memberName());
+	const FieldIndexer * indexer = get_indexer(viter.memberName(), "");
 	if (indexer) {
 	    //fprintf(stderr, "field '%s'\n", viter.memberName());
 	    if ((*viter).isNull()) {

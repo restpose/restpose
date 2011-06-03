@@ -63,8 +63,17 @@ struct Pipe {
 };
 
 class Collection {
-    /// Collection name
+    /// Collection name.
     std::string coll_name;
+
+    /// Default schema to use for new types.
+    Json::Value default_type_config;
+
+    /// The field used to hold ids.
+    std::string id_field;
+
+    /// The field used to hold type ids.
+    std::string type_field;
 
     /// Schemas, by type name.
     std::map<std::string, Schema *> types;
@@ -100,6 +109,10 @@ class Collection {
      */
     void read_config();
 
+
+    /** Set the default schema configuration.
+     */
+    void set_default_schema();
 
     /** Set the internal schema for a given type.
      *
