@@ -31,12 +31,26 @@ namespace Xapian {
     class Document;
 };
 
+class CollectionPool;
+
 class StaticFileTask : public ReadonlyTask {
     std::string path;
   public:
     StaticFileTask(const RestPose::ResultHandle & resulthandle_,
 		   const std::string & path_)
 	    : ReadonlyTask(resulthandle_), path(path_)
+    {}
+
+    void perform(RestPose::Collection * collection);
+};
+
+class CollListTask : public ReadonlyTask {
+    CollectionPool & collections;
+  public:
+    CollListTask(const RestPose::ResultHandle & resulthandle_,
+		 CollectionPool & collections_)
+	    : ReadonlyTask(resulthandle_),
+	      collections(collections_)
     {}
 
     void perform(RestPose::Collection * collection);

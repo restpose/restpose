@@ -28,6 +28,7 @@
 #include "httpserver/response.h"
 #include "jsonxapian/collection.h"
 #include "loadfile.h"
+#include "server/collection_pool.h"
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
 #include "utils/stringutils.h"
@@ -67,13 +68,30 @@ StaticFileTask::perform(RestPose::Collection *)
 }
 
 void
+CollListTask::perform(RestPose::Collection *)
+{
+    vector<string> collnames;
+    collections.get_names(collnames);
+    Json::Value result(Json::objectValue);
+    for (vector<string>::const_iterator
+	 i = collnames.begin(); i != collnames.end(); ++i) {
+	result[*i] = Json::objectValue;
+    }
+
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
+}
+
+void
 CollInfoTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
     result["doc_count"] = Json::UInt64(collection->doc_count());
-    Json::Value & types(result["types"] = Json::objectValue);
-    // FIXME - set types to a map from typenames in the collection to their schemas.
-    (void) types;
+    Json::Value tmp;
+    collection->to_json(tmp);
+    result["types"] = tmp["schemas"];
+    result["pipes"] = tmp["pipes"];
+    result["categorisers"] = tmp["categorisers"];
 
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
