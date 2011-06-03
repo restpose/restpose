@@ -89,7 +89,9 @@ CollInfoTask::perform(RestPose::Collection * collection)
     result["doc_count"] = Json::UInt64(collection->doc_count());
     Json::Value tmp;
     collection->to_json(tmp);
-    result["types"] = tmp["schemas"];
+    result["default_type"] = tmp["default_type"];
+    result["special_fields"] = tmp["special_fields"];
+    result["types"] = tmp["types"];
     result["pipes"] = tmp["pipes"];
     result["categorisers"] = tmp["categorisers"];
 
