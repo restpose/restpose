@@ -46,7 +46,7 @@ Documents
 As far as RestPose is concerned, a document is a object consisting of an
 unordered set of fieldnames, each of which has a value, or an ordered list of
 values, associated with it.  In JSON representation, a document will often
-look something like:
+look something like::
 
     {
       "id": "1",
