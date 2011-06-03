@@ -23,6 +23,8 @@ function update_coll(target) {
     details = $("<ul>");
     details.append($("<li>").text(obj.doc_count + " documents"));
     details.append($("<li>").text("types").append(display_obj(obj.types)));
+    details.append($("<li>").text("patterns").append(display_obj(obj.patterns)));
+    details.append($("<li>").text("special_fields").append(display_obj(obj.special_fields)));
     
     output.append(details);
     return output;
