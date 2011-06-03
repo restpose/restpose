@@ -216,7 +216,7 @@
     }
   },
 
-  "defaulttype": {
+  "default_type": {
     "patterns": [
       [ "*_text", { "type": "text", "prefix": "t*", "store_field": "*_text", "processor": "stem_en" } ],
       [ "*_date", { "type": "date", "slot": "d*", "store_field": "*_date" } ],
@@ -232,8 +232,8 @@
 
   /* Special fields. */
   "special_fields": {
-    "idfield": "id",
-    "typefield": "type"
+    "id_field": "id",
+    "type_field": "type"
   },
 
   /* Schemas for each type. */
