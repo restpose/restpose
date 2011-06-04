@@ -368,7 +368,7 @@ class Collection {
 
     /** Get a JSON representation of a document, given its ID.
      */
-    void get_document(const std::string & type,
+    void get_document(const std::string & doc_type,
 		      const std::string & docid,
 		      Json::Value & result) const;
 };

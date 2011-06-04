@@ -721,12 +721,12 @@ Collection::get_doc_fields(const Xapian::Document & doc,
 }
 
 void
-Collection::get_document(const string & type,
+Collection::get_document(const string & doc_type,
 			 const string & docid,
 			 Json::Value & result) const
 {
     bool found;
-    string idterm = "\t" + type + "\t" + docid;
+    string idterm = "\t" + doc_type + "\t" + docid;
     Xapian::Document doc = group.get_document(idterm, found);
     if (found) {
 	doc_to_json(doc, result);

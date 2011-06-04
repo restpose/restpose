@@ -74,6 +74,29 @@ class CollCreateHandler : public QueuedHandler {
 };
 
 
+class IndexDocumentHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
+class IndexDocumentHandler : public QueuedHandler {
+    std::string coll_name;
+    std::string doc_type;
+    std::string doc_id;
+  public:
+    IndexDocumentHandler(const std::string & coll_name_,
+			 const std::string & doc_type_,
+			 const std::string & doc_id_)
+	    : coll_name(coll_name_),
+	      doc_type(doc_type_),
+	      doc_id(doc_id_)
+    {}
+
+    Queue::QueueState enqueue(const Json::Value & body) const;
+};
+
+
+
 class CollListHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> &) const;
@@ -118,6 +141,29 @@ class SearchHandler : public QueuedHandler {
 
     Queue::QueueState enqueue(const Json::Value & body) const;
 };
+
+
+class GetDocumentHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
+class GetDocumentHandler : public QueuedHandler {
+    std::string coll_name;
+    std::string doc_type;
+    std::string doc_id;
+  public:
+    GetDocumentHandler(const std::string & coll_name_,
+		       const std::string & doc_type_,
+		       const std::string & doc_id_)
+	    : coll_name(coll_name_),
+	      doc_type(doc_type_),
+	      doc_id(doc_id_)
+    {}
+
+    Queue::QueueState enqueue(const Json::Value & body) const;
+};
+
 
 
 class NotFoundHandlerFactory : public HandlerFactory {

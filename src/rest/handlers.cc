@@ -91,6 +91,25 @@ CollCreateHandler::enqueue(const Json::Value &) const
 }
 
 Handler *
+IndexDocumentHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
+{
+    string coll_name = path_params[0];
+    string doc_type = path_params[1];
+    string doc_id = path_params[2];
+    return new IndexDocumentHandler(coll_name, doc_type, doc_id);
+}
+
+Queue::QueueState
+IndexDocumentHandler::enqueue(const Json::Value & body) const
+{
+    // FIXME - the doc_id is ignored, and the doc_type field should be set automatically
+    return taskman->queue_processing(coll_name,
+	new ProcessorProcessDocumentTask(doc_type, body),
+	false);
+}
+
+Handler *
 CollListHandlerFactory::create(const std::vector<std::string> &) const
 {
     return new CollListHandler;
@@ -132,6 +151,23 @@ SearchHandler::enqueue(const Json::Value & body) const
     return taskman->queue_readonly("search",
 	new PerformSearchTask(resulthandle, coll_name, body, doc_type));
 }
+
+Handler *
+GetDocumentHandlerFactory::create(const std::vector<std::string> & path_params) const
+{
+    string coll_name = path_params[0];
+    string doc_type = path_params[1];
+    string doc_id = path_params[2];
+    return new GetDocumentHandler(coll_name, doc_type, doc_id);
+}
+
+Queue::QueueState
+GetDocumentHandler::enqueue(const Json::Value &) const
+{
+    return taskman->queue_readonly("search",
+	new GetDocumentTask(resulthandle, coll_name, doc_type, doc_id));
+}
+
 
 Handler *
 NotFoundHandlerFactory::create(const std::vector<std::string> &) const

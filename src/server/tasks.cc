@@ -109,6 +109,17 @@ PerformSearchTask::perform(RestPose::Collection * collection)
 }
 
 void
+GetDocumentTask::perform(RestPose::Collection * collection)
+{
+    Json::Value result(Json::objectValue);
+    collection->get_document(doc_type, doc_id, result);
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
+}
+
+
+
+void
 ServerStatusTask::perform(RestPose::Collection *)
 {
     Json::Value result(Json::objectValue);

@@ -82,6 +82,22 @@ class PerformSearchTask : public ReadonlyCollTask {
     void perform(RestPose::Collection * collection);
 };
 
+class GetDocumentTask : public ReadonlyCollTask {
+    std::string doc_type;
+    std::string doc_id;
+  public:
+    GetDocumentTask(const RestPose::ResultHandle & resulthandle_,
+		    const std::string & coll_name_,
+		    const std::string & doc_type_,
+		    const std::string & doc_id_)
+	    : ReadonlyCollTask(resulthandle_, coll_name_),
+	      doc_type(doc_type_),
+	      doc_id(doc_id_)
+    {}
+
+    void perform(RestPose::Collection * collection);
+};
+
 class ServerStatusTask : public ReadonlyTask {
     const TaskManager * taskman;
   public:
