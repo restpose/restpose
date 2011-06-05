@@ -32,6 +32,7 @@
 #include "utils/io_wrappers.h"
 
 class TaskManager;
+class ThreadPool;
 
 /** A thread for performing a type of task.
  */
@@ -49,6 +50,10 @@ class TaskThread : public Thread {
      */
     RestPose::Collection * collection;
 
+    /** The thread pool that this thread belongs to.
+     */
+    ThreadPool * threadpool;
+
     TaskThread(const TaskThread &);
     void operator=(const TaskThread &);
   public:
@@ -59,10 +64,23 @@ class TaskThread : public Thread {
 	    : Thread(),
 	      queuegroup(queuegroup_),
 	      pool(pool_),
-	      collection(NULL)
+	      collection(NULL),
+	      threadpool(NULL)
     {}
 
     ~TaskThread();
+
+    /** Set the pool that the thread belongs to.
+     *
+     *  This should be called before the thread is started.
+     */
+    void set_threadpool(ThreadPool * threadpool_);
+
+    /** Remove this thread from a threadpool.
+     *
+     *  Should be called during cleanup of the thread, just before it exits.
+     */
+    void release_from_threadpool();
 };
 
 /** An processor thread.

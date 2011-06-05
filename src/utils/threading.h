@@ -164,8 +164,11 @@ class Thread {
     }
 
     /** Start the thread running.
+     *
+     *  Returns true if the thread started correctly.  Returns false if the
+     *  thread failed to start.
      */
-    void start();
+    bool start();
 
     /** Stop the thread running.
      */
@@ -208,6 +211,8 @@ class Thread {
     /** Cleanup after thread finishes.
      *
      *  Guaranteed to be called even if the thread dies with an exception.
+     *
+     *  Note: won't be called if the thread start() method returned false.
      */
     virtual void cleanup() {}
 };

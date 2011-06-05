@@ -27,6 +27,7 @@
 
 #include "httpserver/response.h"
 #include "realtime.h"
+#include "server/thread_pool.h"
 #include "utils/jsonutils.h"
 
 #define DIR_SEPARATOR "/"
@@ -40,6 +41,20 @@ TaskThread::~TaskThread()
     // already, so if it's still here we had an error, and there may be
     // something wrong with it so we don't want it to be reused.
     delete collection;
+}
+
+void
+TaskThread::set_threadpool(ThreadPool * threadpool_)
+{
+    threadpool = threadpool_;
+}
+
+void
+TaskThread::release_from_threadpool()
+{
+    if (threadpool != NULL) {
+	threadpool->thread_finished(this);
+    }
 }
 
 
@@ -84,6 +99,7 @@ ProcessingThread::cleanup()
 	collection = NULL;
 	pool.release(tmp);
     }
+    release_from_threadpool();
 }
 
 
@@ -149,6 +165,7 @@ IndexingThread::cleanup()
 	pool.release(tmp);
 	queuegroup.unassign_handler(coll_name);
     }
+    release_from_threadpool();
 }
 
 
@@ -230,4 +247,5 @@ SearchThread::cleanup()
 	collection = NULL;
 	pool.release(tmp);
     }
+    release_from_threadpool();
 }

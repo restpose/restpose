@@ -27,25 +27,41 @@
 #include <json/value.h>
 #include "utils/io_wrappers.h"
 #include "utils/threading.h"
-#include <vector>
+#include <map>
 
-class Thread;
+class TaskThread;
 
 /** A pool of threads.
  */
 class ThreadPool {
     mutable Mutex mutex;
-    std::vector<Thread *> threads;
+
+    /** Details of the running threads.
+     *
+     *  The value is true if the thread is running; false if the thread has
+     *  finished and needs to be joined (and then deleted).
+     */
+    std::map<TaskThread *, bool> threads;
+
+    /// Number of threads currently running.
+    unsigned running;
+
+    /// Number of threads waiting to be joined.
+    unsigned waiting_for_join;
 
     ThreadPool(const ThreadPool &);
     void operator=(const ThreadPool &);
   public:
-    ThreadPool() {}
+    ThreadPool() : running(0), waiting_for_join(0) {}
     ~ThreadPool();
 
     /** Add a thread to the pool, and start it.
      */
-    void add_thread(Thread * thread);
+    void add_thread(TaskThread * thread);
+
+    /** Mark that a thread in the pool has finished.
+     */
+    void thread_finished(TaskThread * thread);
 
     /** Stop all threads in the pool.
      */

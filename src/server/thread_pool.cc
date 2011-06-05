@@ -26,6 +26,7 @@
 #include "thread_pool.h"
 
 #include <memory>
+#include "server/task_threads.h"
 #include "utils/jsonutils.h"
 
 using namespace std;
@@ -33,37 +34,73 @@ using namespace RestPose;
 
 ThreadPool::~ThreadPool()
 {
-    for (std::vector<Thread *>::iterator i = threads.begin();
+    ContextLocker lock(mutex);
+    // FIXME - any errors thrown by, eg, stop() or join() will cause cleanup to
+    // fail on the other threads.
+    for (std::map<TaskThread *, bool>::iterator i = threads.begin();
 	 i != threads.end(); ++i) {
-	(*i)->stop();
+	i->first->stop();
     }
-    for (std::vector<Thread *>::iterator i = threads.begin();
+    for (std::map<TaskThread *, bool>::iterator i = threads.begin();
 	 i != threads.end(); ++i) {
-	(*i)->join();
+	TaskThread * thread = i->first;
+	lock.unlock();
+	// Threads will call thread_finished() to inform the pool that they've
+	// stopped, so we need to unlock the mutex to allow this.  They can't
+	// cause the thread to be deleted, though, so this should be safe.
+	thread->join();
+	lock.lock();
     }
-    for (std::vector<Thread *>::iterator i = threads.begin();
+    for (std::map<TaskThread *, bool>::iterator i = threads.begin();
 	 i != threads.end(); ++i) {
-	delete *i;
+	delete i->first;
     }
 }
 
 void
-ThreadPool::add_thread(Thread * thread)
+ThreadPool::add_thread(TaskThread * thread)
+{
+    auto_ptr<TaskThread> threadptr(thread);
+    ContextLocker lock(mutex);
+    try {
+	threads[threadptr.release()] = true;
+    } catch(...) {
+	// Need this clause to avoid leaking thread if the map insert raises an
+	// exception in the line above.
+	delete thread;
+	throw;
+    }
+    thread->set_threadpool(this);
+    if (!thread->start()) {
+	// FIXME - log thread failing to start.
+	threads.erase(thread);
+	delete thread;
+    } else {
+	++running;
+    }
+}
+
+void
+ThreadPool::thread_finished(TaskThread * thread)
 {
     ContextLocker lock(mutex);
-    auto_ptr<Thread> threadptr(thread);
-    threads.push_back(NULL);
-    threads.back() = threadptr.release();
-    thread->start();
+    std::map<TaskThread *, bool>::iterator i = threads.find(thread);
+    if (i != threads.end()) {
+	i->second = false;
+	--running;
+	++waiting_for_join;
+    }
 }
 
 void
 ThreadPool::stop()
 {
     ContextLocker lock(mutex);
-    for (std::vector<Thread *>::iterator i = threads.begin();
+    for (std::map<TaskThread *, bool>::iterator i = threads.begin();
 	 i != threads.end(); ++i) {
-	(*i)->stop();
+	if (i->second) {
+	    i->first->stop();
+	}
     }
 }
 
@@ -71,9 +108,15 @@ void
 ThreadPool::join()
 {
     ContextLocker lock(mutex);
-    for (std::vector<Thread *>::iterator i = threads.begin();
+    for (std::map<TaskThread *, bool>::iterator i = threads.begin();
 	 i != threads.end(); ++i) {
-	(*i)->join();
+	TaskThread * thread = i->first;
+	lock.unlock();
+	// Threads will call thread_finished() to inform the pool that they've
+	// stopped, so we need to unlock the mutex to allow this.  They can't
+	// cause the thread to be deleted, though, so this should be safe.
+	thread->join();
+	lock.lock();
     }
 }
 
@@ -82,4 +125,6 @@ ThreadPool::get_status(Json::Value & status) const
 {
     ContextLocker lock(mutex);
     status["size"] = Json::UInt64(threads.size());
+    status["running"] = Json::UInt64(running);
+    status["waiting_for_join"] = Json::UInt64(waiting_for_join);
 }

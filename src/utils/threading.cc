@@ -51,14 +51,15 @@ run_thread(void * arg_ptr)
     return NULL;
 }
 
-void
+bool
 Thread::start()
 {
     if (started)
-	return;
+	return false;
     started = true;
     int ret = pthread_create(&thread, NULL, run_thread, this);
     if (ret == -1) {
-	throw RestPose::ThreadError("Can't start thread");
+	return false;
     }
+    return true;
 }
