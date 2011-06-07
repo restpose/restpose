@@ -262,10 +262,8 @@ answer_connection_cb(void * cls,
 	// FIXME log
 	fprintf(stderr, "RestPose::Error(): %s\n", e.what());
 	return MHD_NO;
-    } catch(Xapian::Error & e) {
-	fprintf(stderr, "Xapian::Error(): %s\n", e.get_description().c_str());
-	return MHD_NO;
     } catch(bad_alloc) {
+	// FIXME log
 	fprintf(stderr, "bad_alloc\n");
 	return MHD_NO;
     }
@@ -377,13 +375,26 @@ HTTPServer::serve(fd_set *, fd_set *, fd_set *, bool)
 void
 HTTPServer::answer(ConnectionInfo & conn)
 {
-    if (conn.handler == NULL) {
-	conn.handler = router->route(conn);
+    try {
 	if (conn.handler == NULL) {
-	    // This happens if the request can't be routed; a response will
-	    // already have been sent.
-	    return;
+	    conn.handler = router->route(conn);
+	    if (conn.handler == NULL) {
+		// This happens if the request can't be routed; a response will
+		// already have been sent.
+		return;
+	    }
 	}
+	conn.handler->handle(conn);
+
+    } catch(RestPose::Error & e) {
+	fprintf(stderr, "RestPose::Error(): %s\n", e.what());
+	Json::Value response(Json::objectValue);
+	response["err"] = string("RestPose::Error(): ") + e.what();
+	conn.respond(500, json_serialise(response), "application/json");
+    } catch(Xapian::Error & e) {
+	fprintf(stderr, "Xapian::Error(): %s\n", e.get_description().c_str());
+	Json::Value response(Json::objectValue);
+	response["err"] = string("Xapian::Error(): ") + e.get_description();
+	conn.respond(500, json_serialise(response), "application/json");
     }
-    conn.handler->handle(conn);
 }

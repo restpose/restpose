@@ -78,13 +78,18 @@ QueuedHandler::handle(ConnectionInfo & conn)
 	return;
     }
     if (!queued) {
-	// FIXME - handle partially uploaded data
-	// FIXME - handle failure to parse data
-	Json::Value body(Json::nullValue);
 	if (*(conn.upload_data_size) != 0) {
-	    json_unserialise(string(conn.upload_data, *(conn.upload_data_size)),
-			     body);
+	    // FIXME - enforce an upload size limit
+	    uploaded_data += string(conn.upload_data, *(conn.upload_data_size));
 	    *(conn.upload_data_size) = 0;
+	    return;
+	}
+
+	// FIXME - check Content-Type
+	Json::Value body(Json::nullValue);
+	if (uploaded_data.size() != 0) {
+	    // FIXME - handle failure to parse data
+	    json_unserialise(uploaded_data, body);
 	}
 	Queue::QueueState state = enqueue(body);
 	if (handle_queue_push_fail(state, conn)) {
@@ -131,13 +136,18 @@ NoWaitQueuedHandler::handle(ConnectionInfo & conn)
 	return;
     }
 
-    // FIXME - handle partially uploaded data
-    // FIXME - handle failure to parse data
-    Json::Value body(Json::nullValue);
     if (*(conn.upload_data_size) != 0) {
-	json_unserialise(string(conn.upload_data, *(conn.upload_data_size)),
-			 body);
+	// FIXME - enforce an upload size limit
+	uploaded_data += string(conn.upload_data, *(conn.upload_data_size));
 	*(conn.upload_data_size) = 0;
+	return;
+    }
+
+    // FIXME - check Content-Type
+    Json::Value body(Json::nullValue);
+    if (uploaded_data.size() != 0) {
+	// FIXME - handle failure to parse data
+	json_unserialise(uploaded_data, body);
     }
 
     Queue::QueueState state = enqueue(body);

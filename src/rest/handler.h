@@ -85,6 +85,8 @@ class QueuedHandler : public Handler {
      */
     bool queued;
 
+    std::string uploaded_data;
+
     /** Handle the request if the queue push failed.
      *
      *  Return true if the request has now been handled, false otherwise.
@@ -106,6 +108,8 @@ class QueuedHandler : public Handler {
 /** Base class of handlers which put a task on a queue, and return immediately.
  */
 class NoWaitQueuedHandler : public Handler {
+    // FIXME - share code with QueuedHandler
+    std::string uploaded_data;
     bool handle_queue_push_fail(Queue::QueueState state,
 				ConnectionInfo & conn);
   public:
