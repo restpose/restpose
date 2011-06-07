@@ -63,7 +63,7 @@ class CollCreateHandlerFactory : public HandlerFactory {
     Handler * create(const std::vector<std::string> & path_params) const;
 };
 
-class CollCreateHandler : public QueuedHandler {
+class CollCreateHandler : public NoWaitQueuedHandler {
     std::string coll_name;
   public:
     CollCreateHandler(const std::string & coll_name_)
@@ -79,7 +79,7 @@ class IndexDocumentHandlerFactory : public HandlerFactory {
     Handler * create(const std::vector<std::string> & path_params) const;
 };
 
-class IndexDocumentHandler : public QueuedHandler {
+class IndexDocumentHandler : public NoWaitQueuedHandler {
     std::string coll_name;
     std::string doc_type;
     std::string doc_id;

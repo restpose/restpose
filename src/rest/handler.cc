@@ -97,3 +97,56 @@ QueuedHandler::handle(ConnectionInfo & conn)
 	}
     }
 }
+
+NoWaitQueuedHandler::NoWaitQueuedHandler()
+	: Handler()
+{
+}
+
+/** Handle queue push status responses which correspond to the push having
+ *  failed.
+ */
+bool
+NoWaitQueuedHandler::handle_queue_push_fail(Queue::QueueState state,
+				      ConnectionInfo & conn)
+{
+    switch (state) {
+	case Queue::CLOSED:
+	    conn.respond(MHD_HTTP_INTERNAL_SERVER_ERROR, "{\"err\":\"Server is shutting down\"}", "application/json");
+	    return true;
+	case Queue::FULL:
+	    conn.respond(MHD_HTTP_SERVICE_UNAVAILABLE, "{\"err\":\"Too many active requests\"}", "application/json");
+	    return true;
+	default:
+	    // Do nothing
+	    break;
+    }
+    return false;
+}
+
+void
+NoWaitQueuedHandler::handle(ConnectionInfo & conn)
+{
+    if (conn.first_call) {
+	return;
+    }
+
+    // FIXME - handle partially uploaded data
+    // FIXME - handle failure to parse data
+    Json::Value body(Json::nullValue);
+    if (*(conn.upload_data_size) != 0) {
+	json_unserialise(string(conn.upload_data, *(conn.upload_data_size)),
+			 body);
+	*(conn.upload_data_size) = 0;
+    }
+
+    Queue::QueueState state = enqueue(body);
+    if (handle_queue_push_fail(state, conn)) {
+	return;
+    }
+    if (state == Queue::LOW_SPACE) {
+	conn.respond(200, "{\"ok\":1,\"busy\":1}", "application/json");
+    } else {
+	conn.respond(200, "{\"ok\":1}", "application/json");
+    }
+}
