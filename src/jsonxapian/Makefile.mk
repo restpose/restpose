@@ -7,6 +7,7 @@ noinst_HEADERS += \
  src/jsonxapian/indexing.h \
  src/jsonxapian/infohandlers.h \
  src/jsonxapian/occurinfohandler.h \
+ src/jsonxapian/pipe.h \
  src/jsonxapian/schema.h
 
 libjsonxapian_a_SOURCES = \
@@ -16,4 +17,5 @@ libjsonxapian_a_SOURCES = \
  src/jsonxapian/indexing.cc \
  src/jsonxapian/infohandlers.cc \
  src/jsonxapian/occurinfohandler.cc \
+ src/jsonxapian/pipe.cc \
  src/jsonxapian/schema.cc

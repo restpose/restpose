@@ -25,16 +25,13 @@
 #include <config.h>
 #include "collection.h"
 
-#include "utils.h"
 #include <xapian.h>
+#include "jsonxapian/doctojson.h"
+#include "jsonxapian/pipe.h"
+#include "str.h"
+#include "server/task_manager.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
-#include "jsonxapian/doctojson.h"
-#include "str.h"
-
-#include "server/task_manager.h"
-
-#include <set>
 
 using namespace std;
 using namespace RestPose;
@@ -61,63 +58,6 @@ check_format_number(unsigned int format)
 				" but the newest supported is " +
 				str(CONFIG_FORMAT));
 }
-
-Json::Value &
-Pipe::to_json(Json::Value & value) const
-{
-    value = Json::objectValue;
-    if (!mappings.empty()) {
-	Json::Value & mappings_obj = value["mappings"] = Json::arrayValue;
-	for (vector<Mapping>::const_iterator i = mappings.begin();
-	     i != mappings.end(); ++i) {
-	    mappings_obj.append(Json::objectValue);
-	    i->to_json(mappings_obj[mappings_obj.size() - 1]);
-	}
-    }
-    if (apply_all) {
-	value["apply_all"] = true;
-    }
-    if (!target.empty()) {
-	value["target"] = target;
-    }
-    return value;
-}
-
-void
-Pipe::from_json(const Json::Value & value)
-{
-    mappings.clear();
-    apply_all = false;
-    target.resize(0);
-
-    json_check_object(value, "pipe definition");
-    Json::Value tmp;
-
-    // Read mappings
-    tmp = value.get("mappings", Json::nullValue);
-    if (!tmp.isNull()) {
-	json_check_array(tmp, "pipe mappings");
-	for (Json::Value::iterator i = tmp.begin(); i != tmp.end(); ++i) {
-	    mappings.resize(mappings.size() + 1);
-	    mappings.back().from_json(*i);
-	}
-    }
-
-    // Read apply_all
-    tmp = value.get("apply_all", Json::nullValue);
-    if (!tmp.isNull()) {
-	json_check_bool(tmp, "pipe apply_all property");
-	apply_all = tmp.asBool();
-    }
-
-    // Read target
-    tmp = value.get("target", Json::nullValue);
-    if (!tmp.isNull()) {
-	json_check_string(tmp, "pipe target property");
-	target = tmp.asString();
-    }
-}
-
 
 Collection::Collection(const string & coll_name_,
 		       const string & coll_path_)

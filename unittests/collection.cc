@@ -24,15 +24,17 @@
 
 #include <config.h>
 #include "UnitTest++.h"
-#include "server/task_manager.h"
-#include "server/collection_pool.h"
-#include "jsonxapian/collection.h"
-#include "utils/jsonutils.h"
-#include "utils/rsperrors.h"
+
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
+#include "jsonxapian/collection.h"
+#include "jsonxapian/pipe.h"
+#include "server/task_manager.h"
+#include "server/collection_pool.h"
 #include "utils.h"
+#include "utils/jsonutils.h"
+#include "utils/rsperrors.h"
 
 using namespace RestPose;
 

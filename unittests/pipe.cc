@@ -24,7 +24,7 @@
 
 #include <config.h>
 #include "UnitTest++.h"
-#include "jsonxapian/collection.h"
+#include "jsonxapian/pipe.h"
 #include "utils/rsperrors.h"
 #include "utils/jsonutils.h"
 

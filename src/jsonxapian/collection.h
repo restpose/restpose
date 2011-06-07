@@ -37,30 +37,7 @@ class TaskManager;
 
 namespace RestPose {
 
-/** An input pipeline.
- *
- *  Consists of a list of Mappings to apply, an optional target pipeline and
- *  some options.
- */
-struct Pipe {
-    /// The mappings in the pipe.
-    std::vector<Mapping> mappings;
-
-    /// Whether to apply all the mappings, or just the first that matches.
-    bool apply_all;
-
-    /// The target; an empty string for the target to be the collection.
-    std::string target;
-
-
-    Pipe() : mappings(), apply_all(false), target() {}
-
-    /// Convert the pipe to a JSON object.
-    Json::Value & to_json(Json::Value & value) const;
-
-    /// Initialise the pipe from a JSON object.
-    void from_json(const Json::Value & value);
-};
+class Pipe;
 
 class Collection {
     /// Collection name.
