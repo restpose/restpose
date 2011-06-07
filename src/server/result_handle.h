@@ -26,6 +26,7 @@
 
 #include <string>
 #include "utils/threading.h"
+#include "json/value.h"
 
 class Response;
 
@@ -71,6 +72,16 @@ class ResultHandle {
      *  This is intended for use by the waiting thread.
      */
     bool is_ready() const;
+
+    /** This may be called by the preparing thread to indicate a failure.
+     *
+     *  If set_ready() has already been called, this call will have no effect.
+     *  Otherwise, it will set the response to describe the failure, and
+     *  mark the result as ready.
+     *
+     *  After this point, the preparing thread must not access response().
+     */
+    void failed(const Json::Value & body, int status_code = 200);
 };
 
 }

@@ -213,26 +213,22 @@ SearchThread::run()
 	} catch(const RestPose::Error & e) {
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.what();
-	    rotask->resulthandle.response().set(result, 500);
-	    rotask->resulthandle.set_ready();
+	    rotask->failed(result, 500);
 	    continue;
 	} catch(const Xapian::DatabaseOpeningError & e) {
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
-	    rotask->resulthandle.response().set(result, 404);
-	    rotask->resulthandle.set_ready();
+	    rotask->failed(result, 404);
 	    continue;
 	} catch(const Xapian::Error & e) {
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
-	    rotask->resulthandle.response().set(result, 500);
-	    rotask->resulthandle.set_ready();
+	    rotask->failed(result, 500);
 	    continue;
 	} catch(const std::bad_alloc) {
 	    Json::Value result(Json::objectValue);
 	    result["err"] = "out of memory";
-	    rotask->resulthandle.response().set(result, 503);
-	    rotask->resulthandle.set_ready();
+	    rotask->failed(result, 503);
 	    continue;
 	}
 	rotask->perform(collection);

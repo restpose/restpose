@@ -114,3 +114,16 @@ ResultHandle::is_ready() const {
     ContextLocker lock(internal->mutex);
     return internal->is_ready;
 }
+
+void
+ResultHandle::failed(const Json::Value & body, int status_code)
+{
+    ContextLocker lock(internal->mutex);
+    if (!internal->is_ready) {
+	internal->response.set(body, status_code);
+	internal->is_ready = true;
+	lock.unlock();
+	// Unlock before writing, just in case the io_write_byte() blocks.
+	(void) io_write_byte(internal->nudge_fd, internal->nudge_byte);
+    }
+}
