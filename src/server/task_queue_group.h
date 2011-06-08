@@ -623,7 +623,7 @@ class TaskQueueGroup {
 	    queue_val["size"] = Json::UInt64(i->second.queue.size());
 	    queue_val["active"] = i->second.active;
 	    queue_val["assigned"] = i->second.assigned;
-	    queue_val["in_progress"] = i->second.in_progress.size();
+	    queue_val["in_progress"] = Json::UInt64(i->second.in_progress.size());
 	}
     }
 };
