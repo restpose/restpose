@@ -57,7 +57,7 @@ class ReaderThread : public Thread {
     }
 
     void run() {
-	int * r;
+	int * r = NULL;
 	while (queue.pop(r)) {
 	    results.push_back(*r);
 	    delete r;
