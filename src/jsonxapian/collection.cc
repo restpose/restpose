@@ -59,59 +59,33 @@ check_format_number(unsigned int format)
 				str(CONFIG_FORMAT));
 }
 
-Collection::Collection(const string & coll_name_,
-		       const string & coll_path_)
-	: coll_name(coll_name_),
-	  group(coll_path_)
+void
+CollectionConfig::clear()
 {
-}
-
-Collection::~Collection()
-{
-    try {
-	close();
-    } catch (const Xapian::Error & e) {
-	// can't safely throw in destructor.
-    }
-
-    for (map<string, Schema *>::const_iterator
+    for (map<string, Schema *>::iterator
 	 i = types.begin(); i != types.end(); ++i) {
 	delete i->second;
+	i->second = NULL;
     }
-    for (map<string, Pipe *>::const_iterator
+    types.clear();
+
+    for (map<string, Pipe *>::iterator
 	 i = pipes.begin(); i != pipes.end(); ++i) {
 	delete i->second;
+	i->second = NULL;
     }
-    for (map<string, Categoriser *>::const_iterator
+    pipes.clear();
+
+    for (map<string, Categoriser *>::iterator
 	 i = categorisers.begin(); i != categorisers.end(); ++i) {
 	delete i->second;
+	i->second = NULL;
     }
+    categorisers.clear();
 }
 
 void
-Collection::open_writable()
-{
-    if (!group.is_writable()) {
-	group.open_writable();
-	read_config();
-    }
-}
-
-void
-Collection::open_readonly()
-{
-    group.open_readonly();
-    read_config();
-}
-
-const Xapian::Database &
-Collection::get_db() const
-{
-    return group.get_db();
-}
-
-void
-Collection::set_default_schema()
+CollectionConfig::set_default_schema()
 {
     for (map<string, Schema *>::iterator
 	 i = types.begin(); i != types.end(); ++i) {
@@ -143,30 +117,26 @@ Collection::set_default_schema()
 }
 
 void
-Collection::read_schemas_config()
+CollectionConfig::schemas_config_to_json(Json::Value & value) const
 {
-    string schemas_config_str(group.get_metadata("_types"));
-    if (!last_schemas_config.empty()) {
-	if (schemas_config_str == last_schemas_config) {
-	    return;
-	}
-    }
-    last_schemas_config = schemas_config_str;
-
-    if (schemas_config_str.empty()) {
-	set_default_schema();
-	set_pipe_internal("default", Pipe());
-	return;
+    Json::Value & types_obj(value["types"]);
+    types_obj = Json::objectValue;
+    for (map<string, Schema *>::const_iterator
+	 i = types.begin(); i != types.end(); ++i) {
+	Json::Value & type_obj = types_obj[i->first];
+	i->second->to_json(type_obj);
     }
 
-    // Set the schema.
-    Json::Value config_obj;
-    json_unserialise(schemas_config_str, config_obj);
-    schemas_config_from_json(config_obj);
+    Json::Value & deftype_obj(value["default_type"]);
+    deftype_obj = default_type_config;
+
+    Json::Value & special_obj(value["special_fields"]);
+    special_obj["id_field"] = id_field;
+    special_obj["type_field"] = type_field;
 }
 
 void
-Collection::schemas_config_from_json(const Json::Value & value)
+CollectionConfig::schemas_config_from_json(const Json::Value & value)
 {
     const Json::Value & types_obj(value["types"]);
     if (!types_obj.isNull()) {
@@ -175,7 +145,7 @@ Collection::schemas_config_from_json(const Json::Value & value)
 	     i != types_obj.end(); ++i) {
 	    Schema schema(i.memberName());
 	    schema.from_json(*i);
-	    set_schema_internal(i.memberName(), schema);
+	    set_schema(i.memberName(), schema);
 	}
     }
 
@@ -197,180 +167,120 @@ Collection::schemas_config_from_json(const Json::Value & value)
 }
 
 void
-Collection::write_schemas_config()
+CollectionConfig::pipes_config_to_json(Json::Value & value) const
 {
-    Json::Value config_obj(Json::objectValue);
-    schemas_config_to_json(config_obj);
-    group.set_metadata("_types", json_serialise(config_obj));
-}
-
-void
-Collection::schemas_config_to_json(Json::Value & value) const
-{
-    Json::Value & types_obj(value["types"]);
-    types_obj = Json::objectValue;
-    for (map<string, Schema *>::const_iterator
-	 i = types.begin(); i != types.end(); ++i) {
-	Json::Value & type_obj = types_obj[i->first];
-	i->second->to_json(type_obj);
-    }
-
-    Json::Value & deftype_obj(value["default_type"]);
-    deftype_obj = default_type_config;
-
-    Json::Value & special_obj(value["special_fields"]);
-    special_obj["id_field"] = id_field;
-    special_obj["type_field"] = type_field;
-}
-
-void
-Collection::read_pipes_config()
-{
-    string pipes_config_str(group.get_metadata("_pipes"));
-    if (!last_pipes_config.empty()) {
-	if (pipes_config_str == last_pipes_config) {
-	    return;
-	}
-    }
-    last_pipes_config = pipes_config_str;
-
-    // Clear the pipes and set built-in defaults.
-    for (map<string, Pipe *>::iterator
-	 i = pipes.begin(); i != pipes.end(); ++i) {
-	delete i->second;
-	i->second = NULL;
-    }
-    pipes.clear();
-    set_pipe_internal("default", Pipe());
-
-    if (pipes_config_str.empty()) {
-	return;
-    }
-
-    Json::Value config_obj;
-    json_unserialise(pipes_config_str, config_obj);
-
-    pipes_config_from_json(config_obj.get("pipes", Json::nullValue));
-}
-
-void
-Collection::pipes_config_from_json(const Json::Value & value)
-{
-    if (!value.isNull()) {
-	json_check_object(value, "pipes");
-	for (Json::Value::iterator i = value.begin();
-	     i != value.end(); ++i) {
-	    Pipe pipe;
-	    pipe.from_json(*i);
-	    set_pipe_internal(i.memberName(), pipe);
-	}
-    }
-
-}
-
-void
-Collection::write_pipes_config()
-{
-    Json::Value config_obj(Json::objectValue);
-    pipes_config_to_json(config_obj["pipes"]);
-    group.set_metadata("_pipes", json_serialise(config_obj));
-}
-
-void
-Collection::pipes_config_to_json(Json::Value & value) const
-{
-    value = Json::objectValue;
-
+    Json::Value & pipes_obj(value["pipes"]);
+    pipes_obj = Json::objectValue;
     for (map<string, Pipe *>::const_iterator
 	 i = pipes.begin(); i != pipes.end(); ++i) {
-	Json::Value & pipe_obj = value[i->first];
+	Json::Value & pipe_obj = pipes_obj[i->first];
 	i->second->to_json(pipe_obj);
     }
 }
 
 void
-Collection::read_categorisers_config()
+CollectionConfig::pipes_config_from_json(const Json::Value & value)
 {
-    string categorisers_config_str(group.get_metadata("_categorisers"));
-    if (!last_categorisers_config.empty()) {
-	if (categorisers_config_str == last_categorisers_config) {
-	    return;
+    const Json::Value & pipes_obj(value["pipes"]);
+    if (!pipes_obj.isNull()) {
+	json_check_object(pipes_obj, "pipes definition");
+	for (Json::Value::iterator i = pipes_obj.begin();
+	     i != pipes_obj.end(); ++i) {
+	    Pipe pipe;
+	    pipe.from_json(*i);
+	    set_pipe(i.memberName(), pipe);
 	}
     }
-    last_categorisers_config = categorisers_config_str;
-
-    // Clear the categorisers and set built-in defaults.
-    for (map<string, Categoriser *>::iterator
-	 i = categorisers.begin(); i != categorisers.end(); ++i) {
-	delete i->second;
-	i->second = NULL;
-    }
-    categorisers.clear();
-
-    if (categorisers_config_str.empty()) {
-	return;
-    }
-
-    Json::Value config_obj;
-    json_unserialise(categorisers_config_str, config_obj);
-
-    categorisers_config_from_json(config_obj.get("categorisers", Json::nullValue));
 }
 
 void
-Collection::categorisers_config_from_json(const Json::Value & value)
+CollectionConfig::categorisers_config_to_json(Json::Value & value) const
 {
-    if (!value.isNull()) {
-	json_check_object(value, "categorisers");
-	for (Json::Value::iterator i = value.begin();
-	     i != value.end(); ++i) {
-	    Categoriser categoriser;
-	    categoriser.from_json(*i);
-	    set_categoriser_internal(i.memberName(), categoriser);
-	}
-    }
-
-}
-
-void
-Collection::write_categorisers_config()
-{
-    Json::Value config_obj(Json::objectValue);
-    categorisers_config_to_json(config_obj["categorisers"]);
-    group.set_metadata("_categorisers", json_serialise(config_obj));
-}
-
-void
-Collection::categorisers_config_to_json(Json::Value & value) const
-{
-    value = Json::objectValue;
+    Json::Value & categorisers_obj(value["categorisers"]);
+    categorisers_obj = Json::objectValue;
 
     for (map<string, Categoriser *>::const_iterator
 	 i = categorisers.begin(); i != categorisers.end(); ++i) {
-	Json::Value & categoriser_obj = value[i->first];
+	Json::Value & categoriser_obj = categorisers_obj[i->first];
 	i->second->to_json(categoriser_obj);
     }
 }
 
 void
-Collection::read_config()
+CollectionConfig::categorisers_config_from_json(const Json::Value & value)
 {
-    try {
-	read_schemas_config();
-	read_pipes_config();
-	read_categorisers_config();
-    } catch(...) {
-	group.close();
-	throw;
+    const Json::Value & categorisers_obj(value["categorisers"]);
+    if (!categorisers_obj.isNull()) {
+	json_check_object(categorisers_obj, "categorisers definition");
+	for (Json::Value::iterator i = categorisers_obj.begin();
+	     i != categorisers_obj.end(); ++i) {
+	    Categoriser categoriser;
+	    categoriser.from_json(*i);
+	    set_categoriser(i.memberName(), categoriser);
+	}
     }
 }
 
-const Schema &
-Collection::get_schema(const string & type) const
+
+CollectionConfig::CollectionConfig(const std::string & coll_name_)
+	: coll_name(coll_name_)
+{}
+
+CollectionConfig::~CollectionConfig()
 {
-    if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
+    clear();
+}
+
+void
+CollectionConfig::set_default()
+{
+    clear();
+    set_default_schema();
+    set_pipe("default", Pipe());
+}
+
+CollectionConfig *
+CollectionConfig::clone() const
+{
+    auto_ptr<CollectionConfig> result(new CollectionConfig(coll_name));
+    // FIXME - could probably be made significantly more efficient by doing the
+    // copy directly on the contents, rather than going through JSON.
+    Json::Value tmp;
+    result->from_json(to_json(tmp));
+    return result.release();
+}
+
+Json::Value &
+CollectionConfig::to_json(Json::Value & value) const
+{
+    value = Json::objectValue;
+    schemas_config_to_json(value);
+    if (!pipes.empty()) {
+	pipes_config_to_json(value);
     }
+    if (!categorisers.empty()) {
+	categorisers_config_to_json(value);
+    }
+    value["format"] = CONFIG_FORMAT;
+    return value;
+}
+
+void
+CollectionConfig::from_json(const Json::Value & value)
+{
+    json_check_object(value, "collection configuration");
+
+    check_format_number(json_get_uint64_member(value, "format",
+					       Json::Value::maxInt));
+
+    schemas_config_from_json(value);
+    pipes_config_from_json(value);
+    categorisers_config_from_json(value);
+}
+
+const Schema &
+CollectionConfig::get_schema(const std::string & type) const
+{
     map<string, Schema *>::const_iterator i = types.find(type);
     if (i == types.end()) {
 	throw InvalidValueError("No schema of requested type found");
@@ -379,19 +289,8 @@ Collection::get_schema(const string & type) const
 }
 
 void
-Collection::set_schema(const string & type,
-		       const Schema & schema)
-{
-    if (!group.is_writable()) {
-	throw InvalidStateError("Collection must be open for writing to set schema");
-    }
-    set_schema_internal(type, schema);
-    write_schemas_config();
-}
-
-void
-Collection::set_schema_internal(const string & type,
-				const Schema & schema)
+CollectionConfig::set_schema(const std::string & type,
+			     const Schema & schema)
 {
     Schema * schemaptr;
     map<string, Schema *>::iterator i = types.find(type);
@@ -409,13 +308,9 @@ Collection::set_schema_internal(const string & type,
     schemaptr->merge_from(schema);
 }
 
-
 const Pipe &
-Collection::get_pipe(const string & pipe_name) const
+CollectionConfig::get_pipe(const std::string & pipe_name) const
 {
-    if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
-    }
     map<string, Pipe *>::const_iterator i = pipes.find(pipe_name);
     if (i == pipes.end()) {
 	throw InvalidValueError("No pipe of requested name found");
@@ -424,19 +319,8 @@ Collection::get_pipe(const string & pipe_name) const
 }
 
 void
-Collection::set_pipe(const string & pipe_name,
-		     const Pipe & pipe)
-{
-    if (!group.is_writable()) {
-	throw InvalidStateError("Collection must be open for writing to set pipe");
-    }
-    set_pipe_internal(pipe_name, pipe);
-    write_pipes_config();
-}
-
-void
-Collection::set_pipe_internal(const string & pipe_name,
-			      const Pipe & pipe)
+CollectionConfig::set_pipe(const std::string & pipe_name,
+			   const Pipe & pipe)
 {
     Pipe * pipeptr;
     map<string, Pipe *>::iterator i = pipes.find(pipe_name);
@@ -453,13 +337,9 @@ Collection::set_pipe_internal(const string & pipe_name,
     *pipeptr = pipe;
 }
 
-
 const Categoriser &
-Collection::get_categoriser(const string & categoriser_name) const
+CollectionConfig::get_categoriser(const std::string & categoriser_name) const
 {
-    if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
-    }
     map<string, Categoriser *>::const_iterator i = categorisers.find(categoriser_name);
     if (i == categorisers.end()) {
 	throw InvalidValueError("No categoriser of requested name found");
@@ -468,19 +348,8 @@ Collection::get_categoriser(const string & categoriser_name) const
 }
 
 void
-Collection::set_categoriser(const string & categoriser_name,
-			    const Categoriser & categoriser)
-{
-    if (!group.is_writable()) {
-	throw InvalidStateError("Collection must be open for writing to set categoriser");
-    }
-    set_categoriser_internal(categoriser_name, categoriser);
-    write_categorisers_config();
-}
-
-void
-Collection::set_categoriser_internal(const string & categoriser_name,
-				     const Categoriser & categoriser)
+CollectionConfig::set_categoriser(const std::string & categoriser_name,
+				  const Categoriser & categoriser)
 {
     Categoriser * categoriserptr;
     map<string, Categoriser *>::iterator i = categorisers.find(categoriser_name);
@@ -498,20 +367,135 @@ Collection::set_categoriser_internal(const string & categoriser_name,
 }
 
 
-
-Json::Value &
-Collection::to_json(Json::Value & value) const
+Collection::Collection(const string & coll_name_,
+		       const string & coll_path_)
+	: config(coll_name_),
+	  group(coll_path_)
 {
-    value = Json::objectValue;
-    schemas_config_to_json(value);
-    if (!pipes.empty()) {
-	pipes_config_to_json(value["pipes"]);
+}
+
+Collection::~Collection()
+{
+    try {
+	close();
+    } catch (const Xapian::Error & e) {
+	// can't safely throw in destructor.
     }
-    if (!categorisers.empty()) {
-	categorisers_config_to_json(value["categorisers"]);
+}
+
+void
+Collection::open_writable()
+{
+    if (!group.is_writable()) {
+	group.open_writable();
+	read_config();
     }
-    value["format"] = CONFIG_FORMAT;
-    return value;
+}
+
+void
+Collection::open_readonly()
+{
+    group.open_readonly();
+    read_config();
+}
+
+const Xapian::Database &
+Collection::get_db() const
+{
+    return group.get_db();
+}
+
+void
+Collection::read_config()
+{
+    try {
+	string config_str(group.get_metadata("_restpose_config"));
+
+	if (!last_config.empty() && config_str == last_config) {
+	    return;
+	}
+
+	last_config = config_str;
+	if (config_str.empty()) {
+	    config.set_default();
+	    return;
+	}
+
+	// Set the schema.
+	Json::Value config_obj;
+	config.from_json(json_unserialise(config_str, config_obj));
+    } catch(...) {
+	group.close();
+	throw;
+    }
+}
+
+void
+Collection::write_config()
+{
+    Json::Value config_obj;
+    group.set_metadata("_restpose_config", 
+		       json_serialise(config.to_json(config_obj)));
+}
+
+const Schema &
+Collection::get_schema(const string & type) const
+{
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to get schema");
+    }
+    return config.get_schema(type);
+}
+
+void
+Collection::set_schema(const string & type,
+		       const Schema & schema)
+{
+    if (!group.is_writable()) {
+	throw InvalidStateError("Collection must be open for writing to set schema");
+    }
+    config.set_schema(type, schema);
+    write_config();
+}
+
+const Pipe &
+Collection::get_pipe(const string & pipe_name) const
+{
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to get schema");
+    }
+    return config.get_pipe(pipe_name);
+}
+
+void
+Collection::set_pipe(const string & pipe_name,
+		     const Pipe & pipe)
+{
+    if (!group.is_writable()) {
+	throw InvalidStateError("Collection must be open for writing to set pipe");
+    }
+    config.set_pipe(pipe_name, pipe);
+    write_config();
+}
+
+const Categoriser &
+Collection::get_categoriser(const string & categoriser_name) const
+{
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to get schema");
+    }
+    return config.get_categoriser(categoriser_name);
+}
+
+void
+Collection::set_categoriser(const string & categoriser_name,
+			    const Categoriser & categoriser)
+{
+    if (!group.is_writable()) {
+	throw InvalidStateError("Collection must be open for writing to set categoriser");
+    }
+    config.set_categoriser(categoriser_name, categoriser);
+    write_config();
 }
 
 void
@@ -520,19 +504,8 @@ Collection::from_json(const Json::Value & value)
     if (!group.is_writable()) {
 	throw InvalidStateError("Collection must be open for writing to set config");
     }
-
-    json_check_object(value, "collection configuration");
-
-    check_format_number(json_get_uint64_member(value, "format",
-					       Json::Value::maxInt));
-
-    schemas_config_from_json(value);
-    pipes_config_from_json(value.get("pipes", Json::nullValue));
-    categorisers_config_from_json(value.get("categorisers", Json::nullValue));
-
-    write_schemas_config();
-    write_pipes_config();
-    write_categorisers_config();
+    config.from_json(value);
+    write_config();
 }
 
 Json::Value &
@@ -541,7 +514,7 @@ Collection::categorise(const string & categoriser_name,
 		       Json::Value & result) const
 {
     result = Json::arrayValue;
-    const Categoriser & cat = get_categoriser(categoriser_name);
+    const Categoriser & cat = config.get_categoriser(categoriser_name);
     vector<string> result_vec;
     cat.categorise(text, result_vec);
     for (vector<string>::const_iterator i = result_vec.begin();
