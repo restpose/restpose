@@ -1,4 +1,4 @@
-/** @file collection_pool.cc
+/** @file collection_pool.h
  * @brief A pool of collections, for sharing between threads.
  */
 /* Copyright (c) 2011 Richard Boulton
