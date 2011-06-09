@@ -2,7 +2,6 @@ noinst_LIBRARIES += libserver.a
 
 noinst_HEADERS += \
  src/server/basetasks.h \
- src/server/collection_pool.h \
  src/server/ignore_sigpipe.h \
  src/server/result_handle.h \
  src/server/server.h \
@@ -14,7 +13,6 @@ noinst_HEADERS += \
  src/server/thread_pool.h
 
 libserver_a_SOURCES = \
- src/server/collection_pool.cc \
  src/server/ignore_sigpipe.cc \
  src/server/result_handle.cc \
  src/server/server.cc \
