@@ -25,167 +25,20 @@
 #ifndef RESTPOSE_INCLUDED_COLLECTION_H
 #define RESTPOSE_INCLUDED_COLLECTION_H
 
-#include <string>
-#include <xapian.h>
 #include "dbgroup/dbgroup.h"
 #include "jsonmanip/mapping.h"
+#include "jsonxapian/collconfig.h"
 #include "ngramcat/categoriser.h"
 #include "schema.h"
+#include <string>
 #include "utils/safe_inttypes.h"
+#include <xapian.h>
 
 class TaskManager;
 
 namespace RestPose {
 
 class Pipe;
-
-/** All the configuration of the collection.
- *
- *  This contains all the information needed to process documents.
- */
-class CollectionConfig {
-    /// Collection name.
-    std::string coll_name;
-
-    /// Default schema to use for new types.
-    Json::Value default_type_config;
-
-    /// The field used to hold ids.
-    std::string id_field;
-
-    /// The field used to hold type ids.
-    std::string type_field;
-
-    /// Schemas, by type name.
-    std::map<std::string, Schema *> types;
-
-    /// Pipes, by given name.
-    std::map<std::string, Pipe *> pipes;
-
-    /// Categorisers, by given name.
-    std::map<std::string, Categoriser *> categorisers;
-
-    CollectionConfig(const CollectionConfig &);
-    void operator=(const CollectionConfig &);
-
-    /** Clear all configuration.
-     */
-    void clear();
-
-    /** Set the default schema configuration.
-     *
-     *  This sets default_type_config, id_field and type_field to default
-     *  values.
-     */
-    void set_default_schema();
-
-    /** Write the schemas configuration to a JSON value.
-     */
-    void schemas_config_to_json(Json::Value & value) const;
-
-    /** Set the schemas configuration from a JSON value.
-     */
-    void schemas_config_from_json(const Json::Value & value);
-
-    /** Write the pipes configuration to a JSON value.
-     */
-    void pipes_config_to_json(Json::Value & value) const;
-
-    /** Set the pipes configuration from a JSON value.
-     */
-    void pipes_config_from_json(const Json::Value & value);
-
-    /** Write the categorisers configuration to a JSON value.
-     */
-    void categorisers_config_to_json(Json::Value & value) const;
-
-    /** Set the categorisers configuration from a JSON value.
-     */
-    void categorisers_config_from_json(const Json::Value & value);
-
-
-  public:
-    CollectionConfig(const std::string & coll_name_);
-    ~CollectionConfig();
-
-    const std::string & get_name() const {
-	return coll_name;
-    }
-
-    /** Set the default configuration.
-     *
-     *  This is used for newly created collections, when an explicit
-     *  configuration is not set.
-     */
-    void set_default();
-
-    /** Clone this configuration.
-     *
-     *  Copies the contents of this configuration into an entirely independent,
-     *  newly allocated configuration object.
-     */
-    CollectionConfig * clone() const;
-
-    /** Convert the collection configuration to JSON.
-     *
-     *  Returns a reference to the value supplied, to allow easier use inline.
-     */
-    Json::Value & to_json(Json::Value & value) const;
-
-    /** Set the configuration from a JSON representation.
-     *
-     *  Wipes out any previous configuration.
-     */
-    void from_json(const Json::Value & value);
-
-    /** Get the schema for a given type.
-     *
-     *  Raises an exception if the type is not known.
-     *
-     *  The returned reference is invalid after modifications have been made
-     *  to the collection's schema.
-     */
-    const Schema & get_schema(const std::string & type) const;
-
-    /** Set the schema for a given type.
-     *
-     *  Takes a copy of the supplied schema.
-     */
-    void set_schema(const std::string & type,
-		    const Schema & schema);
-
-    /** Get an input pipe.
-     *
-     *  Raises an exception if the pipe is not known.
-     *
-     *  The returned reference is invalid after modifications have been made
-     *  to the collection's pipe configuration.
-     */
-    const Pipe & get_pipe(const std::string & pipe_name) const;
-
-    /** Set an input pipe.
-     *
-     *  Takes a copy of the supplied pipe.
-     */
-    void set_pipe(const std::string & pipe_name,
-		  const Pipe & pipe);
-
-    /** Get a categoriser.
-     *
-     *  Raises an exception if the categoriser is not known.
-     *
-     *  The returned reference is invalid after modifications have been made
-     *  to the collection's categoriser configuration.
-     */
-    const Categoriser & get_categoriser(const std::string & categoriser_name) const;
-
-    /** Set a categoriser.
-     *
-     *  Takes a copy of the supplied categoriser.
-     */
-    void set_categoriser(const std::string & categoriser_name,
-			 const Categoriser & categoriser);
-};
 
 class Collection {
     /** The configuration used for this collection.
