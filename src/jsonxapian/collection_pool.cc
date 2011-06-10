@@ -28,6 +28,7 @@
 #include <memory>
 #include "omassert.h"
 #include "utils/stringutils.h"
+#include "utils.h"
 
 #define DIR_SEPARATOR "/"
 
@@ -56,6 +57,22 @@ CollectionPool::~CollectionPool()
 	 i = writable.begin(); i != writable.end(); ++i) {
 	delete i->second;
     }
+}
+
+bool
+CollectionPool::exists(const string & collection)
+{
+    ContextLocker lock(mutex);
+    if (readonly.find(collection) != readonly.end()) {
+	return true;
+    }
+    if (writable.find(collection) != writable.end()) {
+	return true;
+    }
+    if (dir_exists(datadir + collection)) {
+	return true;
+    }
+    return false;
 }
 
 Collection *

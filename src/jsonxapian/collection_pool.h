@@ -68,6 +68,13 @@ class CollectionPool {
     CollectionPool(const std::string & datadir_);
     ~CollectionPool();
 
+    /** Check if a collection exists.
+     *
+     *  This doesn't attempt to open the collection - it just checks if it
+     *  exists on disk.
+     */
+    bool exists(const std::string & collection);
+
     /** Get a pointer to a collection, opened for reading, by collection name.
      *
      *  The returned pointer will never be NULL, and ownership of the pointer
