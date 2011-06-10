@@ -29,9 +29,9 @@
 #include <cstring>
 #include <cerrno>
 #include "jsonxapian/collection.h"
+#include "jsonxapian/collection_pool.h"
 #include "jsonxapian/pipe.h"
 #include "server/task_manager.h"
-#include "server/collection_pool.h"
 #include "utils.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
