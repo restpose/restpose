@@ -35,6 +35,12 @@
 using namespace std;
 using namespace RestPose;
 
+static void
+log_msg(const string & msg)
+{
+    fprintf(stderr, "LOG: %s\n", msg.c_str());
+}
+
 TaskThread::~TaskThread()
 {
     // Delete the collection - it should have been returned to the pool
@@ -69,17 +75,29 @@ ProcessingThread::run()
 	    }
 	}
 
-	Task * newtask = queuegroup.pop_any(coll_name, task);
-	delete task;
-	task = newtask;
+	try {
 
-	if (!task) {
-	    // Queue has been closed, and is empty.
-	    return;
+	    Task * newtask = queuegroup.pop_any(coll_name, task);
+	    delete task;
+	    task = newtask;
+
+	    if (!task) {
+		// Queue has been closed, and is empty.
+		return;
+	    }
+
+	    ProcessingTask * colltask = static_cast<ProcessingTask *>(task);
+	    colltask->perform(coll_name, taskman);
+
+	} catch(const RestPose::Error & e) {
+	    log_msg(e.what());
+	} catch(const Xapian::DatabaseOpeningError & e) {
+	    log_msg(e.get_description());
+	} catch(const Xapian::Error & e) {
+	    log_msg(e.get_description());
+	} catch(const std::bad_alloc) {
+	    log_msg("out of memory");
 	}
-
-	ProcessingTask * colltask = static_cast<ProcessingTask *>(task);
-	colltask->perform(coll_name, taskman);
     }
 }
 
@@ -104,41 +122,52 @@ IndexingThread::run()
 	    }
 	}
 
-	// This call blocks, but should finish when the queue is closed, so
-	// shouldn't delay termination of the thread.
-	if (!queuegroup.assign_handler(coll_name)) {
-	    // Only happens when queuegroup is closed, so just finish running.
-	    return;
-	}
-	collection = pool.get_writable(coll_name);
-
-	while (true) {
-	    bool is_finished;
-
-	    Task * newtask = queuegroup.pop_from(coll_name,
-		RealTime::now() + commit_after_idle, is_finished,
-		task, last_coll_name);
-	    delete task;
-	    task = newtask;
-	    last_coll_name = coll_name;
-
-	    if (is_finished) {
-		// Queue has been closed, and is empty.
+	try {
+	    // This call blocks, but should finish when the queue is closed, so
+	    // shouldn't delay termination of the thread.
+	    if (!queuegroup.assign_handler(coll_name)) {
+		// Only happens when queuegroup is closed, so just finish running.
 		return;
 	    }
-	    if (task == NULL) {
-		// Timeout
-		break;
-	    }
-	    IndexingTask * colltask = static_cast<IndexingTask *>(task);
-	    colltask->perform(*collection);
-	}
+	    collection = pool.get_writable(coll_name);
 
-	collection->commit();
-	Collection * tmp = collection;
-	collection = NULL;
-	pool.release(tmp);
-	queuegroup.unassign_handler(coll_name);
+	    while (true) {
+		bool is_finished;
+
+		Task * newtask = queuegroup.pop_from(coll_name,
+		    RealTime::now() + commit_after_idle, is_finished,
+		    task, last_coll_name);
+		delete task;
+		task = newtask;
+		last_coll_name = coll_name;
+
+		if (is_finished) {
+		    // Queue has been closed, and is empty.
+		    return;
+		}
+		if (task == NULL) {
+		    // Timeout
+		    break;
+		}
+		IndexingTask * colltask = static_cast<IndexingTask *>(task);
+		colltask->perform(*collection);
+	    }
+
+	    collection->commit();
+	    Collection * tmp = collection;
+	    collection = NULL;
+	    pool.release(tmp);
+	    queuegroup.unassign_handler(coll_name);
+
+	} catch(const RestPose::Error & e) {
+	    log_msg(e.what());
+	} catch(const Xapian::DatabaseOpeningError & e) {
+	    log_msg(e.get_description());
+	} catch(const Xapian::Error & e) {
+	    log_msg(e.get_description());
+	} catch(const std::bad_alloc) {
+	    log_msg("out of memory");
+	}
     }
 }
 
@@ -187,7 +216,6 @@ SearchThread::run()
 		    pool.release(tmp);
 		}
 	    } else {
-		coll_name = *coll_name_ptr;
 		if (collection == NULL) {
 		    collection = pool.get_readonly(coll_name);
 		} else if (collection->get_name() != coll_name) {
@@ -196,29 +224,31 @@ SearchThread::run()
 		    pool.release(tmp);
 		    collection = pool.get_readonly(coll_name);
 		}
+		coll_name = *coll_name_ptr;
 	    }
+
+	    rotask->perform(collection);
 	} catch(const RestPose::Error & e) {
+	    log_msg(e.what());
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.what();
 	    rotask->resulthandle.failed(result, 500);
-	    continue;
 	} catch(const Xapian::DatabaseOpeningError & e) {
+	    log_msg(e.get_description());
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
 	    rotask->resulthandle.failed(result, 404);
-	    continue;
 	} catch(const Xapian::Error & e) {
+	    log_msg(e.get_description());
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
 	    rotask->resulthandle.failed(result, 500);
-	    continue;
 	} catch(const std::bad_alloc) {
+	    log_msg("out of memory");
 	    Json::Value result(Json::objectValue);
 	    result["err"] = "out of memory";
 	    rotask->resulthandle.failed(result, 503);
-	    continue;
 	}
-	rotask->perform(collection);
     }
 }
 
