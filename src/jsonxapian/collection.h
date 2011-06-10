@@ -90,6 +90,12 @@ class Collection {
 	return config.get_name();
     }
 
+    /** Get the configuration object for the collection.
+     */
+    const CollectionConfig & get_config() const {
+	return config;
+    }
+
     /** Open the collection for writing.
      */
     void open_writable();
