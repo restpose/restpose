@@ -31,6 +31,10 @@ namespace Xapian {
     class Document;
 };
 
+namespace RestPose {
+    class CollectionConfig;
+};
+
 class CollectionPool;
 
 class StaticFileTask : public ReadonlyTask {
@@ -110,23 +114,22 @@ class ServerStatusTask : public ReadonlyTask {
     void perform(RestPose::Collection * collection);
 };
 
-
 /// Process a JSON document via a pipe.
 class ProcessorPipeDocumentTask : public ProcessingTask {
     /// The pipe to send the document to.
-    std::string pipe;
+    std::string target_pipe;
 
     /// The serialised document to send to the pipe.
     Json::Value doc;
 
   public:
-    ProcessorPipeDocumentTask(const std::string & pipe_,
+    ProcessorPipeDocumentTask(const std::string & target_pipe_,
 			      const Json::Value & doc_)
-	    : pipe(pipe_), doc(doc_)
+	    : target_pipe(target_pipe_), doc(doc_)
     {}
 
     /// Perform the processing task, given a collection (open for reading).
-    void perform(RestPose::Collection & collection,
+    void perform(const std::string & coll_name,
 		 TaskManager * taskman);
 };
 
@@ -145,7 +148,7 @@ class ProcessorProcessDocumentTask : public ProcessingTask {
     {}
 
     /// Perform the processing task, given a collection (open for reading).
-    void perform(RestPose::Collection & collection,
+    void perform(const std::string & coll_name,
 		 TaskManager * taskman);
 };
 

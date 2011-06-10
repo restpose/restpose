@@ -99,7 +99,7 @@ class ReadonlyCollTask : public ReadonlyTask {
 class ProcessingTask : public Task {
   public:
     ProcessingTask(bool allow_parallel_=true) : Task(allow_parallel_) {}
-    virtual void perform(RestPose::Collection & collection,
+    virtual void perform(const std::string & coll_name,
 			 TaskManager * taskman) = 0;
 };
 
@@ -124,7 +124,7 @@ class DelayedIndexingTask : public ProcessingTask {
 	    : ProcessingTask(false), task(task_)
     {}
 
-    void perform(RestPose::Collection & collection,
+    void perform(const std::string & coll_name,
 		 TaskManager * taskman);
 };
 

@@ -79,26 +79,13 @@ ProcessingThread::run()
 	}
 
 	ProcessingTask * colltask = static_cast<ProcessingTask *>(task);
-	if (collection == NULL) {
-	    collection = pool.get_readonly(coll_name);
-	} else if (collection->get_name() != coll_name) {
-	    Collection * tmp = collection;
-	    collection = NULL;
-	    pool.release(tmp);
-	    collection = pool.get_readonly(coll_name);
-	}
-	colltask->perform(*collection, taskman);
+	colltask->perform(coll_name, taskman);
     }
 }
 
 void
 ProcessingThread::cleanup()
 {
-    if (collection) {
-	Collection * tmp = collection;
-	collection = NULL;
-	pool.release(tmp);
-    }
     release_from_threadpool();
 }
 

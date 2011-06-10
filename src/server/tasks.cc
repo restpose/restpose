@@ -28,6 +28,7 @@
 #include "httpserver/response.h"
 #include "jsonxapian/collection.h"
 #include "jsonxapian/collection_pool.h"
+#include "jsonxapian/pipe.h"
 #include "loadfile.h"
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
@@ -144,19 +145,23 @@ ServerStatusTask::perform(RestPose::Collection *)
 }
 
 void
-ProcessorPipeDocumentTask::perform(RestPose::Collection & collection,
+ProcessorPipeDocumentTask::perform(const string & coll_name,
 				   TaskManager * taskman)
 {
-    collection.send_to_pipe(taskman, pipe, doc);
+    auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
+				      .get(coll_name));
+    config->send_to_pipe(taskman, target_pipe, doc);
 }
 
 void
-ProcessorProcessDocumentTask::perform(RestPose::Collection & collection,
+ProcessorProcessDocumentTask::perform(const string & coll_name,
 				      TaskManager * taskman)
 {
+    auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
+				      .get(coll_name));
     string idterm;
-    Xapian::Document xdoc = collection.process_doc(doc, doc_type, idterm);
-    taskman->queue_index_processed_doc(collection.get_name(), xdoc, idterm);
+    Xapian::Document xdoc = config->process_doc(doc, doc_type, idterm);
+    taskman->queue_index_processed_doc(coll_name, xdoc, idterm);
 }
 
 void
