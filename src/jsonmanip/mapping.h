@@ -34,7 +34,7 @@ namespace RestPose {
 
     struct MappingActions;
 
-    class Collection;
+    class CollectionConfig;
 
     /** A map from a key or index to actions for the associated value
      *  and its children.
@@ -93,7 +93,7 @@ namespace RestPose {
 
 	/** Perform custom handling for an event.
 	 */
-	bool handle(const Collection & collection,
+	bool handle(const CollectionConfig & collconfig,
 		    const std::vector<const MappingActions *> & stack,
 		    const JSONWalker::Event & event,
 		    Json::Value & output) const;
@@ -122,7 +122,7 @@ namespace RestPose {
 	 *  @returns true if the mapping was applied, false if it wasn't (due
 	 *         to an associated conditional not matching).
 	 */
-	bool apply(const Collection & collection,
+	bool apply(const CollectionConfig & collconfig,
 		   const Json::Value & input,
 		   Json::Value & output) const;
     };

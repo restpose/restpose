@@ -24,7 +24,7 @@
 
 #include <config.h>
 #include "jsonmanip/mapping.h"
-#include "jsonxapian/collection.h"
+#include "jsonxapian/collconfig.h"
 
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
@@ -188,7 +188,7 @@ append_field(Json::Value & output, const std::string & key,
 }
 
 bool
-Mapping::handle(const Collection & collection,
+Mapping::handle(const CollectionConfig & collconfig,
 		const std::vector<const MappingActions *> & stack,
 		const JSONWalker::Event & event,
 		Json::Value & output) const
@@ -241,7 +241,7 @@ Mapping::handle(const Collection & collection,
 		append_field(output, i->field, Json::StaticString(""));
 	    } else {
 		Json::Value category;
-		collection.categorise(i->categoriser, text, category);
+		collconfig.categorise(i->categoriser, text, category);
 		append_field(output, i->field, category);
 	    }
 	}
@@ -263,7 +263,7 @@ Mapping::handle_default(const std::vector<const MappingActions *> & stack,
 }
 
 bool
-Mapping::apply(const Collection & collection,
+Mapping::apply(const CollectionConfig & collconfig,
 	       const Json::Value & input,
 	       Json::Value & output) const
 {
@@ -288,7 +288,7 @@ Mapping::apply(const Collection & collection,
 		if (stack.size() == 1) {
 		    handled_top = false;
 		}
-		if (handle(collection, stack, event, output)) {
+		if (handle(collconfig, stack, event, output)) {
 		    handled_top = true;
 		}
 
@@ -315,7 +315,7 @@ Mapping::apply(const Collection & collection,
 		if (stack.size() == 1) {
 		    handled_top = false;
 		}
-		if (handle(collection, stack, event, output)) {
+		if (handle(collconfig, stack, event, output)) {
 		    handled_top = true;
 		}
 		if (!handled_top) {
