@@ -366,6 +366,67 @@ CollectionConfig::set_categoriser(const std::string & categoriser_name,
     *categoriserptr = categoriser;
 }
 
+Json::Value &
+CollectionConfig::categorise(const string & categoriser_name,
+			     const string & text,
+			     Json::Value & result) const
+{
+    result = Json::arrayValue;
+    const Categoriser & cat = get_categoriser(categoriser_name);
+    vector<string> result_vec;
+    cat.categorise(text, result_vec);
+    for (vector<string>::const_iterator i = result_vec.begin();
+	 i != result_vec.end(); ++i) {
+	result.append(*i);
+    }
+    return result;
+}
+
+void
+CollectionConfig::send_to_pipe(TaskManager * taskman,
+			       const string & pipe_name,
+			       const Json::Value & obj)
+{
+    //printf("pipe %s: %s\n", pipe_name.c_str(), json_serialise(obj).c_str());
+    // FIXME - this method just uses a recursive implementation, and doesn't
+    // check that a document isn't being passed to a pipe it's already come
+    // from (which would almost certainly be a mistake), so it's easy for it
+    // to overflow the stack, and kill the process.  Would be better to do a
+    // non-recursive implementation, and keep track of pipes which have
+    // already been used to ensure that no loops happen.
+
+    if (pipe_name.empty()) {
+	string idterm;
+	// FIXME - remove hardcoded "default" here - pipes should have a way to
+	// say what type the output document is.
+	Xapian::Document xdoc = process_doc(obj, "default", idterm);
+	taskman->queue_index_processed_doc(get_name(), xdoc, idterm);
+	return;
+    }
+    const Pipe & pipe = get_pipe(pipe_name);
+    vector<Mapping>::const_iterator i;
+    //printf("mappings: %d\n", pipe.mappings.size());
+    for (i = pipe.mappings.begin(); i != pipe.mappings.end(); ++i) {
+	Json::Value output;
+	bool applied = i->apply(*this, obj, output);
+	//printf("applied: %s\n", applied ? "true" : "false");
+	if (applied) {
+	    send_to_pipe(taskman, pipe.target, output);
+	    if (!pipe.apply_all) {
+		break;
+	    }
+	}
+    }
+}
+
+Xapian::Document
+CollectionConfig::process_doc(const Json::Value & doc_obj,
+			      const string & doc_type,
+			      string & idterm)
+{
+    return get_schema(doc_type).process(doc_obj, idterm);
+}
+
 
 Collection::Collection(const string & coll_name_,
 		       const string & coll_path_)
@@ -513,15 +574,7 @@ Collection::categorise(const string & categoriser_name,
 		       const string & text,
 		       Json::Value & result) const
 {
-    result = Json::arrayValue;
-    const Categoriser & cat = config.get_categoriser(categoriser_name);
-    vector<string> result_vec;
-    cat.categorise(text, result_vec);
-    for (vector<string>::const_iterator i = result_vec.begin();
-	 i != result_vec.end(); ++i) {
-	result.append(*i);
-    }
-    return result;
+    return config.categorise(categoriser_name, text, result);
 }
 
 void
@@ -529,36 +582,7 @@ Collection::send_to_pipe(TaskManager * taskman,
 			 const string & pipe_name,
 			 const Json::Value & obj)
 {
-    //printf("pipe %s: %s\n", pipe_name.c_str(), json_serialise(obj).c_str());
-    // FIXME - this method just uses a recursive implementation, and doesn't
-    // check that a document isn't being passed to a pipe it's already come
-    // from (which would almost certainly be a mistake), so it's easy for it
-    // to overflow the stack, and kill the process.  Would be better to do a
-    // non-recursive implementation, and keep track of pipes which have
-    // already been used to ensure that no loops happen.
-
-    if (pipe_name.empty()) {
-	string idterm;
-	// FIXME - remove hardcoded "default" here - pipes should have a way to
-	// say what type the output document is.
-	Xapian::Document xdoc = process_doc(obj, "default", idterm);
-	taskman->queue_index_processed_doc(get_name(), xdoc, idterm);
-	return;
-    }
-    const Pipe & pipe = get_pipe(pipe_name);
-    vector<Mapping>::const_iterator i;
-    //printf("mappings: %d\n", pipe.mappings.size());
-    for (i = pipe.mappings.begin(); i != pipe.mappings.end(); ++i) {
-	Json::Value output;
-	bool applied = i->apply(*this, obj, output);
-	//printf("applied: %s\n", applied ? "true" : "false");
-	if (applied) {
-	    send_to_pipe(taskman, pipe.target, output);
-	    if (!pipe.apply_all) {
-		break;
-	    }
-	}
-    }
+    config.send_to_pipe(taskman, pipe_name, obj);
 }
 
 void
@@ -576,8 +600,7 @@ Collection::process_doc(const Json::Value & doc_obj,
 			const string & doc_type,
 			string & idterm)
 {
-    const Schema & schema = get_schema(doc_type);
-    return schema.process(doc_obj, idterm);
+    return config.process_doc(doc_obj, doc_type, idterm);
 }
 
 void
