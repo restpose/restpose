@@ -24,8 +24,9 @@
 #ifndef RESTPOSE_INCLUDED_TASK_MANAGER_H
 #define RESTPOSE_INCLUDED_TASK_MANAGER_H
 
+#include "jsonxapian/collconfigs.h"
 #include "jsonxapian/collection.h"
-#include "server/collection_pool.h"
+#include "jsonxapian/collection_pool.h"
 #include "server/result_handle.h"
 #include "server/server.h"
 #include "server/tasks.h"
@@ -106,6 +107,10 @@ class TaskManager : public SubServer {
      */
     CollectionPool & collections;
 
+    /** The collection configs used by processing tasks.
+     */
+    RestPose::CollectionConfigs collconfigs;
+
     TaskManager(const TaskManager &);
     void operator=(const TaskManager &);
   public:
@@ -114,6 +119,10 @@ class TaskManager : public SubServer {
 
     CollectionPool & get_collections() {
 	return collections;
+    }
+
+    RestPose::CollectionConfigs & get_collconfigs() {
+	return collconfigs;
     }
 
     /** Get the write end of the nudge pipe.

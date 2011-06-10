@@ -44,7 +44,8 @@ TaskManager::TaskManager(CollectionPool & collections_)
 	  processing_threads(),
 	  search_queues(100, 1000), // FIXME - pull out magic constants
 	  search_threads(),
-	  collections(collections_)
+	  collections(collections_),
+	  collconfigs(collections)
 {
     // Create the nudge socket.
     int fds[2];
