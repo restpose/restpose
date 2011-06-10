@@ -25,7 +25,7 @@
 #define RESTPOSE_INCLUDED_TASK_THREADS_H
 
 #include "jsonxapian/collection.h"
-#include "server/collection_pool.h"
+#include "jsonxapian/collection_pool.h"
 #include "server/server.h"
 #include "server/task_queue_group.h"
 #include <string>

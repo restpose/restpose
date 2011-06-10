@@ -27,8 +27,8 @@
 
 #include "httpserver/response.h"
 #include "jsonxapian/collection.h"
+#include "jsonxapian/collection_pool.h"
 #include "loadfile.h"
-#include "server/collection_pool.h"
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
 #include "utils/stringutils.h"
