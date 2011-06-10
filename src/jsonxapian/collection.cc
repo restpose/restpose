@@ -590,8 +590,7 @@ Collection::add_doc(const Json::Value & doc_obj,
 		    const string & doc_type)
 {
     string idterm;
-    const Schema & schema = get_schema(doc_type);
-    Xapian::Document doc(schema.process(doc_obj, idterm));
+    Xapian::Document doc(config.process_doc(doc_obj, doc_type, idterm));
     raw_update_doc(doc, idterm);
 }
 
