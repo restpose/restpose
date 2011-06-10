@@ -53,7 +53,7 @@ map_docs(const std::string & docs, const Mapping & mapping)
 	pos = docs.find('\n', pos + 1);
 	if (pos == docs.npos) break;
 	json_unserialise(docs.substr(lastpos, pos), input);
-	bool pass = mapping.apply(collection, input, output);
+	bool pass = mapping.apply(collection.get_config(), input, output);
 	result += pass ? "T" : "F";
 	result += json_serialise(output);
 	result += '\n';
