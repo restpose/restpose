@@ -28,6 +28,7 @@
 #include "json/value.h"
 #include <map>
 #include <string>
+#include <xapian.h>
 
 class TaskManager;
 
@@ -183,6 +184,34 @@ class CollectionConfig {
      */
     void set_categoriser(const std::string & categoriser_name,
 			 const Categoriser & categoriser);
+
+    /** Categorise a piece of text.
+     *
+     *  @param categoriser_name The categoriser to use.
+     *  @param text The text to categorise.
+     *  @param result A JSON object to store the result in.
+     *
+     *  The result is returned as a JSON array of strings, with the best
+     *  matching category first.
+     *
+     *  Returns a reference to `result`, for easier use in subsequent
+     *  operations.
+     */
+    Json::Value & categorise(const std::string & categoriser_name,
+			     const std::string & text,
+			     Json::Value & result) const;
+
+    /** Send a document, as a JSON object, to an input pipe.
+     */
+    void send_to_pipe(TaskManager * taskman,
+		      const std::string & pipe_name,
+		      const Json::Value & obj);
+
+    /** Process a JSON document into a Xapian document.
+     */
+    Xapian::Document process_doc(const Json::Value & doc_obj,
+				 const std::string & doc_type,
+				 std::string & idterm);
 };
 
 }
