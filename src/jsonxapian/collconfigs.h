@@ -29,6 +29,8 @@
 #include <string>
 #include "utils/threading.h"
 
+class CollectionPool;
+
 namespace RestPose {
 
 /** Holds CollectionConfig objects for each collection.
@@ -41,20 +43,23 @@ namespace RestPose {
  *  objects.
  */
 class CollectionConfigs {
-    mutable Mutex mutex;
+    Mutex mutex;
     std::map<std::string, CollectionConfig *> configs;
+    CollectionPool & pool;
 
     CollectionConfigs(const CollectionConfigs &);
     void operator=(const CollectionConfigs &);
   public:
-    CollectionConfigs() {}
+    CollectionConfigs(CollectionPool & pool_) : pool(pool_) {}
     ~CollectionConfigs();
 
     /** Get a (newly allocated) configuration for a given collection.
      *
-     *  Returns NULL if no configuration is known.
+     *  If the configuration isn't already known, attempts to get a
+     *  corresponding collection from the collection pool and reads the
+     *  configuration from that.  If no such collection exists, returns NULL.
      */
-    CollectionConfig * get(const std::string & coll_name) const;
+    CollectionConfig * get(const std::string & coll_name);
 
     /** Set the configuration for a collection.
      *

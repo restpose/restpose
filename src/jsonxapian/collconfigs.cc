@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include "collconfigs.h"
+#include "collection_pool.h"
 #include <memory>
 
 using namespace std;
@@ -38,12 +39,21 @@ CollectionConfigs::~CollectionConfigs()
 }
 
 CollectionConfig *
-CollectionConfigs::get(const std::string & coll_name) const
+CollectionConfigs::get(const std::string & coll_name)
 {
     ContextLocker lock(mutex);
     map<string, CollectionConfig *>::const_iterator i = configs.find(coll_name);
-    if (i == configs.end()) {
-	return NULL;
+    if (i != configs.end()) {
+	if (!pool.exists(coll_name)) {
+	    return NULL;
+	}
+	auto_ptr<Collection> coll(pool.get_readonly(coll_name));
+	auto_ptr<CollectionConfig> config(coll->get_config().clone());
+	pool.release(coll.release());
+	pair<map<string, CollectionConfig *>::iterator, bool> ret;
+	ret = configs.insert(pair<string, CollectionConfig *>(coll_name, NULL));
+	ret.first->second = config.release();
+	i = ret.first;
     }
     return i->second->clone();
 }
