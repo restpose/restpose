@@ -57,7 +57,8 @@ class CollectionConfigs {
      *
      *  If the configuration isn't already known, attempts to get a
      *  corresponding collection from the collection pool and reads the
-     *  configuration from that.  If no such collection exists, returns NULL.
+     *  configuration from that.  If no such collection exists, returns
+     *  a default configuration.
      */
     CollectionConfig * get(const std::string & coll_name);
 

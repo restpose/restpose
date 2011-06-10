@@ -43,17 +43,25 @@ CollectionConfigs::get(const std::string & coll_name)
 {
     ContextLocker lock(mutex);
     map<string, CollectionConfig *>::const_iterator i = configs.find(coll_name);
-    if (i != configs.end()) {
-	if (!pool.exists(coll_name)) {
-	    return NULL;
+    if (i == configs.end()) {
+	if (pool.exists(coll_name)) {
+	    auto_ptr<Collection> coll(pool.get_readonly(coll_name));
+	    auto_ptr<CollectionConfig> config(coll->get_config().clone());
+	    pool.release(coll.release());
+
+	    pair<map<string, CollectionConfig *>::iterator, bool> ret;
+	    ret = configs.insert(pair<string, CollectionConfig *>(coll_name, NULL));
+	    ret.first->second = config.release();
+	    i = ret.first;
+	} else {
+	    auto_ptr<CollectionConfig> config(new CollectionConfig(coll_name));
+	    config->set_default();
+
+	    pair<map<string, CollectionConfig *>::iterator, bool> ret;
+	    ret = configs.insert(pair<string, CollectionConfig *>(coll_name, NULL));
+	    ret.first->second = config.release();
+	    i = ret.first;
 	}
-	auto_ptr<Collection> coll(pool.get_readonly(coll_name));
-	auto_ptr<CollectionConfig> config(coll->get_config().clone());
-	pool.release(coll.release());
-	pair<map<string, CollectionConfig *>::iterator, bool> ret;
-	ret = configs.insert(pair<string, CollectionConfig *>(coll_name, NULL));
-	ret.first->second = config.release();
-	i = ret.first;
     }
     return i->second->clone();
 }
@@ -66,8 +74,9 @@ CollectionConfigs::set(const std::string & coll_name,
     ContextLocker lock(mutex);
     map<string, CollectionConfig *>::iterator i = configs.find(coll_name);
     if (i == configs.end()) {
-	configs[coll_name] = NULL;
-	configs[coll_name] = config_ptr.release();
+	pair<map<string, CollectionConfig *>::iterator, bool> ret;
+	ret = configs.insert(pair<string, CollectionConfig *>(coll_name, NULL));
+	ret.first->second = config_ptr.release();
     } else {
 	delete i->second;
 	i->second = config_ptr.release();
