@@ -8,11 +8,11 @@ restpose_SOURCES = \
 restpose_LDADD = \
  libfilesystemimporter.a \
  libmongoimporter.a \
- libjsonxapian.a \
- libjsonmanip.a \
  libhttpserver.a \
  librest.a \
  libserver.a \
+ libjsonxapian.a \
+ libjsonmanip.a \
  libngramcat.a \
  libcjktokenizer.a \
  libjsoncpp.a \
