@@ -432,7 +432,9 @@ CollectionConfig::process_doc(const Json::Value & doc_obj,
 {
     const Schema * schema = get_schema(doc_type);
     if (schema == NULL) {
-	schema = set_schema(doc_type, Schema(doc_type));
+	Schema newschema(doc_type);
+	newschema.from_json(default_type_config);
+	schema = set_schema(doc_type, newschema);
     }
     return schema->process(doc_obj, idterm);
 }
