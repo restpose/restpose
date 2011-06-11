@@ -1133,7 +1133,7 @@ Schema::display_doc(const Xapian::Document & doc,
 		    Json::Value & result) const
 {
     json_check_array(fieldlist, "display field list");
-    json_check_object(result, "display result");
+    result = Json::objectValue;
     DocumentData docdata;
     docdata.unserialise(doc.get_data());
     Json::Reader reader;

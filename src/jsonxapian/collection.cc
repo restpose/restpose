@@ -223,7 +223,8 @@ CollectionConfig::categorisers_config_from_json(const Json::Value & value)
 
 
 CollectionConfig::CollectionConfig(const std::string & coll_name_)
-	: coll_name(coll_name_)
+	: coll_name(coll_name_),
+	  changed(false)
 {}
 
 CollectionConfig::~CollectionConfig()
@@ -278,17 +279,17 @@ CollectionConfig::from_json(const Json::Value & value)
     categorisers_config_from_json(value);
 }
 
-const Schema &
+const Schema *
 CollectionConfig::get_schema(const std::string & type) const
 {
     map<string, Schema *>::const_iterator i = types.find(type);
     if (i == types.end()) {
-	throw InvalidValueError("No schema of requested type found");
+	return NULL;
     }
-    return *(i->second);
+    return (i->second);
 }
 
-void
+const Schema *
 CollectionConfig::set_schema(const std::string & type,
 			     const Schema & schema)
 {
@@ -306,6 +307,9 @@ CollectionConfig::set_schema(const std::string & type,
     }
 
     schemaptr->merge_from(schema);
+    changed = true;
+
+    return schemaptr;
 }
 
 const Pipe &
@@ -335,6 +339,7 @@ CollectionConfig::set_pipe(const std::string & pipe_name,
 	pipeptr = i->second;
     }
     *pipeptr = pipe;
+    changed = true;
 }
 
 const Categoriser &
@@ -364,6 +369,7 @@ CollectionConfig::set_categoriser(const std::string & categoriser_name,
 	categoriserptr = i->second;
     }
     *categoriserptr = categoriser;
+    changed = true;
 }
 
 Json::Value &
@@ -424,7 +430,11 @@ CollectionConfig::process_doc(const Json::Value & doc_obj,
 			      const string & doc_type,
 			      string & idterm)
 {
-    return get_schema(doc_type).process(doc_obj, idterm);
+    const Schema * schema = get_schema(doc_type);
+    if (schema == NULL) {
+	schema = set_schema(doc_type, Schema(doc_type));
+    }
+    return schema->process(doc_obj, idterm);
 }
 
 
@@ -505,7 +515,11 @@ Collection::get_schema(const string & type) const
     if (!group.is_open()) {
 	throw InvalidStateError("Collection must be open to get schema");
     }
-    return config.get_schema(type);
+    const Schema * result = config.get_schema(type);
+    if (result == NULL) {
+	throw InvalidValueError("Schema not found");
+    }
+    return *result;
 }
 
 void
@@ -641,8 +655,15 @@ Collection::perform_search(const Json::Value & search,
 			   const string & doc_type,
 			   Json::Value & results) const
 {
-    const Schema & schema = get_schema(doc_type);
-    schema.perform_search(get_db(), search, results);
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to perform search");
+    }
+    const Schema * schema = config.get_schema(doc_type);
+    if (schema == NULL) {
+	results = Json::objectValue;
+    } else {
+	schema->perform_search(get_db(), search, results);
+    }
 }
 
 void
@@ -651,8 +672,15 @@ Collection::get_doc_fields(const Xapian::Document & doc,
 			   const Json::Value & fieldlist,
 			   Json::Value & result) const
 {
-    const Schema & schema = get_schema(doc_type);
-    schema.display_doc(doc, fieldlist, result);
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to get document");
+    }
+    const Schema * schema = config.get_schema(doc_type);
+    if (schema == NULL) {
+	result = Json::objectValue;
+    } else {
+	schema->display_doc(doc, fieldlist, result);
+    }
 }
 
 void

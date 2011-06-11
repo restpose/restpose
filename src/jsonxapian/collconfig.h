@@ -64,6 +64,9 @@ class CollectionConfig {
     /// Categorisers, by given name.
     std::map<std::string, Categoriser *> categorisers;
 
+    /// Flag to track whether the collection configuration has been changed.
+    bool changed;
+
     CollectionConfig(const CollectionConfig &);
     void operator=(const CollectionConfig &);
 
@@ -139,19 +142,22 @@ class CollectionConfig {
 
     /** Get the schema for a given type.
      *
-     *  Raises an exception if the type is not known.
+     *  Returns NULL if the type is not known.
      *
-     *  The returned reference is invalid after modifications have been made
+     *  The returned pointer is invalid after modifications have been made
      *  to the collection's schema.
      */
-    const Schema & get_schema(const std::string & type) const;
+    const Schema * get_schema(const std::string & type) const;
 
     /** Set the schema for a given type.
      *
-     *  Takes a copy of the supplied schema.
+     *  Takes a copy of the supplied schema, and merges it with the existing
+     *  schema for the type.
+     *
+     *  Returns a pointer to the resulting schema for the type.
      */
-    void set_schema(const std::string & type,
-		    const Schema & schema);
+    const Schema * set_schema(const std::string & type,
+			      const Schema & schema);
 
     /** Get an input pipe.
      *

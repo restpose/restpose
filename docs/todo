@@ -1,7 +1,9 @@
 TODO
 ====
 
-When processing documents, we need to be able to update the schema used for all subsequent processing.  Therefore, need to add a schema "cache" which holds the latest version of the schema as sent to the indexing queue, but not necessarily yet written to the indexer.  This cache, or the schema (or CollectionConfig derived from it) should be what is passed to processing jobs, instead of the Collection.
+When a field has no config, use the patterns to try and add a configuration for it automatically.
+
+When schema gets modified as a result, or because a new type is seen, save the new configuration (by adding an appropriate message to the indexer queue along with the message saving the document), and write the new configuration to the config cache..
 
 Before an initial release
 -------------------------
