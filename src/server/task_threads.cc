@@ -26,6 +26,7 @@
 #include "task_threads.h"
 
 #include "httpserver/response.h"
+#include "logger/logger.h"
 #include "realtime.h"
 #include "server/thread_pool.h"
 #include "utils/jsonutils.h"
@@ -34,12 +35,6 @@
 
 using namespace std;
 using namespace RestPose;
-
-static void
-log_msg(const string & msg)
-{
-    fprintf(stderr, "LOG: %s\n", msg.c_str());
-}
 
 TaskThread::~TaskThread()
 {
@@ -90,13 +85,13 @@ ProcessingThread::run()
 	    colltask->perform(coll_name, taskman);
 
 	} catch(const RestPose::Error & e) {
-	    log_msg("Processing failed with: " + string(e.what()));
+	    g_log.error("Processing failed with", e);
 	} catch(const Xapian::DatabaseOpeningError & e) {
-	    log_msg("Processing failed with: " + e.get_description());
+	    g_log.error("Processing failed with", e);
 	} catch(const Xapian::Error & e) {
-	    log_msg("Processing failed with: " + e.get_description());
-	} catch(const std::bad_alloc &) {
-	    log_msg("Processing failed with: out of memory");
+	    g_log.error("Processing failed with", e);
+	} catch(const std::bad_alloc & e) {
+	    g_log.error("Processing failed with", e);
 	}
     }
 }
@@ -160,13 +155,13 @@ IndexingThread::run()
 	    queuegroup.unassign_handler(coll_name);
 
 	} catch(const RestPose::Error & e) {
-	    log_msg("Indexing failed with: " + string(e.what()));
+	    g_log.error("Indexing failed with", e);
 	} catch(const Xapian::DatabaseOpeningError & e) {
-	    log_msg("Indexing failed with: " + e.get_description());
+	    g_log.error("Indexing failed with", e);
 	} catch(const Xapian::Error & e) {
-	    log_msg("Indexing failed with: " + e.get_description());
-	} catch(const std::bad_alloc &) {
-	    log_msg("Indexing failed with: out of memory");
+	    g_log.error("Indexing failed with", e);
+	} catch(const std::bad_alloc & e) {
+	    g_log.error("Indexing failed with", e);
 	}
     }
 }
@@ -229,22 +224,22 @@ SearchThread::run()
 
 	    rotask->perform(collection);
 	} catch(const RestPose::Error & e) {
-	    log_msg("Readonly task failed with: " + string(e.what()));
+	    g_log.error("Readonly task failed with", e);
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.what();
 	    rotask->resulthandle.failed(result, 500);
 	} catch(const Xapian::DatabaseOpeningError & e) {
-	    log_msg("Readonly task failed with: " + e.get_description());
+	    g_log.error("Readonly task failed with", e);
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
 	    rotask->resulthandle.failed(result, 404);
 	} catch(const Xapian::Error & e) {
-	    log_msg("Readonly task failed with: " + e.get_description());
+	    g_log.error("Readonly task failed with", e);
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
 	    rotask->resulthandle.failed(result, 500);
-	} catch(const std::bad_alloc &) {
-	    log_msg("Readonly task failed with: out of memory");
+	} catch(const std::bad_alloc & e) {
+	    g_log.error("Readonly task failed with", e);
 	    Json::Value result(Json::objectValue);
 	    result["err"] = "out of memory";
 	    rotask->resulthandle.failed(result, 503);

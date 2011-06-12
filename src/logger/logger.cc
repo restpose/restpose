@@ -89,3 +89,7 @@ Logger::error(const std::string & context, const std::bad_alloc &) const
 {
     log("E:" + context + ": out of memory");
 }
+
+/** Global logger.
+ */
+Logger RestPose::g_log;

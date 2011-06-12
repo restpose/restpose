@@ -91,7 +91,7 @@ class Logger {
     void error(const std::string & context, const std::bad_alloc & err) const;
 };
 
-void log();
+extern Logger g_log;
 
 }
 
