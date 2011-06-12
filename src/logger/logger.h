@@ -95,4 +95,13 @@ extern Logger g_log;
 
 }
 
+#ifdef RESTPOSE_ENABLE_DEBUGLOG
+#define LOG_DEBUG(message) RestPose::g_log.debug(message);
+#else
+#define LOG_DEBUG(message)
+#endif
+#define LOG_INFO(message) RestPose::g_log.info(message);
+#define LOG_WARN(message) RestPose::g_log.warn(message);
+#define LOG_ERROR(...) RestPose::g_log.error(__VA_ARGS__);
+
 #endif /* restpose_included_logger_h */
