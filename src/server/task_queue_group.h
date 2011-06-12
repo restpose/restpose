@@ -24,6 +24,7 @@
 #ifndef RESTPOSE_INCLUDED_TASK_QUEUE_GROUP_H
 #define RESTPOSE_INCLUDED_TASK_QUEUE_GROUP_H
 
+#include "logger/logger.h"
 #include <map>
 #include <memory>
 #include "omassert.h"
@@ -171,6 +172,7 @@ class TaskQueueGroup {
      */
     void set_inactive_internal(const std::string & key)
     {
+	LOG_INFO("Pausing processing of queue '" + key + "'");
 	if (closed) {
 	    return;
 	}
@@ -278,6 +280,11 @@ class TaskQueueGroup {
      */
     void set_active(const std::string & key, bool on)
     {
+	if (on) {
+	    LOG_INFO("Resuming processing of queue '" + key + "'");
+	} else {
+	    LOG_INFO("Pausing processing of queue '" + key + "'");
+	}
 	ContextLocker lock(cond);
 	if (closed) {
 	    return;
