@@ -30,6 +30,7 @@
 #include "jsonxapian/collection_pool.h"
 #include "jsonxapian/pipe.h"
 #include "loadfile.h"
+#include "logger/logger.h"
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
 #include "utils/stringutils.h"
@@ -105,6 +106,7 @@ PerformSearchTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
     collection->perform_search(search, doc_type, result);
+    LOG_INFO("searched collection '" + collection->get_name() + "'");
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
@@ -114,10 +116,10 @@ GetDocumentTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
     collection->get_document(doc_type, doc_id, result);
+    LOG_INFO("GetDocument '" + doc_id + "' from '" + collection->get_name() + "'");
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
-
 
 
 void
@@ -148,6 +150,7 @@ void
 ProcessorPipeDocumentTask::perform(const string & coll_name,
 				   TaskManager * taskman)
 {
+    LOG_INFO("PipeDocument to '" + target_pipe + "' in '" + coll_name + "'");
     auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
 				      .get(coll_name));
     config->send_to_pipe(taskman, target_pipe, doc);
@@ -157,6 +160,7 @@ void
 ProcessorProcessDocumentTask::perform(const string & coll_name,
 				      TaskManager * taskman)
 {
+    LOG_INFO("ProcessDocument type '" + doc_type + "' in '" + coll_name + "'");
     auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
 				      .get(coll_name));
     string idterm;
@@ -167,6 +171,7 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
 void
 IndexerUpdateDocumentTask::perform(RestPose::Collection & collection)
 {
+    LOG_INFO("UpdateDocument idterm '" + idterm + "' in '" + collection.get_name() + "'");
     collection.raw_update_doc(doc, idterm);
 }
 
@@ -179,6 +184,7 @@ IndexerUpdateDocumentTask::clone() const
 void
 IndexerDeleteDocumentTask::perform(RestPose::Collection & collection)
 {
+    LOG_INFO("DeleteDocument idterm '" + idterm + "' in '" + collection.get_name() + "'");
     collection.raw_delete_doc(idterm);
 }
 
@@ -191,6 +197,7 @@ IndexerDeleteDocumentTask::clone() const
 void
 IndexerCommitTask::perform(RestPose::Collection & collection)
 {
+    LOG_INFO("Commit in '" + collection.get_name() + "'");
     collection.commit();
 }
 
