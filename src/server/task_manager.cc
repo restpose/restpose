@@ -25,9 +25,11 @@
 #include <config.h>
 #include "task_manager.h"
 
+#include "logger/logger.h"
+#include "safeerrno.h"
+#include "str.h"
 #include <sys/select.h>
 #include <sys/socket.h>
-#include "safeerrno.h"
 #include "utils/jsonutils.h"
 
 using namespace std;
@@ -86,10 +88,16 @@ TaskManager::queue_readonly(const std::string & queue, ReadonlyTask * task)
     {
 	ContextLocker lock(cond);
 	if (stopping) {
+	    LOG_DEBUG("TaskManager queuing readonly task on '" + queue +
+		      "' failed - queue closed");
 	    return Queue::CLOSED;
 	}
     }
-    return search_queues.push(queue, taskptr.release(), false);
+    Queue::QueueState result = search_queues.push(queue, taskptr.release(),
+						  false);
+    LOG_DEBUG("TaskManager queuing readonly task on '" + queue +
+	      "': state " + str(result));
+    return result;
 }
 
 void
@@ -110,13 +118,19 @@ TaskManager::queue_indexing_from_processing(const std::string & queue,
 		indexing_queues.push(queue, taskptr->clone(), false);
 	switch (state) {
 	    case Queue::HAS_SPACE:
+		LOG_DEBUG("TaskManager queued indexing task on '" + queue +
+			  "' from processing");
 		return;
 	    case Queue::LOW_SPACE:
+		LOG_DEBUG("TaskManager queued indexing task on '" + queue +
+			  "' from processing: low space");
 		// Disable this queue, to avoid processing items in it until
 		// the corresponding indexer queue is no longer overloaded.
 		processing_queues.set_inactive_internal(queue);
 		return;
 	    case Queue::FULL:
+		LOG_DEBUG("TaskManager waiting to queue indexing task on '" +
+			  queue + "' from processing: full.");
 		// Continue the loop
 		processing_queues.set_inactive_internal(queue);
 		processing_queues.cond.wait();
@@ -125,8 +139,9 @@ TaskManager::queue_indexing_from_processing(const std::string & queue,
 		// This shouldn't happen, because we close the processor queues
 		// and then wait for them to empty before closing the indexer
 		// queues.
-		// FIXME - log that data has been dropped.
-		fprintf(stderr, "Indexing queue closed early - dropped a task");
+		LOG_ERROR("TaskManager unable to queue indexing task on '"
+			  + queue + "' from processing: closed.  "
+			  "Dropped task.");
 		return;
 	}
     }
@@ -141,10 +156,15 @@ TaskManager::queue_indexing(const string & queue,
     {
 	ContextLocker lock(cond);
 	if (stopping) {
+	    LOG_DEBUG("TaskManager queuing indexing task failed - "
+		      "queue closed");
 	    return Queue::CLOSED;
 	}
     }
-    return indexing_queues.push(queue, taskptr.release(), allow_throttle);
+    Queue::QueueState result = indexing_queues.push(queue, taskptr.release(),
+						    allow_throttle);
+    LOG_DEBUG("TaskManager queuing indexing task: state " + str(result));
+    return result;
 }
 
 Queue::QueueState
@@ -157,11 +177,15 @@ TaskManager::queue_processing(const string & queue,
     {
 	ContextLocker lock(cond);
 	if (stopping) {
+	    LOG_DEBUG("TaskManager queuing processing task failed - "
+		      "queue closed");
 	    return Queue::CLOSED;
 	}
     }
-    return processing_queues.push(queue, taskptr.release(),
-				  allow_throttle, end_time);
+    Queue::QueueState result = processing_queues.push(queue, taskptr.release(),
+						      allow_throttle, end_time);
+    LOG_DEBUG("TaskManager queuing processing task: state " + str(result));
+    return result;
 }
 
 
@@ -234,8 +258,9 @@ TaskManager::start()
 	return;
     }
     started = true;
-    //printf("TaskManager::start()\n");
-    // Start threads for indexing and processing.
+    LOG_DEBUG("TaskManager starting");
+
+    // Start threads for indexing, processing and searching.
     // FIXME - these should be configurable
     int indexing_thread_count = 2;
     int processing_thread_count = 10;
@@ -259,6 +284,7 @@ TaskManager::start()
 void
 TaskManager::stop()
 {
+    LOG_DEBUG("TaskManager stopping");
     ContextLocker lock(cond);
     stopping = true;
     processing_queues.close();
@@ -268,15 +294,21 @@ TaskManager::stop()
 void
 TaskManager::join()
 {
+    LOG_DEBUG("TaskManager waiting for processing queue to empty");
     processing_queues.wait_for_empty();
     indexing_queues.close();
     processing_threads.stop();
+    LOG_DEBUG("TaskManager waiting for search queue to empty");
     search_queues.wait_for_empty();
     search_threads.stop();
+    LOG_DEBUG("TaskManager waiting for indexing queue to empty");
     indexing_queues.wait_for_empty();
     indexing_threads.stop();
+    LOG_DEBUG("TaskManager waiting for processing threads to finish");
     processing_threads.join();
+    LOG_DEBUG("TaskManager waiting for indexing threads to finish");
     indexing_threads.join();
+    LOG_DEBUG("TaskManager waiting for search threads to finish");
     search_threads.join();
 }
 
@@ -296,14 +328,12 @@ TaskManager::get_fdsets(fd_set * read_fd_set,
 void
 TaskManager::serve(fd_set * read_fd_set, fd_set *, fd_set *, bool timed_out)
 {
-    //printf("TaskManager::serve()\n");
     // If there's a message on the nudge descriptor, set the processing queue
     // to be active for any indexing queue which is no longer full.
     if (!timed_out && FD_ISSET(nudge_read_end, read_fd_set)) {
 	std::string nudge_content;
 	if (!io_read_append(nudge_content, nudge_read_end)) {
-	    // FIXME - log the read failure.
-	    fprintf(stderr, "TaskManager: failure to read from nudge pipe: %d\n", errno);
+	    LOG_ERROR("TaskManager: failure to read from nudge pipe: " + str(errno));
 	}
 
 	std::vector<std::string> busy_list;
