@@ -1,6 +1,11 @@
 TODO
 ====
 
+Make logging do writes asynchronously.  (Currently, a log call acquires the
+logger mutex, then does the write, blocking all other threads.  Instead, log
+messages should be added to a queue, and a logger thread should write them to
+disk, syslog, or whatever the appropriate target is.)
+
 When a field has no config, use the patterns to try and add a configuration for
 it automatically.
 
