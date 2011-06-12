@@ -371,7 +371,7 @@ dnl ***************************
 dnl * Select modules to build *
 dnl ***************************
 
-dnl Check which database backends should be built.
+dnl Check which modules should be built.
 
 AC_DEFUN([JX_MODULE_ENABLE],
   [AC_ARG_ENABLE(backend_$1,
@@ -480,6 +480,17 @@ if test yes = "$enable_quiet"; then
   QUIET=--quiet
 fi
 AC_SUBST(QUIET)
+
+AC_ARG_ENABLE(debuglog,
+  [AS_HELP_STRING([--enable-debuglog], [enable debug logging [default=no]])],
+  [case ${enableval} in
+    yes|no) ;;
+    *) AC_MSG_ERROR([bad value ${enableval} for --enable-debuglog]) ;;
+  esac])
+if test yes = "$enable_debuglog"; then
+  AC_DEFINE([RESTPOSE_ENABLE_DEBUGLOG], [1],
+	    [Define to 1 to enable debug log messages])
+fi
 
 vpath_build=no
 if test "`pwd`" != "`cd $srcdir;pwd`" ; then
