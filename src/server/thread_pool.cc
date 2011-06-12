@@ -25,6 +25,7 @@
 #include <config.h>
 #include "thread_pool.h"
 
+#include "logger/logger.h"
 #include <memory>
 #include "server/task_threads.h"
 #include "utils/jsonutils.h"
@@ -89,6 +90,9 @@ ThreadPool::thread_finished(TaskThread * thread)
 	i->second = false;
 	--running;
 	++waiting_for_join;
+	LOG_DEBUG("TaskThread finished - waiting for join");
+    } else {
+	LOG_ERROR("TaskThread finished, but couldn't find its entry in the thread pool - resource leak likely ");
     }
 }
 
