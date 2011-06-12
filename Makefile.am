@@ -26,6 +26,7 @@ include src/importer/filesystem/Makefile.mk
 include src/importer/mongo/Makefile.mk
 include src/jsonmanip/Makefile.mk
 include src/jsonxapian/Makefile.mk
+include src/logger/Makefile.mk
 include src/matchspies/Makefile.mk
 include src/ngramcat/Makefile.mk
 include src/rest/Makefile.mk

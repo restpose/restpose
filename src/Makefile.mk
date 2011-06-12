@@ -16,6 +16,7 @@ restpose_LDADD = \
  libngramcat.a \
  libcjktokenizer.a \
  libjsoncpp.a \
+ liblogger.a \
  libdbgroup.a \
  libutils.a \
  libmatchspies.a \
