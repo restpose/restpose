@@ -44,7 +44,7 @@ Logger::log(const string & message) const
 {
     ContextLocker lock(mutex);
     double now = RealTime::now();
-    string buf = str(now) + ": " + message;
+    string buf = str(now) + ": " + message + "\n";
     (void)io_write(log_fd, buf);
 }
 
