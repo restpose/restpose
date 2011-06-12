@@ -95,7 +95,7 @@ ProcessingThread::run()
 	    log_msg("Processing failed with: " + e.get_description());
 	} catch(const Xapian::Error & e) {
 	    log_msg("Processing failed with: " + e.get_description());
-	} catch(const std::bad_alloc) {
+	} catch(const std::bad_alloc &) {
 	    log_msg("Processing failed with: out of memory");
 	}
     }
@@ -165,7 +165,7 @@ IndexingThread::run()
 	    log_msg("Indexing failed with: " + e.get_description());
 	} catch(const Xapian::Error & e) {
 	    log_msg("Indexing failed with: " + e.get_description());
-	} catch(const std::bad_alloc) {
+	} catch(const std::bad_alloc &) {
 	    log_msg("Indexing failed with: out of memory");
 	}
     }
@@ -243,7 +243,7 @@ SearchThread::run()
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
 	    rotask->resulthandle.failed(result, 500);
-	} catch(const std::bad_alloc) {
+	} catch(const std::bad_alloc &) {
 	    log_msg("Readonly task failed with: out of memory");
 	    Json::Value result(Json::objectValue);
 	    result["err"] = "out of memory";
