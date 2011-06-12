@@ -359,11 +359,11 @@ class TaskQueueGroup {
 	    if ((allow_throttle && (queue.queue.size() >= throttle_size)) ||
 		(!allow_throttle && (queue.queue.size() >= max_size))) {
 		if (end_time == 0.0) {
-		    // printf("FULL %s\n", key.c_str());
+		    LOG_INFO("Queue '" + key + "' is full, on push");
 		    return Queue::FULL;
 		} else {
 		    if (cond.timedwait(end_time)) {
-			// printf("FULL + TIMEOUT %s\n", key.c_str());
+			LOG_INFO("Queue '" + key + "' is full, and timeout expired, on push");
 			return Queue::FULL;
 		    }
 		    continue;
