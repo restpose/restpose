@@ -90,13 +90,13 @@ ProcessingThread::run()
 	    colltask->perform(coll_name, taskman);
 
 	} catch(const RestPose::Error & e) {
-	    log_msg(e.what());
+	    log_msg("Processing failed with: " + string(e.what()));
 	} catch(const Xapian::DatabaseOpeningError & e) {
-	    log_msg(e.get_description());
+	    log_msg("Processing failed with: " + e.get_description());
 	} catch(const Xapian::Error & e) {
-	    log_msg(e.get_description());
+	    log_msg("Processing failed with: " + e.get_description());
 	} catch(const std::bad_alloc) {
-	    log_msg("out of memory");
+	    log_msg("Processing failed with: out of memory");
 	}
     }
 }
@@ -160,13 +160,13 @@ IndexingThread::run()
 	    queuegroup.unassign_handler(coll_name);
 
 	} catch(const RestPose::Error & e) {
-	    log_msg(e.what());
+	    log_msg("Indexing failed with: " + string(e.what()));
 	} catch(const Xapian::DatabaseOpeningError & e) {
-	    log_msg(e.get_description());
+	    log_msg("Indexing failed with: " + e.get_description());
 	} catch(const Xapian::Error & e) {
-	    log_msg(e.get_description());
+	    log_msg("Indexing failed with: " + e.get_description());
 	} catch(const std::bad_alloc) {
-	    log_msg("out of memory");
+	    log_msg("Indexing failed with: out of memory");
 	}
     }
 }
@@ -229,22 +229,22 @@ SearchThread::run()
 
 	    rotask->perform(collection);
 	} catch(const RestPose::Error & e) {
-	    log_msg(e.what());
+	    log_msg("Readonly task failed with: " + string(e.what()));
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.what();
 	    rotask->resulthandle.failed(result, 500);
 	} catch(const Xapian::DatabaseOpeningError & e) {
-	    log_msg(e.get_description());
+	    log_msg("Readonly task failed with: " + e.get_description());
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
 	    rotask->resulthandle.failed(result, 404);
 	} catch(const Xapian::Error & e) {
-	    log_msg(e.get_description());
+	    log_msg("Readonly task failed with: " + e.get_description());
 	    Json::Value result(Json::objectValue);
 	    result["err"] = e.get_description();
 	    rotask->resulthandle.failed(result, 500);
 	} catch(const std::bad_alloc) {
-	    log_msg("out of memory");
+	    log_msg("Readonly task failed with: out of memory");
 	    Json::Value result(Json::objectValue);
 	    result["err"] = "out of memory";
 	    rotask->resulthandle.failed(result, 503);
