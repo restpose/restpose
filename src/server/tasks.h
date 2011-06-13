@@ -138,13 +138,17 @@ class ProcessorProcessDocumentTask : public ProcessingTask {
     /// The type of the document to process.
     std::string doc_type;
 
+    /// The ID of the document to process.
+    std::string doc_id;
+
     /// The serialised document to process.
     Json::Value doc;
 
   public:
     ProcessorProcessDocumentTask(const std::string & doc_type_,
+				 const std::string & doc_id_,
 				 const Json::Value & doc_)
-	    : doc_type(doc_type_), doc(doc_)
+	    : doc_type(doc_type_), doc_id(doc_id_), doc(doc_)
     {}
 
     /// Perform the processing task, given a collection (open for reading).

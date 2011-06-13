@@ -179,11 +179,6 @@ class TaskManager : public SubServer {
 					  bool allow_throttle,
 					  double end_time);
 
-    Queue::QueueState queue_process_document(const std::string & collection,
-					     const std::string & type,
-					     const Json::Value & doc,
-					     bool allow_throttle);
-
     /** Queue a document to be indexed.
      *
      * @param collection The name of the collection to index to.

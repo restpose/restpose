@@ -164,7 +164,7 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
 				      .get(coll_name));
     string idterm;
-    Xapian::Document xdoc = config->process_doc(doc, doc_type, idterm);
+    Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm);
     taskman->queue_index_processed_doc(coll_name, xdoc, idterm);
 }
 

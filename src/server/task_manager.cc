@@ -212,16 +212,6 @@ TaskManager::queue_pipe_document(const string & collection,
 }
 
 Queue::QueueState
-TaskManager::queue_process_document(const string & collection,
-				    const std::string & type,
-				    const Json::Value & doc,
-				    bool allow_throttle)
-{
-    return queue_processing(collection,
-	new ProcessorProcessDocumentTask(type, doc), allow_throttle);
-}
-
-Queue::QueueState
 TaskManager::queue_index_document(const string & collection,
 				  Xapian::Document doc,
 				  const string & idterm,

@@ -105,7 +105,7 @@ IndexDocumentHandler::enqueue(const Json::Value & body) const
 {
     // FIXME - the doc_id is ignored, and the doc_type field should be set automatically
     return taskman->queue_processing(coll_name,
-	new ProcessorProcessDocumentTask(doc_type, body),
+	new ProcessorProcessDocumentTask(doc_type, doc_id, body),
 	false);
 }
 

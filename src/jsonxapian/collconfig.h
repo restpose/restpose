@@ -211,12 +211,13 @@ class CollectionConfig {
      */
     void send_to_pipe(TaskManager * taskman,
 		      const std::string & pipe_name,
-		      const Json::Value & obj);
+		      Json::Value & obj);
 
     /** Process a JSON document into a Xapian document.
      */
-    Xapian::Document process_doc(const Json::Value & doc_obj,
+    Xapian::Document process_doc(Json::Value & doc_obj,
 				 const std::string & doc_type,
+				 const std::string & doc_id,
 				 std::string & idterm);
 };
 

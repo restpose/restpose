@@ -56,24 +56,7 @@ ExactStringIndexer::index(Xapian::Document & doc,
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
-	std::string val;
-	if ((*i).isString()) {
-	    val = (*i).asString();
-	} else {
-	    if (!(*i).isConvertibleTo(Json::uintValue)) {
-		throw InvalidValueError("Expected value in field to be an integer or a string");
-	    }
-	    if ((*i) < Json::Value::Int64(0)) {
-		throw InvalidValueError("JSON value for field was negative - wanted unsigned int");
-	    }
-	    if ((*i) > Json::Value::maxUInt64) {
-		throw InvalidValueError("JSON value " + (*i).toStyledString() +
-					" was larger than maximum allowed (" +
-					Json::valueToString(Json::Value::maxUInt64) +
-					")");
-	    }
-	    val = Json::valueToString((*i).asUInt64());
-	}
+	std::string val = json_get_idstyle_value(*i);
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:

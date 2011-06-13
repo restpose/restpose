@@ -391,7 +391,7 @@ CollectionConfig::categorise(const string & categoriser_name,
 void
 CollectionConfig::send_to_pipe(TaskManager * taskman,
 			       const string & pipe_name,
-			       const Json::Value & obj)
+			       Json::Value & obj)
 {
     //printf("pipe %s: %s\n", pipe_name.c_str(), json_serialise(obj).c_str());
     // FIXME - this method just uses a recursive implementation, and doesn't
@@ -405,7 +405,7 @@ CollectionConfig::send_to_pipe(TaskManager * taskman,
 	string idterm;
 	// FIXME - remove hardcoded "default" here - pipes should have a way to
 	// say what type the output document is.
-	Xapian::Document xdoc = process_doc(obj, "default", idterm);
+	Xapian::Document xdoc = process_doc(obj, "default", "", idterm);
 	taskman->queue_index_processed_doc(get_name(), xdoc, idterm);
 	return;
     }
@@ -426,15 +426,90 @@ CollectionConfig::send_to_pipe(TaskManager * taskman,
 }
 
 Xapian::Document
-CollectionConfig::process_doc(const Json::Value & doc_obj,
+CollectionConfig::process_doc(Json::Value & doc_obj,
 			      const string & doc_type,
+			      const string & doc_id,
 			      string & idterm)
 {
-    const Schema * schema = get_schema(doc_type);
+    json_check_object(doc_obj, "input document");
+
+    const Json::Value & type_obj = doc_obj[type_field];
+    string doc_type_(doc_type);
+    if (doc_type.empty()) {
+	// No document type supplied in URL - look for it in the document.
+	if (type_obj.isNull()) {
+	    throw InvalidValueError(
+		"No document type supplied or stored in document.");
+	}
+	if (type_obj.isArray()) {
+	    if (type_obj.size() == 1) {
+		doc_type_ = json_get_idstyle_value(type_obj[0]);
+	    } else if (type_obj.size() == 0) {
+		throw InvalidValueError(
+		    "No document type stored in document.");
+	    } else {
+		throw InvalidValueError(
+		    "Multiple document types stored in document.");
+	    }
+	} else {
+	    doc_type_ = json_get_idstyle_value(type_obj);
+	}
+    } else {
+	// Document type supplied in URL - check that it isn't different in
+	// document.
+	if (!type_obj.isNull()) {
+	    string stored_type;
+	    if (type_obj.isArray()) {
+		if (type_obj.size() == 1) {
+		    stored_type = json_get_idstyle_value(type_obj[0]);
+		} else if (type_obj.size() > 1) {
+		    throw InvalidValueError(
+			"Multiple document types stored in document.");
+		}
+	    } else {
+		stored_type = json_get_idstyle_value(type_obj);
+	    }
+	    if (!stored_type.empty() && doc_type != stored_type) {
+	    	throw InvalidValueError("Document type supplied differs from "
+					"that inside document.");
+	    }
+	}
+    }
+
+    if (doc_id.empty()) {
+	// No document id supplied in URL - assume it's in the document,
+	// or deliberately absent.
+    } else {
+	// Document id supplied in URL - check that it isn't different in
+	// document, and set it in the document.
+	Json::Value & id_obj = doc_obj[id_field];
+	if (id_obj.isNull()) {
+	    id_obj = Json::arrayValue;
+	    id_obj[0] = doc_id;
+	} else {
+	    string stored_id;
+	    if (id_obj.isArray()) {
+		if (id_obj.size() == 1) {
+		    stored_id = json_get_idstyle_value(id_obj[0]);
+		} else if (id_obj.size() > 1) {
+		    throw InvalidValueError(
+			"Multiple document ids stored in document.");
+		}
+	    } else {
+		stored_id = json_get_idstyle_value(id_obj);
+	    }
+	    if (!stored_id.empty() && doc_id != stored_id) {
+	    	throw InvalidValueError("Document id supplied differs from "
+					"that inside document.");
+	    }
+	}
+    }
+
+    const Schema * schema = get_schema(doc_type_);
     if (schema == NULL) {
-	Schema newschema(doc_type);
+	Schema newschema(doc_type_);
 	newschema.from_json(default_type_config);
-	schema = set_schema(doc_type, newschema);
+	schema = set_schema(doc_type_, newschema);
     }
     return schema->process(doc_obj, idterm);
 }
@@ -596,26 +671,27 @@ Collection::categorise(const string & categoriser_name,
 void
 Collection::send_to_pipe(TaskManager * taskman,
 			 const string & pipe_name,
-			 const Json::Value & obj)
+			 Json::Value & obj)
 {
     config.send_to_pipe(taskman, pipe_name, obj);
 }
 
 void
-Collection::add_doc(const Json::Value & doc_obj,
+Collection::add_doc(Json::Value & doc_obj,
 		    const string & doc_type)
 {
     string idterm;
-    Xapian::Document doc(config.process_doc(doc_obj, doc_type, idterm));
+    Xapian::Document doc(config.process_doc(doc_obj, doc_type, "FIXME", idterm));
     raw_update_doc(doc, idterm);
 }
 
 Xapian::Document
-Collection::process_doc(const Json::Value & doc_obj,
+Collection::process_doc(Json::Value & doc_obj,
 			const string & doc_type,
+			const string & doc_id,
 			string & idterm)
 {
-    return config.process_doc(doc_obj, doc_type, idterm);
+    return config.process_doc(doc_obj, doc_type, doc_id, idterm);
 }
 
 void
