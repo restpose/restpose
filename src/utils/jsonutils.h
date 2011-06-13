@@ -114,6 +114,17 @@ namespace RestPose {
 		       const char * key,
 		       bool def);
 
+    /** Get a value which represents an ID from a JSON object.
+     *
+     *  If the value is a string, returns it directly.
+     *  If the value is an integer in the range 0 to 2**64-1, returns it as a
+     *  decimal.
+     *  Otherwise, raises an InvalidValueError exception.
+     *
+     *  @param value The JSON object to get the id from.
+     */
+    std::string json_get_idstyle_value(const Json::Value & value);
+
     /** Serialise a JSON value as a string, in standard JSON format.
      */
     std::string json_serialise(const Json::Value & value);
