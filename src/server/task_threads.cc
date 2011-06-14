@@ -212,14 +212,15 @@ SearchThread::run()
 		}
 	    } else {
 		if (collection == NULL) {
-		    collection = pool.get_readonly(coll_name);
-		} else if (collection->get_name() != coll_name) {
+		    collection = pool.get_readonly(*coll_name_ptr);
+		    coll_name = *coll_name_ptr;
+		} else if (collection->get_name() != *coll_name_ptr) {
 		    Collection * tmp = collection;
 		    collection = NULL;
 		    pool.release(tmp);
-		    collection = pool.get_readonly(coll_name);
+		    collection = pool.get_readonly(*coll_name_ptr);
+		    coll_name = *coll_name_ptr;
 		}
-		coll_name = *coll_name_ptr;
 	    }
 
 	    rotask->perform(collection);
