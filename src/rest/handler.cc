@@ -26,6 +26,7 @@
 #include "rest/handler.h"
 
 #include "httpserver/httpserver.h"
+#include "logger/logger.h"
 #include <microhttpd.h>
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
@@ -89,7 +90,16 @@ QueuedHandler::handle(ConnectionInfo & conn)
 	Json::Value body(Json::nullValue);
 	if (uploaded_data.size() != 0) {
 	    // FIXME - handle failure to parse data
-	    json_unserialise(uploaded_data, body);
+	    try {
+		json_unserialise(uploaded_data, body);
+	    } catch(InvalidValueError & e) {
+		LOG_ERROR(string("Invalid JSON supplied in request body: ") + e.what());
+		Json::Value result(Json::objectValue);
+		result["err"] = e.what();
+		resulthandle.failed(result, 400);
+		conn.respond(resulthandle);
+		return;
+	    }
 	}
 	Queue::QueueState state = enqueue(body);
 	if (handle_queue_push_fail(state, conn)) {
