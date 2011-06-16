@@ -28,6 +28,7 @@
 #include <xapian.h>
 #include "jsonxapian/doctojson.h"
 #include "jsonxapian/pipe.h"
+#include "logger/logger.h"
 #include "str.h"
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
@@ -719,6 +720,7 @@ Collection::commit()
     if (!group.is_writable()) {
 	throw InvalidStateError("Collection must be open for writing to commit");
     }
+    LOG_INFO("Committing changes to collection \"" + config.get_name() + "\"");
     group.sync();
 }
 
