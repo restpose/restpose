@@ -156,6 +156,18 @@ class ProcessorProcessDocumentTask : public ProcessingTask {
 		 TaskManager * taskman);
 };
 
+class IndexerConfigChangedTask : public IndexingTask {
+    Json::Value new_config;
+  public:
+    IndexerConfigChangedTask(const Json::Value & new_config_)
+	    : new_config(new_config_)
+    {}
+
+    void perform(RestPose::Collection & collection);
+
+    IndexingTask * clone() const;
+};
+
 /// Add or update a document.
 class IndexerUpdateDocumentTask : public IndexingTask {
     /// The unique ID term for the document.

@@ -164,8 +164,33 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
 				      .get(coll_name));
     string idterm;
+    config->clear_changed();
     Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm);
     taskman->queue_index_processed_doc(coll_name, xdoc, idterm);
+    if (config->is_changed()) {
+	// FIXME - could just push new config for the schema for the doc_type in question, to save work.
+	Json::Value tmp;
+	config->to_json(tmp);
+	taskman->queue_indexing_from_processing(coll_name,
+						new IndexerConfigChangedTask(tmp));
+	config->clear_changed();
+
+	// Push the new config back to the cache.
+	taskman->get_collconfigs().set(coll_name, config.release());
+    }
+}
+
+void
+IndexerConfigChangedTask::perform(RestPose::Collection & collection)
+{
+    LOG_INFO("Updating configuration for collection " + collection.get_name());
+    collection.from_json(new_config);
+}
+
+IndexingTask *
+IndexerConfigChangedTask::clone() const
+{
+    return new IndexerConfigChangedTask(new_config);
 }
 
 void
