@@ -105,13 +105,20 @@ class CollectionConfig {
      */
     void categorisers_config_from_json(const Json::Value & value);
 
-
   public:
     CollectionConfig(const std::string & coll_name_);
     ~CollectionConfig();
 
     const std::string & get_name() const {
 	return coll_name;
+    }
+
+    bool is_changed() const {
+	return changed;
+    }
+
+    void clear_changed() {
+	changed = false;
     }
 
     /** Set the default configuration.
