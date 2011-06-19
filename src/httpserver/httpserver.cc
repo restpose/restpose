@@ -121,7 +121,7 @@ Response::get_status_code() const
 }
 
 ConnectionInfo::ConnectionInfo(struct MHD_Connection *connection_,
-			       const char * method_str,
+			       const char * method_,
 			       const char * url_,
 			       const char * version_)
 	: connection(connection_),
@@ -135,11 +135,11 @@ ConnectionInfo::ConnectionInfo(struct MHD_Connection *connection_,
 {
     // Assume that the methods are usually one of HEAD, GET, DELETE, POST,
     // PUT and don't waste time checking more than we need to.
-    switch (method_str[0]) {
+    switch (method_[0]) {
 	case 'H': method = HTTP_HEAD; break;
 	case 'G': method = HTTP_GET; break;
 	case 'D': method = HTTP_DELETE; break;
-	case 'P': switch(method_str[1]) {
+	case 'P': switch(method_[1]) {
 	    case 'O': method = HTTP_POST; break;
 	    case 'U': method = HTTP_PUT; break;
 	}; break;
@@ -228,6 +228,19 @@ ConnectionInfo::require_method(int allowed_methods)
 
     respond();
     return false;
+}
+
+const char *
+ConnectionInfo::method_str() const
+{
+    switch (method) {
+	case HTTP_HEAD: return "HEAD";
+	case HTTP_GET: return "GET";
+	case HTTP_POST: return "POST";
+	case HTTP_PUT: return "PUT";
+	case HTTP_DELETE: return "DELETE";
+	default: return "UNKNOWN";
+    }
 }
 
 static int

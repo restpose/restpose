@@ -84,7 +84,7 @@ class ConnectionInfo {
     Handler * handler;
 
     ConnectionInfo(struct MHD_Connection * connection_,
-		   const char * method_str,
+		   const char * method_,
 		   const char * url_,
 		   const char * version_);
 
@@ -112,6 +112,10 @@ class ConnectionInfo {
      *  @param allowed_methods A bitmap of HTTP methods which are allowed.
      */
     bool require_method(int allowed_methods);
+
+    /** Get a string name of the HTTP method used.
+     */
+    const char * method_str() const;
 };
 
 /** The HTTP server.
