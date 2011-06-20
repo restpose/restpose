@@ -27,9 +27,14 @@
 #include "indexing.h"
 
 #include <cjk-tokenizer.h>
+#include <cmath>
+#include <cstdlib>
 #include <json/writer.h>
-#include <string>
+#include <logger/logger.h>
 #include <map>
+#include "str.h"
+#include <string>
+#include <xapian.h>
 
 #include "docdata.h"
 #include "hashterm.h"
@@ -102,14 +107,14 @@ StoredIndexer::index(Xapian::Document &,
     docdata.set(store_field, val);
 }
 
-DateIndexer::~DateIndexer()
+TimeStampIndexer::~TimeStampIndexer()
 {}
 
 void
-DateIndexer::index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & values,
-		   std::string &) const
+TimeStampIndexer::index(Xapian::Document & doc,
+			DocumentData & docdata,
+			const Json::Value & values,
+			std::string &) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
@@ -123,6 +128,67 @@ DateIndexer::index(Xapian::Document & doc,
 	docdata.set(store_field, storeval);
     }
 }
+
+
+DateIndexer::~DateIndexer()
+{}
+
+void
+DateIndexer::index(Xapian::Document & doc,
+		   DocumentData & docdata,
+		   const Json::Value & values,
+		   std::string &) const
+{
+    for (Json::Value::const_iterator i = values.begin();
+	 i != values.end(); ++i) {
+	doc.add_value(slot, parse_date(*i));
+    }
+
+    if (!store_field.empty()) {
+	Json::FastWriter writer;
+	std::string storeval = writer.write(values);
+	docdata.set(store_field, storeval);
+    }
+}
+
+std::string
+DateIndexer::parse_date(const Json::Value & value)
+{
+    if (!value.isString()) {
+	throw InvalidValueError("DateIndexer requires indexer");
+    }
+    std::string value_str(value.asString());
+
+    // FIXME - extremely lax parsing now follows.  Should report parse
+    // errors.  Parses only the format year-month-day
+
+    char * endptr = NULL;
+    double year = strtod(value_str.c_str(), &endptr);
+
+    LOG_INFO("Year: " + str(year));
+    if (*endptr == '-') {
+	++endptr;
+    }
+    int month = floor(strtod(endptr, &endptr));
+    LOG_INFO("Month: " + str(month));
+    if (month <= 0 || month > 12) {
+	throw InvalidValueError("Unable to parse date value; got month out of range");
+    }
+
+    if (*endptr == '-') {
+	++endptr;
+    }
+    int day = floor(strtod(endptr, &endptr));
+    LOG_INFO("Day: " + str(day));
+    if (day <= 0 || day > 31) {
+	throw InvalidValueError("Unable to parse date value; got day out of range");
+    }
+
+    return Xapian::sortable_serialise(year) +
+	    std::string(1, ' ' + month) +
+	    std::string(1, ' ' + day);
+}
+
 
 TermGeneratorIndexer::~TermGeneratorIndexer()
 {}

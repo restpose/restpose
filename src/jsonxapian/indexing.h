@@ -109,7 +109,35 @@ namespace RestPose {
 		   std::string & idterm) const;
     };
 
+
     /** A field indexer which expects a number representing seconds since 1970.
+     */
+    class TimeStampIndexer : public FieldIndexer {
+	unsigned int slot;
+	std::string store_field;
+      public:
+	TimeStampIndexer(unsigned int slot_,
+			 const std::string & store_field_)
+		: slot(slot_), store_field(store_field_)
+	{}
+
+	virtual ~TimeStampIndexer();
+
+	void index(Xapian::Document & doc,
+		   DocumentData & docdata,
+		   const Json::Value & value,
+		   std::string & idterm) const;
+    };
+
+
+    /** A field indexer which expects a date.
+     *
+     *  The date must be a string in the format YYYY-MM-DD.
+     *
+     *  The year part may be less than (or more than) 4 digits, and may be
+     *  prefixed with a hyphen to indicate a negative year.  The calendar used
+     *  is undefined, but would usually be an extrapolated Gregorian calendar
+     *  in which the year 0 does exist.
      */
     class DateIndexer : public FieldIndexer {
 	unsigned int slot;
@@ -126,7 +154,12 @@ namespace RestPose {
 		   DocumentData & docdata,
 		   const Json::Value & value,
 		   std::string & idterm) const;
+
+	/** Parse a date into the form in which it is stored in the slot.
+	 */
+	static std::string parse_date(const Json::Value & value);
     };
+
 
     /** A field indexer which expects an array of strings as input, and
      *  indexes them using the Xapian TermGenerator.

@@ -53,7 +53,7 @@ FieldConfig::from_json(const Json::Value & value,
     if (type.size() > 0) {
 	switch(type[0]) {
 	    case 'd':
-//		if (type == "date") return new DateFieldConfig(value);
+		if (type == "date") return new DateFieldConfig(value);
 		break;
 	    case 'e':
 		if (type == "exact") return new ExactFieldConfig(value);
@@ -487,7 +487,7 @@ TimestampFieldConfig::~TimestampFieldConfig()
 FieldIndexer *
 TimestampFieldConfig::indexer() const
 {
-    return new DateIndexer(slot, store_field);
+    return new TimeStampIndexer(slot, store_field);
 }
 
 Xapian::Query
@@ -514,6 +514,49 @@ TimestampFieldConfig::to_json(Json::Value & value) const
     value["slot"] = slot;
     value["store_field"] = store_field;
 }
+
+
+DateFieldConfig::DateFieldConfig(const Json::Value & value)
+{
+    json_check_object(value, "schema object");
+    slot = json_get_uint64_member(value, "slot", Xapian::BAD_VALUENO);
+    store_field = json_get_string_member(value, "store_field", string());
+}
+
+DateFieldConfig::~DateFieldConfig()
+{}
+
+FieldIndexer *
+DateFieldConfig::indexer() const
+{
+    return new DateIndexer(slot, store_field);
+}
+
+Xapian::Query
+DateFieldConfig::query(const string & qtype,
+		       const Json::Value & value) const
+{
+    if (qtype != "range") {
+	throw InvalidValueError("Invalid query type \"" + qtype +
+				"\" for date field");
+    }
+    json_check_array(value, "filter value");
+    if (value.size() != 2) {
+	throw InvalidValueError("Date field range must have exactly two points");
+    }
+    string start = DateIndexer::parse_date(value[Json::UInt(0u)]);
+    string end = DateIndexer::parse_date(value[1u]);
+    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot, start, end);
+}
+
+void
+DateFieldConfig::to_json(Json::Value & value) const
+{
+    value["type"] = "date";
+    value["slot"] = slot;
+    value["store_field"] = store_field;
+}
+
 
 StoredFieldConfig::StoredFieldConfig(const Json::Value & value)
 {

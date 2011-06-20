@@ -291,6 +291,32 @@ TEST(TimestampFields)
     }
 }
 
+TEST(DateFields)
+{
+    Json::Value tmp, tmp2;
+    Schema s2("");
+    s2.set("date", new DateFieldConfig(0, "date"));
+    CHECK_EQUAL("{\"fields\":{\"date\":{\"slot\":0,\"store_field\":\"date\",\"type\":\"date\"}},\"patterns\":[]}",
+		json_serialise(s2.to_json(tmp2)));
+
+    Schema s("");
+    s.from_json(s2.to_json(tmp));
+    tmp = tmp2 = Json::nullValue;
+    CHECK_EQUAL(json_serialise(s.to_json(tmp)),
+		json_serialise(s2.to_json(tmp2)));
+
+    {
+	Json::Value v(Json::objectValue);
+	v["date"] = "2010-06-08";
+	std::string idterm;
+	Xapian::Document doc = s.process(v, idterm);
+	CHECK_EQUAL(idterm, "");
+	CHECK_EQUAL("{\"data\":{\"date\":[\"2010-06-08\"]},\"values\":{\"0\":\"\317\332&(\"}}",
+		    json_serialise(doc_to_json(doc, tmp)));
+	CHECK_EQUAL("{\"date\":[\"2010-06-08\"]}", s.display_doc_as_string(doc));
+    }
+}
+
 TEST(StoreFields)
 {
     Json::Value tmp, tmp2;

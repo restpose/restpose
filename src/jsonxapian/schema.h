@@ -209,7 +209,7 @@ namespace RestPose {
     };
 
     struct TimestampFieldConfig : public FieldConfig {
-	/// The prefix to use for the field.
+	/// The slot to use for the field.
 	unsigned int slot;
 
 	/// The fieldname to store field values under (empty to not store).
@@ -226,6 +226,36 @@ namespace RestPose {
 	{}
 
 	virtual ~TimestampFieldConfig();
+
+	/// Create an indexer for the field.
+	FieldIndexer * indexer() const;
+
+	/// Create a query to search this field.
+	Xapian::Query query(const std::string & qtype,
+			    const Json::Value & value) const;
+
+	/// Add the configuration for a field to a JSON object.
+	void to_json(Json::Value & value) const;
+    };
+
+    struct DateFieldConfig : public FieldConfig {
+	/// The slot to use for the field.
+	unsigned int slot;
+
+	/// The fieldname to store field values under (empty to not store).
+	std::string store_field;
+
+	/// Create from a JSON object.
+	DateFieldConfig(const Json::Value & value);
+
+	/// Create from parameters.
+	DateFieldConfig(unsigned int slot_,
+			const std::string & store_field_)
+		: slot(slot_),
+		  store_field(store_field_)
+	{}
+
+	virtual ~DateFieldConfig();
 
 	/// Create an indexer for the field.
 	FieldIndexer * indexer() const;
