@@ -42,9 +42,13 @@ BaseTermOccurMatchSpy::BaseTermOccurMatchSpy(const string & prefix_,
 	  terms_seen(0),
 	  result_limit(result_limit_),
 	  prefix(prefix_),
+	  orig_prefix(prefix_),
 	  get_termfreqs(get_termfreqs_),
 	  db(db_)
 {
+    if (!prefix.empty()) {
+	prefix += "\t";
+    }
 }
 
 void
@@ -98,7 +102,7 @@ TermOccurMatchSpy::get_result(Json::Value & result) const
 {
     result = Json::objectValue;
     result["type"] = "occur";
-    result["prefix"] = prefix;
+    result["prefix"] = orig_prefix;
     result["docs_seen"] = docs_seen;
     result["terms_seen"] = terms_seen;
     Json::Value & rcounts = result["counts"] = Json::arrayValue;
@@ -211,7 +215,7 @@ TermCoOccurMatchSpy::get_result(Json::Value & result) const
 {
     result = Json::objectValue;
     result["type"] = "cooccur";
-    result["prefix"] = prefix;
+    result["prefix"] = orig_prefix;
     result["docs_seen"] = docs_seen;
     result["terms_seen"] = terms_seen;
     Json::Value & rcounts = result["counts"] = Json::arrayValue;

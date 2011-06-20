@@ -55,6 +55,10 @@ class BaseTermOccurMatchSpy : public Xapian::MatchSpy {
      */
     std::string prefix;
 
+    /** Original prefix (prefix without a possible trailing tab).
+     */
+    std::string orig_prefix;
+
     /** Term suffixes to ignore.
      */
     std::set<std::string> stopwords;
