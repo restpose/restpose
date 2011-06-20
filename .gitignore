@@ -31,7 +31,7 @@ m4/lt~obsolete.m4
 Makefile
 Makefile.in
 missing
-restpose
+/restpose
 unittest
 .dirstamp
 libs/jsoncpp/test/data/test_*.actual
