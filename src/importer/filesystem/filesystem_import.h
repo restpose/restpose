@@ -32,12 +32,12 @@
 namespace RestPose {
 
 void
-index_file(const Schema & schema,
+index_file(Schema & schema,
 	   Xapian::WritableDatabase & db,
 	   const std::string & path);
 
 void
-index_dir(const Schema & schema,
+index_dir(Schema & schema,
 	  Xapian::WritableDatabase & db,
 	  const std::string & topdir);
 

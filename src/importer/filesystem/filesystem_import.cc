@@ -77,7 +77,7 @@ jxdb_create_or_open(const std::string & database_path,
 }
 
 void
-RestPose::index_file(const Schema & schema,
+RestPose::index_file(Schema & schema,
 		     Xapian::WritableDatabase & db,
 		     const std::string & path)
 {
@@ -113,7 +113,7 @@ RestPose::index_file(const Schema & schema,
 }
 
 void
-RestPose::index_dir(const Schema & schema,
+RestPose::index_dir(Schema & schema,
 		    Xapian::WritableDatabase & db,
 		    const std::string & topdir)
 {
