@@ -281,6 +281,7 @@ namespace RestPose {
     /** An individual pattern to apply.
      */
     class FieldConfigPattern {
+	bool leading_wildcard;
 	std::string ending;
 	Json::Value config;
       public:
@@ -300,7 +301,8 @@ namespace RestPose {
 	 *  If the pattern matches, make and return a new FieldConfig using it.
 	 *  Otherwise, return NULL.
 	 */
-	FieldConfig * test(const std::string & fieldname) const;
+	FieldConfig * test(const std::string & fieldname,
+			   const std::string & doc_type) const;
     };
 
     /** An ordered list of patterns to apply to configure unknown fields.
@@ -336,7 +338,8 @@ namespace RestPose {
 	 *  If a pattern matches, this will return a new FieldConfig using it.
 	 *  If no patterns match, this will return NULL.
 	 */
-	FieldConfig * get(const std::string & fieldname) const;
+	FieldConfig * get(const std::string & fieldname,
+			  const std::string & doc_type) const;
     };
 
     /** A schema, containing the configuration for a set of fields.
@@ -416,10 +419,14 @@ namespace RestPose {
 
         /** Process a JSON object into a Xapian document.
 	 *
+	 *  If previously unknown fields are found in the document, the
+	 *  patterns will be used to look for appropriate configuration for
+	 *  those fields, which will then be added to the schema.
+	 *
 	 *  @param doc The document to store terms and values in.
 	 */
 	Xapian::Document process(const Json::Value & value,
-				 std::string & idterm) const;
+				 std::string & idterm);
 
 	/** Perform a search.
 	 */

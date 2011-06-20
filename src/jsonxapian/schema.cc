@@ -23,24 +23,23 @@
  */
 
 #include <config.h>
-
 #include "schema.h"
 
 #include <cjk-tokenizer.h> // FIXME - this should be moved to a separate file
-#include "json/reader.h"
-#include "json/value.h"
-#include "json/writer.h"
-#include <memory>
-#include <string>
-#include <xapian.h>
-
 #include "docdata.h"
 #include "indexing.h"
 #include "infohandlers.h"
+#include "json/reader.h"
+#include "json/value.h"
+#include "json/writer.h"
+#include "logger/logger.h"
+#include <memory>
+#include <string>
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 #include "utils/stringutils.h"
 #include "utils/utils.h"
+#include <xapian.h>
 
 using namespace RestPose;
 using namespace std;
@@ -571,6 +570,7 @@ IgnoredFieldConfig::to_json(Json::Value & value) const
 }
 
 FieldConfigPattern::FieldConfigPattern()
+	: leading_wildcard(false)
 {}
 
 void
@@ -586,14 +586,17 @@ FieldConfigPattern::from_json(const Json::Value & value)
     json_check_object(config_obj, "config in schema pattern");
 
     string pattern(pattern_obj.asString());
-    if (!string_startswith(pattern, "*")) {
-	throw InvalidValueError("fields in schema patterns must start with a *");
+    if (string_startswith(pattern, "*")) {
+	leading_wildcard = true;
+	pattern = pattern.substr(1);
+    } else {
+	leading_wildcard = false;
     }
-    if (pattern.find("*", 1) != pattern.npos) {
+    if (pattern.find("*") != pattern.npos) {
 	throw InvalidValueError("fields in schema patterns must not contain a * other than at the start");
     }
 
-    ending = pattern.substr(1);
+    ending = pattern;
     config = config_obj;
 }
 
@@ -601,32 +604,44 @@ Json::Value &
 FieldConfigPattern::to_json(Json::Value & value) const
 {
     value = Json::arrayValue;
-    value.append("*" + ending);
+    if (leading_wildcard) {
+	value.append("*" + ending);
+    } else {
+	value.append(ending);
+    }
     value.append(config);
     return value;
 }
 
 FieldConfig *
-FieldConfigPattern::test(const string & fieldname) const
+FieldConfigPattern::test(const string & fieldname,
+			 const string & doc_type) const
 {
-    if (string_endswith(fieldname, ending)) {
-	string prefix(fieldname.substr(0, fieldname.size() - ending.size()));
-	Json::Value newconfig;
-	for (Json::Value::iterator i = config.begin(); i != config.end(); ++i) {
-	    Json::Value & item = newconfig[i.memberName()] = *i;
-	    if (item.isString()) {
-		// Substitute any * characters in the config with the prefix.
-		string itemstr(item.asString());
-		size_t starpos(itemstr.find("*"));
-		if (starpos != itemstr.npos) {
-		    if (starpos + 1 < itemstr.size()) {
-			item = itemstr.substr(0, starpos) + prefix +
-				itemstr.substr(starpos + 1);
-		    } else {
-			item = itemstr.substr(0, starpos) + prefix;
+    if (leading_wildcard) {
+	if (string_endswith(fieldname, ending)) {
+	    string prefix(fieldname.substr(0, fieldname.size() - ending.size()));
+	    Json::Value newconfig;
+	    for (Json::Value::iterator i = config.begin(); i != config.end(); ++i) {
+		Json::Value & item = newconfig[i.memberName()] = *i;
+		if (item.isString()) {
+		    // Substitute any * characters in the config with the prefix.
+		    string itemstr(item.asString());
+		    size_t starpos(itemstr.find("*"));
+		    if (starpos != itemstr.npos) {
+			if (starpos + 1 < itemstr.size()) {
+			    item = itemstr.substr(0, starpos) + prefix +
+				    itemstr.substr(starpos + 1);
+			} else {
+			    item = itemstr.substr(0, starpos) + prefix;
+			}
 		    }
 		}
 	    }
+	    return FieldConfig::from_json(newconfig, doc_type);
+	}
+    } else {
+	if (fieldname == ending) {
+	    return FieldConfig::from_json(config, doc_type);
 	}
     }
     return NULL;
@@ -670,11 +685,12 @@ FieldConfigPatterns::merge_from(const FieldConfigPatterns & other)
 }
 
 FieldConfig *
-FieldConfigPatterns::get(const string & fieldname) const
+FieldConfigPatterns::get(const string & fieldname,
+			 const string & doc_type) const
 {
     for (vector<FieldConfigPattern>::const_iterator
 	 i = patterns.begin(); i != patterns.end(); ++i) {
-	FieldConfig * result = i->test(fieldname);
+	FieldConfig * result = i->test(fieldname, doc_type);
 	if (result != NULL) {
 	    return result;
 	}
@@ -830,7 +846,7 @@ Schema::set(const string & fieldname, FieldConfig * config)
 
 Xapian::Document
 Schema::process(const Json::Value & value,
-		string & idterm) const
+		string & idterm)
 {
     json_check_object(value, "input document");
 
@@ -840,9 +856,10 @@ Schema::process(const Json::Value & value,
     for (Json::Value::const_iterator viter = value.begin();
 	 viter != value.end();
 	 ++viter) {
-	const FieldIndexer * indexer = get_indexer(viter.memberName());
+	const string & fieldname = viter.memberName();
+	const FieldIndexer * indexer = get_indexer(fieldname);
 	if (indexer) {
-	    //fprintf(stderr, "field '%s'\n", viter.memberName());
+	    //fprintf(stderr, "field '%s'\n", fieldname.c_str());
 	    if ((*viter).isNull()) {
 		//fprintf(stderr, "null value ignored\n");
 		continue;
@@ -859,7 +876,8 @@ Schema::process(const Json::Value & value,
 		indexer->index(result, docdata, arrayval, idterm);
 	    }
 	} else {
-	    //fprintf(stderr, "Ignoring unknown field '%s'\n", viter.memberName());
+	    LOG_INFO(string("New field type: ") + fieldname);
+	    set(fieldname, patterns.get(fieldname, doc_type));
 	}
     }
 
@@ -984,6 +1002,23 @@ Schema::build_query(const Xapian::Database & db,
 			     queries.begin(), queries.end());
     }
 
+    if (jsonquery.isMember("xor")) {
+	if (jsonquery.size() != 1) {
+	    throw InvalidValueError("XOR query must contain exactly one member");
+	}
+	const Json::Value & queryparams = jsonquery["xor"];
+	json_check_array(queryparams, "XOR search parameters");
+	vector<Xapian::Query> queries;
+	queries.reserve(queryparams.size());
+
+	for (Json::Value::const_iterator i = queryparams.begin();
+	     i != queryparams.end(); ++i) {
+	    queries.push_back(build_query(db, *i));
+	}
+	return Xapian::Query(Xapian::Query::OP_XOR,
+			     queries.begin(), queries.end());
+    }
+
     if (jsonquery.isMember("not")) {
 	if (jsonquery.size() != 1) {
 	    throw InvalidValueError("NOT query must contain exactly one member");
@@ -1008,6 +1043,32 @@ Schema::build_query(const Xapian::Database & db,
 			     posquery,
 			     Xapian::Query(Xapian::Query::OP_OR,
 					   negqueries.begin(), negqueries.end()));
+    }
+
+    if (jsonquery.isMember("and_maybe")) {
+	if (jsonquery.size() != 1) {
+	    throw InvalidValueError("AND_MAYBE query must contain exactly one member");
+	}
+	const Json::Value & queryparams = jsonquery["and_maybe"];
+	json_check_array(queryparams, "AND_MAYBE search parameters");
+	if (queryparams.size() < 2) {
+	    throw InvalidValueError("AND_MAYBE query must contain at least two subqueries");
+	}
+
+	Json::Value::const_iterator i = queryparams.begin();
+	Xapian::Query mainquery(build_query(db, *i));
+	++i;
+
+	vector<Xapian::Query> maybequeries;
+	maybequeries.reserve(queryparams.size() - 1);
+
+	for (; i != queryparams.end(); ++i) {
+	    maybequeries.push_back(build_query(db, *i));
+	}
+	return Xapian::Query(Xapian::Query::OP_AND_MAYBE,
+			     mainquery,
+			     Xapian::Query(Xapian::Query::OP_OR,
+					   maybequeries.begin(), maybequeries.end()));
     }
 
     if (jsonquery.isMember("scale")) {

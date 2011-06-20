@@ -154,6 +154,15 @@ class CollectionConfig {
      *  The returned pointer is invalid after modifications have been made
      *  to the collection's schema.
      */
+    Schema * get_schema(const std::string & type);
+
+    /** Get the schema for a given type.
+     *
+     *  Returns NULL if the type is not known.
+     *
+     *  The returned pointer is invalid after modifications have been made
+     *  to the collection's schema.
+     */
     const Schema * get_schema(const std::string & type) const;
 
     /** Set the schema for a given type.
@@ -163,8 +172,8 @@ class CollectionConfig {
      *
      *  Returns a pointer to the resulting schema for the type.
      */
-    const Schema * set_schema(const std::string & type,
-			      const Schema & schema);
+    Schema * set_schema(const std::string & type,
+			const Schema & schema);
 
     /** Get an input pipe.
      *

@@ -104,14 +104,18 @@ CollectionConfig::set_default_schema()
 "{"
 "  \"patterns\": ["
 "    [ \"*_text\", { \"type\": \"text\", \"prefix\": \"t*\", \"store_field\": \"*_text\", \"processor\": \"stem_en\" } ],"
+"    [ \"text\", { \"type\": \"text\", \"prefix\": \"t\", \"store_field\": \"text\", \"processor\": \"stem_en\" } ],"
 "    [ \"*_date\", { \"type\": \"date\", \"slot\": \"d*\", \"store_field\": \"*_date\" } ],"
+"    [ \"date\", { \"type\": \"date\", \"slot\": \"d\", \"store_field\": \"date\" } ],"
 "    [ \"*_tag\", { \"type\": \"exact\", \"prefix\": \"g*\", \"store_field\": \"*_tag\" } ],"
-"    [ \"*url\", { \"type\": \"exact\", \"prefix\": \"u*\", \"store_field\": \"*url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
-"    [ \"*\", { \"type\": \"text\", \"prefix\": \"t\", \"store_field\": \"*\", \"processor\": \"stem_en\" } ]"
+"    [ \"tag\", { \"type\": \"exact\", \"prefix\": \"g\", \"store_field\": \"tag\" } ],"
+"    [ \"*_url\", { \"type\": \"exact\", \"prefix\": \"u*\", \"store_field\": \"*url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
+"    [ \"url\", { \"type\": \"exact\", \"prefix\": \"u\", \"store_field\": \"url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
+"    [ \"id\", { \"type\": \"id\", \"store_field\": \"id\" } ],"
+"    [ \"type\", { \"type\": \"exact\", \"prefix\": \"!\", \"store_field\": \"type\" } ],"
+"    [ \"*\", { \"type\": \"text\", \"prefix\": \"t\", \"store_field\": \"*\" } ]"
 "  ],"
 "  \"fields\": {"
-"    \"id\": { \"type\": \"id\", \"store_field\": \"id\" },"
-"    \"type\": { \"type\": \"exact\", \"prefix\": \"!\", \"store_field\": \"type\" }"
 "  }"
 "}", tmp)); 
     defschema.to_json(default_type_config);
@@ -280,6 +284,16 @@ CollectionConfig::from_json(const Json::Value & value)
     categorisers_config_from_json(value);
 }
 
+Schema *
+CollectionConfig::get_schema(const std::string & type)
+{
+    map<string, Schema *>::const_iterator i = types.find(type);
+    if (i == types.end()) {
+	return NULL;
+    }
+    return (i->second);
+}
+
 const Schema *
 CollectionConfig::get_schema(const std::string & type) const
 {
@@ -290,7 +304,7 @@ CollectionConfig::get_schema(const std::string & type) const
     return (i->second);
 }
 
-const Schema *
+Schema *
 CollectionConfig::set_schema(const std::string & type,
 			     const Schema & schema)
 {
@@ -506,7 +520,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	}
     }
 
-    const Schema * schema = get_schema(doc_type_);
+    Schema * schema = get_schema(doc_type_);
     if (schema == NULL) {
 	Schema newschema(doc_type_);
 	newschema.from_json(default_type_config);
@@ -587,13 +601,13 @@ Collection::write_config()
 		       json_serialise(config.to_json(config_obj)));
 }
 
-const Schema &
-Collection::get_schema(const string & type) const
+Schema &
+Collection::get_schema(const string & type)
 {
     if (!group.is_open()) {
 	throw InvalidStateError("Collection must be open to get schema");
     }
-    const Schema * result = config.get_schema(type);
+    Schema * result = config.get_schema(type);
     if (result == NULL) {
 	throw InvalidValueError("Schema not found");
     }

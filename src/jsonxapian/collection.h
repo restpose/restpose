@@ -132,7 +132,7 @@ class Collection {
      *  The returned reference is invalid after modifications have been made
      *  to the collection's schema.
      */
-    const Schema & get_schema(const std::string & type) const;
+    Schema & get_schema(const std::string & type);
 
     /** Set the schema for a given type.
      *
