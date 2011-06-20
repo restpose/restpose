@@ -26,6 +26,7 @@
 #include "rest/handlers.h"
 
 #include "httpserver/httpserver.h"
+#include "logger/logger.h"
 #include <microhttpd.h>
 #include "server/task_manager.h"
 #include "server/tasks.h"
@@ -94,6 +95,7 @@ Handler *
 IndexDocumentHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
+    LOG_INFO("IndexDocumentHandler called");
     string coll_name = path_params[0];
     string doc_type = path_params[1];
     string doc_id = path_params[2];
@@ -103,7 +105,6 @@ IndexDocumentHandlerFactory::create(
 Queue::QueueState
 IndexDocumentHandler::enqueue(const Json::Value & body) const
 {
-    // FIXME - the doc_id is ignored, and the doc_type field should be set automatically
     return taskman->queue_processing(coll_name,
 	new ProcessorProcessDocumentTask(doc_type, doc_id, body),
 	false);
