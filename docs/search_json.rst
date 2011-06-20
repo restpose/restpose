@@ -64,7 +64,7 @@ Various types of search are possible:
  - "text": searches for a piece of text in a text field.  The value to search for may be a single string, or an object holding the following parameters:
    - "text": <text to search for.  If empty or missing, this query will match no results>
    - "op": <The operator to use when searching.  One of "or", "and", "phrase", "near".  Default=phrase>
-   - "window": <only relevant if phrase=true. window size in words; null=length of text. Integer or null. Default=null>
+   - "window": <only relevant if op is "phrase" or "near". window size in words; null=length of text. Integer or null. Default=null>
 
  - "parse": parses a query, and searches for the query in a text field.  The value to search for may be a single string, or an object holding the following parameters:
    - "text": <text to search for.  If empty or missing, this query will match no results>
@@ -75,7 +75,7 @@ Filtering results from another query
 ------------------------------------
 
 The results from the primary query are returned, filtered so that only those
-results which also match the filter
+results which also match the filter are returned.
 
 QUERY = {
     "query": QUERY, <optional - defaults to matchall>
@@ -95,7 +95,15 @@ QUERY = {
 }
 
 QUERY = {
+    "xor": [QUERY, ...]
+}
+
+QUERY = {
     "not": [QUERY, ...]
+}
+
+QUERY = {
+    "and_maybe": [QUERY, ...]
 }
 
 Scale the weights returned by a query.
