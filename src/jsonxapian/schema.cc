@@ -53,7 +53,7 @@ FieldConfig::from_json(const Json::Value & value,
     if (type.size() > 0) {
 	switch(type[0]) {
 	    case 'd':
-		if (type == "date") return new DateFieldConfig(value);
+//		if (type == "date") return new DateFieldConfig(value);
 		break;
 	    case 'e':
 		if (type == "exact") return new ExactFieldConfig(value);
@@ -67,6 +67,7 @@ FieldConfig::from_json(const Json::Value & value,
 		break;
 	    case 't':
 		if (type == "text") return new TextFieldConfig(value);
+		if (type == "timestamp") return new TimestampFieldConfig(value);
 		break;
 	}
     }
@@ -473,33 +474,33 @@ TextFieldConfig::to_json(Json::Value & value) const
     value["processor"] = processor;
 }
 
-DateFieldConfig::DateFieldConfig(const Json::Value & value)
+TimestampFieldConfig::TimestampFieldConfig(const Json::Value & value)
 {
     json_check_object(value, "schema object");
     slot = json_get_uint64_member(value, "slot", Xapian::BAD_VALUENO);
     store_field = json_get_string_member(value, "store_field", string());
 }
 
-DateFieldConfig::~DateFieldConfig()
+TimestampFieldConfig::~TimestampFieldConfig()
 {}
 
 FieldIndexer *
-DateFieldConfig::indexer() const
+TimestampFieldConfig::indexer() const
 {
     return new DateIndexer(slot, store_field);
 }
 
 Xapian::Query
-DateFieldConfig::query(const string & qtype,
-		       const Json::Value & value) const
+TimestampFieldConfig::query(const string & qtype,
+			    const Json::Value & value) const
 {
     if (qtype != "range") {
 	throw InvalidValueError("Invalid query type \"" + qtype +
-				"\" for date field");
+				"\" for timestamp field");
     }
     json_check_array(value, "filter value");
     if (value.size() != 2) {
-	throw InvalidValueError("Date field range must have exactly two points");
+	throw InvalidValueError("Timestamp field range must have exactly two points");
     }
     string start = Xapian::sortable_serialise(json_get_uint64(value[Json::UInt(0u)]));
     string end = Xapian::sortable_serialise(json_get_uint64(value[1u]));
@@ -507,9 +508,9 @@ DateFieldConfig::query(const string & qtype,
 }
 
 void
-DateFieldConfig::to_json(Json::Value & value) const
+TimestampFieldConfig::to_json(Json::Value & value) const
 {
-    value["type"] = "date";
+    value["type"] = "timestamp";
     value["slot"] = slot;
     value["store_field"] = store_field;
 }

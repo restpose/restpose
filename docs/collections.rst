@@ -158,16 +158,17 @@ can be one of:
 
  - `truncate`: Truncate the field value to the `max_length` value.
 
-Date fields
+Timestamp fields
 -----------
 
-(`type` = `date`)
+(`type` = `timestamp`)
 
-Date fields expect an integer number of seconds since the Unix epoch (1970).
+Timestamp fields expect an integer number of seconds since the Unix epoch
+(1970).  They can only handle positive values.
 
 They have one additional parameter: the "slot" parameter, which is an unsigned
-integer value.  Each distinct date that should be searchable should be given a
-distinct value for the "slot" parameter.
+integer value.  Each distinct timestamp that should be searchable should be
+given a distinct value for the "slot" parameter.
 
 Geo fields
 ----------
@@ -193,7 +194,7 @@ parameters, with the exception of the `prefix` parameter.
 Stored fields
 -------------
 
-(`type` = `date`)
+(`type` = `stored`)
 
 Stored fields do nothing except store their input value for display.  They have
 no additional parameters.

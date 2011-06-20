@@ -265,12 +265,12 @@ TEST(IntegerExactFields)
     }
 }
 
-TEST(DateFields)
+TEST(TimestampFields)
 {
     Json::Value tmp, tmp2;
     Schema s2("");
-    s2.set("date", new DateFieldConfig(0, "date"));
-    CHECK_EQUAL("{\"fields\":{\"date\":{\"slot\":0,\"store_field\":\"date\",\"type\":\"date\"}},\"patterns\":[]}",
+    s2.set("timestamp", new TimestampFieldConfig(0, "timestamp"));
+    CHECK_EQUAL("{\"fields\":{\"timestamp\":{\"slot\":0,\"store_field\":\"timestamp\",\"type\":\"timestamp\"}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
@@ -281,13 +281,13 @@ TEST(DateFields)
 
     {
 	Json::Value v(Json::objectValue);
-	v["date"] = 1283400000;
+	v["timestamp"] = 1283400000;
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL("{\"data\":{\"date\":[1283400000]},\"values\":{\"0\":\"\340\\\\\307\362\\u0014\"}}",
+	CHECK_EQUAL("{\"data\":{\"timestamp\":[1283400000]},\"values\":{\"0\":\"\340\\\\\307\362\\u0014\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
-	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"date\":[1283400000]}");
+	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"timestamp\":[1283400000]}");
     }
 }
 

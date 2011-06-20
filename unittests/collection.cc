@@ -40,16 +40,18 @@ using namespace RestPose;
 
 #define DEFAULT_TYPE_SCHEMA \
 "\"default_type\":{" \
-  "\"fields\":{" \
-    "\"id\":{\"max_length\":64,\"store_field\":\"id\",\"too_long_action\":\"error\",\"type\":\"id\"}," \
-    "\"type\":{\"max_length\":64,\"prefix\":\"!\",\"store_field\":\"type\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}" \
-  "}," \
   "\"patterns\":[" \
     "[\"*_text\",{\"prefix\":\"t*\",\"processor\":\"stem_en\",\"store_field\":\"*_text\",\"type\":\"text\"}]," \
-    "[\"*_date\",{\"slot\":\"d*\",\"store_field\":\"*_date\",\"type\":\"date\"}]," \
+    "[\"text\",{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}]," \
+    "[\"*_time\",{\"slot\":\"d*\",\"store_field\":\"*_time\",\"type\":\"timestamp\"}]," \
+    "[\"time\",{\"slot\":\"d\",\"store_field\":\"time\",\"type\":\"timestamp\"}]," \
     "[\"*_tag\",{\"prefix\":\"g*\",\"store_field\":\"*_tag\",\"type\":\"exact\"}]," \
-    "[\"*url\",{\"max_length\":100,\"prefix\":\"u*\",\"store_field\":\"*url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"*\",{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"*\",\"type\":\"text\"}]" \
+    "[\"tag\",{\"prefix\":\"g\",\"store_field\":\"tag\",\"type\":\"exact\"}]," \
+    "[\"*_url\",{\"max_length\":100,\"prefix\":\"u*\",\"store_field\":\"*_url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"url\",{\"max_length\":100,\"prefix\":\"u\",\"store_field\":\"url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"id\",{\"store_field\":\"id\",\"type\":\"id\"}]," \
+    "[\"type\",{\"prefix\":\"!\",\"store_field\":\"type\",\"type\":\"exact\"}]," \
+    "[\"*\",{\"prefix\":\"t\",\"store_field\":\"*\",\"type\":\"text\"}]" \
   "]" \
 "}"
 
