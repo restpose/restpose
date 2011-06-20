@@ -168,7 +168,7 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm);
     taskman->queue_index_processed_doc(coll_name, xdoc, idterm);
     if (config->is_changed()) {
-	// FIXME - could just push new config for the schema for the doc_type in question, to save work.
+	// FIXME - could push just the new config for the schema for the doc_type in question, to save work.
 	Json::Value tmp;
 	config->to_json(tmp);
 	taskman->queue_indexing_from_processing(coll_name,
