@@ -255,6 +255,8 @@ class SearchResults(object):
         self.items = [SearchResult(rank, fields) for (rank, fields) in
                       enumerate(result.get('items', []), self.offset)]
 
+        self.info = result.get('info')
+
     def __iter__(self):
         return iter(self.items)
 
@@ -262,14 +264,17 @@ class SearchResults(object):
         return len(self.items)
 
     def __str__(self):
-        return 'SearchResults(offset=%d, size=%d, checkatleast=%d, ' \
-               'matches_lower_bound=%d, ' \
-               'matches_estimated=%d, ' \
-               'matches_upper_bound=%d, ' \
-               'items=[%s])' % (
+        result = u'SearchResults(offset=%d, size=%d, checkatleast=%d, ' \
+                 u'matches_lower_bound=%d, ' \
+                 u'matches_estimated=%d, ' \
+                 u'matches_upper_bound=%d, ' \
+                 u'items=[%s]' % (
             self.offset, self.size, self.checkatleast,
             self.matches_lower_bound,
             self.matches_estimated,
             self.matches_upper_bound,
-            ', '.join(str(item) for item in self.items),
+            u', '.join(unicode(item) for item in self.items),
         )
+        if self.info is not None:
+            result += u', info=%s' % unicode(self.info)
+        return result + u')'

@@ -16,9 +16,14 @@ Example:
     >>> coll.add_doc(doc, type="blurb", docid="1")
     >>> #chkpt_id = coll.checkpoint()
     >>> #coll.waitfor(chkpt_id)
-    >>> results = coll.type("blurb").field_is('tag', 'A tag').search().do()
+    >>> query = coll.type("blurb").field_is('tag', 'A tag')
+    >>> results = query.search().do()
     >>> str(results)
     "SearchResults(offset=0, size=10, checkatleast=0, matches_lower_bound=1, matches_estimated=1, matches_upper_bound=1, items=[SearchResult(rank=0, fields={'text': ['Hello world'], 'tag': ['A tag'], 'id': ['1']})])"
+
+    >>> results = query.search(info=[{'cooccur': {'prefix': 't'}}]).do()
+    >>> str(results)
+    "SearchResults(offset=0, size=10, checkatleast=4294967295, matches_lower_bound=1, matches_estimated=1, matches_upper_bound=1, items=[SearchResult(rank=0, fields={'text': ['Hello world'], 'tag': ['A tag'], 'id': ['1']})], info=[{'type': 'cooccur', 'counts': [['hello', 'world', 1]], 'terms_seen': 2, 'docs_seen': 1, 'prefix': 't'}])"
 
 """
 
