@@ -48,4 +48,20 @@ string_endswith(const std::string & text, const std::string & ending)
     return (0 == text.compare(text.size() - ending.size(), ending.size(), ending));
 }
 
+template<class Iterator> std::string
+string_join(const std::string & separator, Iterator begin, Iterator end)
+{
+    bool need_sep(false);
+    std::string result;
+    while (begin != end) {
+	if (need_sep) {
+	    result += separator;
+	}
+	result += *begin;
+	need_sep = true;
+	++begin;
+    }
+    return result;
+}
+
 #endif /* RESTPOSE_INCLUDED_STRINGUTILS_H */
