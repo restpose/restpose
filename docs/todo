@@ -6,13 +6,6 @@ logger mutex, then does the write, blocking all other threads.  Instead, log
 messages should be added to a queue, and a logger thread should write them to
 disk, syslog, or whatever the appropriate target is.)
 
-When a field has no config, use the patterns to try and add a configuration for
-it automatically.
-
-Ensure that new schema is written both when a new type is added (but no fields
-are added for it), and when an existing schema is modified by automatic adding
-of a field configuration.
-
 If no datadir is set, restpose must either complain, or use cwd.  (Currently
 uses /, which is a security hole waiting to happen.)
 
@@ -20,19 +13,12 @@ Collection names should only be allowed to contain [a-z0-9_-].  Validation
 should be performed in handlers, but also lower level (so that pipes, etc,
 can't become security risks).
 
-When schema gets modified as a result, or because a new type is seen, save the
-new configuration (by adding an appropriate message to the indexer queue along
-with the message saving the document), and write the new configuration to the
-config cache..
-
 Before an initial release
 -------------------------
 
  - Documentation.
 
  - Update libs/README
-
- - Sort out mess of types.  [Mostly done now]
 
  - Fix inconsistent namespacing used in code (RestPose is used in some places,
    but not others, for no particular reason).
