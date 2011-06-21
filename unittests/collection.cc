@@ -1,5 +1,5 @@
-/** @file pipe.cc
- * @brief Tests for Pipes
+/** @file collection.cc
+ * @brief Tests for Collections
  */
 /* Copyright (c) 2011 Richard Boulton
  *
