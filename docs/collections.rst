@@ -159,7 +159,7 @@ can be one of:
  - `truncate`: Truncate the field value to the `max_length` value.
 
 Timestamp fields
------------
+----------------
 
 (`type` = `timestamp`)
 
@@ -167,8 +167,20 @@ Timestamp fields expect an integer number of seconds since the Unix epoch
 (1970).  They can only handle positive values.
 
 They have one additional parameter: the "slot" parameter, which is an unsigned
-integer value.  Each distinct timestamp that should be searchable should be
-given a distinct value for the "slot" parameter.
+integer value.  Each timestamp that should be searchable should be given a
+distinct value for the "slot" parameter.
+
+Date fields
+-----------
+
+(`type` = `date`)
+
+Date fields expect a date in the form "year-month-day", in which year, month
+and day are integer values.  Negative years are allowed.
+
+They have one additional parameter: the "slot" parameter, which is an unsigned
+integer value.  Each date that should be searchable should be given a distinct
+value for the "slot" parameter.
 
 Geo fields
 ----------
