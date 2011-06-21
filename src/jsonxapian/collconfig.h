@@ -25,6 +25,7 @@
 #ifndef RESTPOSE_INCLUDED_COLLCONFIG_H
 #define RESTPOSE_INCLUDED_COLLCONFIG_H
 
+#include "category_hierarchy.h"
 #include "json/value.h"
 #include <map>
 #include <string>
@@ -63,6 +64,9 @@ class CollectionConfig {
 
     /// Categorisers, by given name.
     std::map<std::string, Categoriser *> categorisers;
+
+    /// The hierarchy of categories.
+    CategoryHierarchy categories;
 
     /// Flag to track whether the collection configuration has been changed.
     bool changed;

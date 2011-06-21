@@ -4,6 +4,7 @@ TESTS += unittest$(EXEEXT)
 
 # Source files holding tests.
 unittest_SOURCES = \
+ unittests/category_hierarchy.cc \
  unittests/collection.cc \
  unittests/docdata.cc \
  unittests/doctojson.cc \
