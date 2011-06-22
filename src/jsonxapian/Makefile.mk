@@ -16,6 +16,7 @@ noinst_HEADERS += \
 
 libjsonxapian_a_SOURCES = \
  src/jsonxapian/category_hierarchy.cc \
+ src/jsonxapian/collconfig.cc \
  src/jsonxapian/collconfigs.cc \
  src/jsonxapian/collection_pool.cc \
  src/jsonxapian/collection.cc \
