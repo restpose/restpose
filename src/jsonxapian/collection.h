@@ -176,6 +176,24 @@ class Collection {
 			 const Categoriser & categoriser);
 
 
+    /** Get a CategoryHierarchy.
+     *
+     *  Raises an exception if the hierarchy is not known.
+     *
+     *  The returned reference is invalid after modifications have been made
+     *  to the collection's categoriser configuration.
+     */
+    const CategoryHierarchy &
+	    get_category(const std::string & category_name) const;
+
+    /** Set a category hierarchy.
+     *
+     *  Takes a copy of the supplied category hierarchy.
+     */
+    void set_category(const std::string & category_name,
+		      const CategoryHierarchy & category);
+
+
     /** Convert the collection configuration to JSON.
      *
      *  Returns a reference to the value supplied, to allow easier use inline.

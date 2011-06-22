@@ -65,8 +65,8 @@ class CollectionConfig {
     /// Categorisers, by given name.
     std::map<std::string, Categoriser *> categorisers;
 
-    /// The hierarchy of categories.
-    CategoryHierarchy categories;
+    /// Named category hierarchies.
+    std::map<std::string, CategoryHierarchy *> categories;
 
     /// Flag to track whether the collection configuration has been changed.
     bool changed;
@@ -108,6 +108,14 @@ class CollectionConfig {
     /** Set the categorisers configuration from a JSON value.
      */
     void categorisers_config_from_json(const Json::Value & value);
+
+    /** Write the categories configuration to a JSON value.
+     */
+    void categories_config_to_json(Json::Value & value) const;
+
+    /** Set the categories configuration from a JSON value.
+     */
+    void categories_config_from_json(const Json::Value & value);
 
   public:
     CollectionConfig(const std::string & coll_name_);
@@ -202,7 +210,8 @@ class CollectionConfig {
      *  The returned reference is invalid after modifications have been made
      *  to the collection's categoriser configuration.
      */
-    const Categoriser & get_categoriser(const std::string & categoriser_name) const;
+    const Categoriser & get_categoriser(
+	const std::string & categoriser_name) const;
 
     /** Set a categoriser.
      *
@@ -210,6 +219,23 @@ class CollectionConfig {
      */
     void set_categoriser(const std::string & categoriser_name,
 			 const Categoriser & categoriser);
+
+    /** Get a CategoryHierarchy.
+     *
+     *  Raises an exception if the hierarchy is not known.
+     *
+     *  The returned reference is invalid after modifications have been made
+     *  to the collection's categoriser configuration.
+     */
+    const CategoryHierarchy &
+	    get_category(const std::string & category_name) const;
+
+    /** Set a category hierarchy.
+     *
+     *  Takes a copy of the supplied category hierarchy.
+     */
+    void set_category(const std::string & category_name,
+		      const CategoryHierarchy & category);
 
     /** Categorise a piece of text.
      *

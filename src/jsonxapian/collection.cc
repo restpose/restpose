@@ -83,6 +83,13 @@ CollectionConfig::clear()
 	i->second = NULL;
     }
     categorisers.clear();
+
+    for (map<string, CategoryHierarchy *>::iterator
+	 i = categories.begin(); i != categories.end(); ++i) {
+	delete i->second;
+	i->second = NULL;
+    }
+    categories.clear();
 }
 
 void
@@ -226,8 +233,35 @@ CollectionConfig::categorisers_config_from_json(const Json::Value & value)
     }
 }
 
+void
+CollectionConfig::categories_config_to_json(Json::Value & value) const
+{
+    Json::Value & categories_obj(value["categories"]);
+    categories_obj = Json::objectValue;
 
-CollectionConfig::CollectionConfig(const std::string & coll_name_)
+    for (map<string, CategoryHierarchy *>::const_iterator
+	 i = categories.begin(); i != categories.end(); ++i) {
+	Json::Value & category_obj = categories_obj[i->first];
+	i->second->to_json(category_obj);
+    }
+}
+
+void
+CollectionConfig::categories_config_from_json(const Json::Value & value)
+{
+    const Json::Value & categories_obj(value["categories"]);
+    if (!categories_obj.isNull()) {
+	json_check_object(categories_obj, "categories definition");
+	for (Json::Value::iterator i = categories_obj.begin();
+	     i != categories_obj.end(); ++i) {
+	    CategoryHierarchy category;
+	    category.from_json(*i);
+	    set_category(i.memberName(), category);
+	}
+    }
+}
+
+CollectionConfig::CollectionConfig(const string & coll_name_)
 	: coll_name(coll_name_),
 	  changed(false)
 {}
@@ -267,6 +301,9 @@ CollectionConfig::to_json(Json::Value & value) const
     if (!categorisers.empty()) {
 	categorisers_config_to_json(value);
     }
+    if (!categories.empty()) {
+	categories_config_to_json(value);
+    }
     value["format"] = CONFIG_FORMAT;
     return value;
 }
@@ -282,10 +319,11 @@ CollectionConfig::from_json(const Json::Value & value)
     schemas_config_from_json(value);
     pipes_config_from_json(value);
     categorisers_config_from_json(value);
+    categories_config_from_json(value);
 }
 
 Schema *
-CollectionConfig::get_schema(const std::string & type)
+CollectionConfig::get_schema(const string & type)
 {
     map<string, Schema *>::const_iterator i = types.find(type);
     if (i == types.end()) {
@@ -295,7 +333,7 @@ CollectionConfig::get_schema(const std::string & type)
 }
 
 const Schema *
-CollectionConfig::get_schema(const std::string & type) const
+CollectionConfig::get_schema(const string & type) const
 {
     map<string, Schema *>::const_iterator i = types.find(type);
     if (i == types.end()) {
@@ -305,7 +343,7 @@ CollectionConfig::get_schema(const std::string & type) const
 }
 
 Schema *
-CollectionConfig::set_schema(const std::string & type,
+CollectionConfig::set_schema(const string & type,
 			     const Schema & schema)
 {
     Schema * schemaptr;
@@ -328,7 +366,7 @@ CollectionConfig::set_schema(const std::string & type,
 }
 
 const Pipe &
-CollectionConfig::get_pipe(const std::string & pipe_name) const
+CollectionConfig::get_pipe(const string & pipe_name) const
 {
     map<string, Pipe *>::const_iterator i = pipes.find(pipe_name);
     if (i == pipes.end()) {
@@ -338,7 +376,7 @@ CollectionConfig::get_pipe(const std::string & pipe_name) const
 }
 
 void
-CollectionConfig::set_pipe(const std::string & pipe_name,
+CollectionConfig::set_pipe(const string & pipe_name,
 			   const Pipe & pipe)
 {
     Pipe * pipeptr;
@@ -358,7 +396,7 @@ CollectionConfig::set_pipe(const std::string & pipe_name,
 }
 
 const Categoriser &
-CollectionConfig::get_categoriser(const std::string & categoriser_name) const
+CollectionConfig::get_categoriser(const string & categoriser_name) const
 {
     map<string, Categoriser *>::const_iterator i = categorisers.find(categoriser_name);
     if (i == categorisers.end()) {
@@ -368,7 +406,7 @@ CollectionConfig::get_categoriser(const std::string & categoriser_name) const
 }
 
 void
-CollectionConfig::set_categoriser(const std::string & categoriser_name,
+CollectionConfig::set_categoriser(const string & categoriser_name,
 				  const Categoriser & categoriser)
 {
     Categoriser * categoriserptr;
@@ -384,6 +422,38 @@ CollectionConfig::set_categoriser(const std::string & categoriser_name,
 	categoriserptr = i->second;
     }
     *categoriserptr = categoriser;
+    changed = true;
+}
+
+const CategoryHierarchy &
+CollectionConfig::get_category(const string & category_name) const
+{
+    map<string, CategoryHierarchy *>::const_iterator i
+	    = categories.find(category_name);
+    if (i == categories.end()) {
+	throw InvalidValueError("No category of requested name found");
+    }
+    return *(i->second);
+}
+
+void
+CollectionConfig::set_category(const string & category_name,
+			       const CategoryHierarchy & category)
+{
+    CategoryHierarchy * categoryptr;
+    map<string, CategoryHierarchy *>::iterator i
+	    = categories.find(category_name);
+
+    if (i == categories.end()) {
+	pair<map<string, CategoryHierarchy *>::iterator, bool> ret;
+	pair<string, CategoryHierarchy *> item(category_name, NULL);
+	ret = categories.insert(item);
+	categoryptr = new CategoryHierarchy();
+	ret.first->second = categoryptr;
+    } else {
+	categoryptr = i->second;
+    }
+    *categoryptr = category;
     changed = true;
 }
 
@@ -662,6 +732,26 @@ Collection::set_categoriser(const string & categoriser_name,
 	throw InvalidStateError("Collection must be open for writing to set categoriser");
     }
     config.set_categoriser(categoriser_name, categoriser);
+    write_config();
+}
+
+const CategoryHierarchy &
+Collection::get_category(const string & category_name) const
+{
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to get schema");
+    }
+    return config.get_category(category_name);
+}
+
+void
+Collection::set_category(const string & category_name,
+			 const CategoryHierarchy & category)
+{
+    if (!group.is_writable()) {
+	throw InvalidStateError("Collection must be open for writing to set category");
+    }
+    config.set_category(category_name, category);
     write_config();
 }
 

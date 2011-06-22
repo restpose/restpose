@@ -152,12 +152,6 @@ CategoryHierarchy::recalc_descendants(const string & cat_name,
     categories.find(cat_name)->second.set_descendants(descendants, modified);
 }
 
-CategoryHierarchy::CategoryHierarchy()
-{}
-
-CategoryHierarchy::~CategoryHierarchy()
-{}
-
 const Category *
 CategoryHierarchy::find(const std::string & cat_name) const
 {

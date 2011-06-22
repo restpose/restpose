@@ -83,12 +83,7 @@ class CategoryHierarchy {
     void recalc_ancestors(const std::string & cat_name,
 			  Categories & modified);
 
-    CategoryHierarchy(const CategoryHierarchy &);
-    void operator=(const CategoryHierarchy &);
-
   public:
-    CategoryHierarchy();
-    ~CategoryHierarchy();
 
     const Category * find(const std::string & cat_name) const;
 
