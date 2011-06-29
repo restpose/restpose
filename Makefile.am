@@ -22,7 +22,7 @@ include src/Makefile.mk
 include src/cli/Makefile.mk
 include src/dbgroup/Makefile.mk
 include src/httpserver/Makefile.mk
-include src/importer/filesystem/Makefile.mk
+# include src/importer/filesystem/Makefile.mk
 include src/importer/mongo/Makefile.mk
 include src/jsonmanip/Makefile.mk
 include src/jsonxapian/Makefile.mk

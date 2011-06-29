@@ -6,7 +6,6 @@ restpose_SOURCES = \
  src/restpose.cc
 
 restpose_LDADD = \
- libfilesystemimporter.a \
  libmongoimporter.a \
  libhttpserver.a \
  librest.a \
