@@ -206,7 +206,8 @@ CategoryIndexer::index(Xapian::Document & doc,
 		       std::string &,
 		       const CollectionConfig & collconfig) const
 {
-    const CategoryHierarchy * hierarchy = collconfig.get_category_hierarchy(prefix);
+    const CategoryHierarchy * hierarchy =
+	    collconfig.get_category_hierarchy(hierarchy_name);
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
@@ -236,7 +237,7 @@ CategoryIndexer::index(Xapian::Document & doc,
 	    if (cat_ptr != NULL) {
 		for (Categories::const_iterator j = cat_ptr->ancestors.begin();
 		     j != cat_ptr->ancestors.end(); ++j) {
-		    doc.add_term(prefix + "P" + *j, 0);
+		    doc.add_term(prefix + "A" + *j, 0);
 		}
 	    }
 	}
