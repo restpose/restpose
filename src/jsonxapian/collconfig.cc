@@ -254,10 +254,28 @@ CollectionConfig::categories_config_from_json(const Json::Value & value)
 	json_check_object(categories_obj, "categories definition");
 	for (Json::Value::iterator i = categories_obj.begin();
 	     i != categories_obj.end(); ++i) {
-	    CategoryHierarchy category;
-	    category.from_json(*i);
-	    set_category(i.memberName(), category);
+	    CategoryHierarchy hierarchy;
+	    hierarchy.from_json(*i);
+	    set_category_hierarchy(i.memberName(), hierarchy);
 	}
+    }
+}
+
+CategoryHierarchy &
+CollectionConfig::get_or_add_cat_hierarchy(const std::string & hierarchy_name)
+{
+    map<string, CategoryHierarchy *>::const_iterator i
+	    = categories.find(hierarchy_name);
+    if (i == categories.end()) {
+	pair<map<string, CategoryHierarchy *>::iterator, bool> ret;
+	pair<string, CategoryHierarchy *> item(hierarchy_name, NULL);
+	ret = categories.insert(item);
+	CategoryHierarchy * categoryptr = new CategoryHierarchy();
+	ret.first->second = categoryptr;
+	changed = true;
+	return *categoryptr;
+    } else {
+	return *(i->second);
     }
 }
 
@@ -426,10 +444,10 @@ CollectionConfig::set_categoriser(const string & categoriser_name,
 }
 
 const CategoryHierarchy *
-CollectionConfig::get_category(const string & category_name) const
+CollectionConfig::get_category_hierarchy(const string & hierarchy_name) const
 {
     map<string, CategoryHierarchy *>::const_iterator i
-	    = categories.find(category_name);
+	    = categories.find(hierarchy_name);
     if (i == categories.end()) {
 	return NULL;
     }
@@ -437,23 +455,67 @@ CollectionConfig::get_category(const string & category_name) const
 }
 
 void
-CollectionConfig::set_category(const string & category_name,
-			       const CategoryHierarchy & category)
+CollectionConfig::set_category_hierarchy(const string & hierarchy_name,
+					 const CategoryHierarchy & category)
 {
     CategoryHierarchy * categoryptr;
     map<string, CategoryHierarchy *>::iterator i
-	    = categories.find(category_name);
+	    = categories.find(hierarchy_name);
 
     if (i == categories.end()) {
 	pair<map<string, CategoryHierarchy *>::iterator, bool> ret;
-	pair<string, CategoryHierarchy *> item(category_name, NULL);
+	pair<string, CategoryHierarchy *> item(hierarchy_name, NULL);
 	ret = categories.insert(item);
 	categoryptr = new CategoryHierarchy();
 	ret.first->second = categoryptr;
     } else {
 	categoryptr = i->second;
     }
+
+    // Copy the category hierarchy.
     *categoryptr = category;
+    changed = true;
+}
+
+void
+CollectionConfig::category_add(const std::string & hierarchy_name,
+			       const std::string & cat_name,
+			       Categories & modified)
+{
+    CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
+    hierarchy.add(cat_name, modified);
+    changed = true;
+}
+
+void
+CollectionConfig::category_remove(const std::string & hierarchy_name,
+				  const std::string & cat_name,
+				  Categories & modified)
+{
+    CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
+    hierarchy.remove(cat_name, modified);
+    changed = true;
+}
+
+void
+CollectionConfig::category_add_parent(const std::string & hierarchy_name,
+				      const std::string & child_name,
+				      const std::string & parent_name,
+				      Categories & modified)
+{
+    CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
+    hierarchy.add_parent(child_name, parent_name, modified);
+    changed = true;
+}
+
+void
+CollectionConfig::category_remove_parent(const std::string & hierarchy_name,
+					 const std::string & child_name,
+					 const std::string & parent_name,
+					 Categories & modified)
+{
+    CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
+    hierarchy.remove_parent(child_name, parent_name, modified);
     changed = true;
 }
 

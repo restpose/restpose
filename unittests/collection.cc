@@ -450,10 +450,10 @@ TEST(CollectionCategory)
 		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
-    CategoryHierarchy h = *(c->get_category("foo"));
+    CategoryHierarchy h = *(c->get_category_hierarchy("foo"));
     Categories modified;
     h.add_parent("child", "parent", modified);
-    c->set_category("foo", h);
+    c->set_category_hierarchy("foo", h);
     CHECK_EQUAL("{"
 		"\"categories\":{\"foo\":{\"child\":[\"parent\"],\"parent\":[]}},"
 		DEFAULT_TYPE_SCHEMA ","

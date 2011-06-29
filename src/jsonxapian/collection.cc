@@ -171,22 +171,22 @@ Collection::set_categoriser(const string & categoriser_name,
 }
 
 const CategoryHierarchy *
-Collection::get_category(const string & category_name) const
+Collection::get_category_hierarchy(const string & category_name) const
 {
     if (!group.is_open()) {
 	throw InvalidStateError("Collection must be open to get schema");
     }
-    return config.get_category(category_name);
+    return config.get_category_hierarchy(category_name);
 }
 
 void
-Collection::set_category(const string & category_name,
+Collection::set_category_hierarchy(const string & category_name,
 			 const CategoryHierarchy & category)
 {
     if (!group.is_writable()) {
 	throw InvalidStateError("Collection must be open for writing to set category");
     }
-    config.set_category(category_name, category);
+    config.set_category_hierarchy(category_name, category);
     write_config();
 }
 

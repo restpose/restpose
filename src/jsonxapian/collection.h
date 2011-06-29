@@ -184,14 +184,14 @@ class Collection {
      *  to the collection's categoriser configuration.
      */
     const CategoryHierarchy *
-	    get_category(const std::string & category_name) const;
+	    get_category_hierarchy(const std::string & hierarchy_name) const;
 
     /** Set a category hierarchy.
      *
      *  Takes a copy of the supplied category hierarchy.
      */
-    void set_category(const std::string & category_name,
-		      const CategoryHierarchy & category);
+    void set_category_hierarchy(const std::string & hierarchy_name,
+				const CategoryHierarchy & category);
 
 
     /** Convert the collection configuration to JSON.

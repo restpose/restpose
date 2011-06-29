@@ -117,6 +117,12 @@ class CollectionConfig {
      */
     void categories_config_from_json(const Json::Value & value);
 
+    /** Get a reference to a category hierarchy, adding it if it doesn't
+     *  already exist.
+     */
+    CategoryHierarchy &
+	    get_or_add_cat_hierarchy(const std::string & hierarchy_name);
+
   public:
     CollectionConfig(const std::string & coll_name_);
     ~CollectionConfig();
@@ -228,14 +234,29 @@ class CollectionConfig {
      *  to the collection's categoriser configuration.
      */
     const CategoryHierarchy *
-	    get_category(const std::string & category_name) const;
+	    get_category_hierarchy(const std::string & hierarchy_name) const;
 
     /** Set a category hierarchy.
      *
      *  Takes a copy of the supplied category hierarchy.
      */
-    void set_category(const std::string & category_name,
-		      const CategoryHierarchy & category);
+    void set_category_hierarchy(const std::string & hierarchy_name,
+				const CategoryHierarchy & category);
+
+    void category_add(const std::string & hierarchy_name,
+		      const std::string & cat_name,
+		      Categories & modified);
+    void category_remove(const std::string & hierarchy_name,
+			 const std::string & cat_name,
+			 Categories & modified);
+    void category_add_parent(const std::string & hierarchy_name,
+			     const std::string & child_name,
+			     const std::string & parent_name,
+			     Categories & modified);
+    void category_remove_parent(const std::string & hierarchy_name,
+				const std::string & child_name,
+				const std::string & parent_name,
+				Categories & modified);
 
     /** Categorise a piece of text.
      *
