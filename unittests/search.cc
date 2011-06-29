@@ -25,6 +25,7 @@
 #include <config.h>
 #include "UnitTest++.h"
 #include <json/json.h>
+#include "jsonxapian/collconfig.h"
 #include "jsonxapian/doctojson.h"
 #include "jsonxapian/schema.h"
 #include "utils/rsperrors.h"
@@ -34,6 +35,7 @@ using namespace RestPose;
 
 TEST(SearchIntegerExactFields)
 {
+    CollectionConfig config("test"); // dummy config, used for testing.
     Schema s("");
     s.set("id", new IDFieldConfig(""));
     s.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
@@ -46,7 +48,7 @@ TEST(SearchIntegerExactFields)
 	Json::Value value;
 	CHECK(reader.parse("{\"id\": 32, \"intid\": 18446744073709551615}", value, false)); // 2**64-1
 	std::string idterm;
-	Xapian::Document doc(s.process(value, idterm));
+	Xapian::Document doc(s.process(value, idterm, config));
 	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"\\t\\t32\":{},\"intid\\t18446744073709551615\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
@@ -58,7 +60,7 @@ TEST(SearchIntegerExactFields)
 	Json::Value value;
 	CHECK(reader.parse("{\"id\": 18446744073709551615, \"intid\": 31}", value, false)); // 2**64-1
 	std::string idterm;
-	Xapian::Document doc(s.process(value, idterm));
+	Xapian::Document doc(s.process(value, idterm, config));
 	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"intid\":[31]},\"terms\":{\"\\t\\t18446744073709551615\":{},\"intid\\t31\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));

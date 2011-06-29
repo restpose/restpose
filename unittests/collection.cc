@@ -450,7 +450,7 @@ TEST(CollectionCategory)
 		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
-    CategoryHierarchy h = c->get_category("foo");
+    CategoryHierarchy h = *(c->get_category("foo"));
     Categories modified;
     h.add_parent("child", "parent", modified);
     c->set_category("foo", h);

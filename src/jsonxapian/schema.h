@@ -34,6 +34,7 @@
 namespace RestPose {
     // Forward declaration
     class FieldIndexer;
+    class CollectionConfig;
 
     /** The configuration for an individual field in the schema.
      */
@@ -489,7 +490,8 @@ namespace RestPose {
 	 *  @param doc The document to store terms and values in.
 	 */
 	Xapian::Document process(const Json::Value & value,
-				 std::string & idterm);
+				 std::string & idterm,
+				 const CollectionConfig & collconfig);
 
 	/** Perform a search.
 	 */

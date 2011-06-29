@@ -35,6 +35,7 @@
 
 namespace RestPose {
     class DocumentData;
+    class CollectionConfig;
 
     /** Base class for field indexers: these process a JSON value and store
      *  the result in a field.
@@ -58,7 +59,8 @@ namespace RestPose {
 	virtual void index(Xapian::Document & doc,
 			   DocumentData & docdata,
 			   const Json::Value & value,
-			   std::string & idterm) const = 0;
+			   std::string & idterm,
+			   const CollectionConfig & collconfig) const = 0;
 	virtual ~FieldIndexer();
     };
 
@@ -89,7 +91,8 @@ namespace RestPose {
 	void index(Xapian::Document & doc,
 		   DocumentData & docdata,
 		   const Json::Value & value,
-		   std::string & idterm) const;
+		   std::string & idterm,
+		   const CollectionConfig & collconfig) const;
     };
 
     /** A field indexer which expects a single string as input, and stores it.
@@ -106,7 +109,8 @@ namespace RestPose {
 	void index(Xapian::Document & doc,
 		   DocumentData & docdata,
 		   const Json::Value & value,
-		   std::string & idterm) const;
+		   std::string & idterm,
+		   const CollectionConfig & collconfig) const;
     };
 
 
@@ -126,7 +130,8 @@ namespace RestPose {
 	void index(Xapian::Document & doc,
 		   DocumentData & docdata,
 		   const Json::Value & value,
-		   std::string & idterm) const;
+		   std::string & idterm,
+		   const CollectionConfig & collconfig) const;
     };
 
 
@@ -153,7 +158,8 @@ namespace RestPose {
 	void index(Xapian::Document & doc,
 		   DocumentData & docdata,
 		   const Json::Value & value,
-		   std::string & idterm) const;
+		   std::string & idterm,
+		   const CollectionConfig & collconfig) const;
 
 	/** Parse a date into the form in which it is stored in the slot.
 	 */
@@ -186,7 +192,8 @@ namespace RestPose {
 	void index(Xapian::Document & doc,
 		   DocumentData & docdata,
 		   const Json::Value & values,
-		   std::string & idterm) const;
+		   std::string & idterm,
+		   const CollectionConfig & collconfig) const;
     };
 
 
@@ -211,7 +218,8 @@ namespace RestPose {
 	void index(Xapian::Document & doc,
 		   DocumentData & docdata,
 		   const Json::Value & value,
-		   std::string & idterm) const;
+		   std::string & idterm,
+		   const CollectionConfig & collconfig) const;
     };
 
     /** A field indexer which expects an array of strings as input, and
@@ -231,7 +239,8 @@ namespace RestPose {
 	void index(Xapian::Document & doc,
 		   DocumentData & docdata,
 		   const Json::Value & value,
-		   std::string & idterm) const;
+		   std::string & idterm,
+		   const CollectionConfig & collconfig) const;
     };
 
 };

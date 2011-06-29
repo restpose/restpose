@@ -425,15 +425,15 @@ CollectionConfig::set_categoriser(const string & categoriser_name,
     changed = true;
 }
 
-const CategoryHierarchy &
+const CategoryHierarchy *
 CollectionConfig::get_category(const string & category_name) const
 {
     map<string, CategoryHierarchy *>::const_iterator i
 	    = categories.find(category_name);
     if (i == categories.end()) {
-	throw InvalidValueError("No category of requested name found");
+	return NULL;
     }
-    return *(i->second);
+    return i->second;
 }
 
 void
@@ -596,5 +596,5 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	newschema.from_json(default_type_config);
 	schema = set_schema(doc_type_, newschema);
     }
-    return schema->process(doc_obj, idterm);
+    return schema->process(doc_obj, idterm, *this);
 }

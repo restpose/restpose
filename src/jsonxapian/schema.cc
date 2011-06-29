@@ -976,7 +976,8 @@ Schema::set(const string & fieldname, FieldConfig * config)
 
 Xapian::Document
 Schema::process(const Json::Value & value,
-		string & idterm)
+		string & idterm,
+		const CollectionConfig & collconfig)
 {
     json_check_object(value, "input document");
 
@@ -996,14 +997,14 @@ Schema::process(const Json::Value & value,
 	    }
 	    if ((*viter).isArray()) {
 		if ((*viter).size() > 0) {
-		    indexer->index(result, docdata, *viter, idterm);
+		    indexer->index(result, docdata, *viter, idterm, collconfig);
 		} else {
 		    //fprintf(stderr, "empty array value ignored\n");
 		}
 	    } else {
 		Json::Value arrayval(Json::arrayValue);
 		arrayval.append(*viter);
-		indexer->index(result, docdata, arrayval, idterm);
+		indexer->index(result, docdata, arrayval, idterm, collconfig);
 	    }
 	} else {
 	    LOG_INFO(string("New field type: ") + fieldname);

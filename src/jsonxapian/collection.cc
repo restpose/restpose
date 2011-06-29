@@ -170,7 +170,7 @@ Collection::set_categoriser(const string & categoriser_name,
     write_config();
 }
 
-const CategoryHierarchy &
+const CategoryHierarchy *
 Collection::get_category(const string & category_name) const
 {
     if (!group.is_open()) {

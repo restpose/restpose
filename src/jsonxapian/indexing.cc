@@ -38,6 +38,8 @@
 
 #include "docdata.h"
 #include "hashterm.h"
+#include "jsonxapian/collconfig.h"
+#include "jsonxapian/category_hierarchy.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 
@@ -53,7 +55,8 @@ void
 ExactStringIndexer::index(Xapian::Document & doc,
 			  DocumentData & docdata,
 			  const Json::Value & values,
-			  std::string & idterm) const
+			  std::string & idterm,
+			  const CollectionConfig &) const
 {
     if (isid && values.size() != 1) {
 	throw InvalidValueError("Multiple values supplied to ID field - must have only one");
@@ -100,7 +103,8 @@ void
 StoredIndexer::index(Xapian::Document &,
 		     DocumentData & docdata,
 		     const Json::Value & values,
-		     std::string &) const
+		     std::string &,
+		     const CollectionConfig &) const
 {
     Json::FastWriter writer;
     std::string val = writer.write(values);
@@ -114,7 +118,8 @@ void
 TimeStampIndexer::index(Xapian::Document & doc,
 			DocumentData & docdata,
 			const Json::Value & values,
-			std::string &) const
+			std::string &,
+			const CollectionConfig &) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
@@ -137,7 +142,8 @@ void
 DateIndexer::index(Xapian::Document & doc,
 		   DocumentData & docdata,
 		   const Json::Value & values,
-		   std::string &) const
+		   std::string &,
+		   const CollectionConfig &) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
@@ -197,8 +203,10 @@ void
 CategoryIndexer::index(Xapian::Document & doc,
 		       DocumentData & docdata,
 		       const Json::Value & values,
-		       std::string &) const
+		       std::string &,
+		       const CollectionConfig & collconfig) const
 {
+    const CategoryHierarchy * hierarchy = collconfig.get_category(prefix);
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
@@ -222,16 +230,16 @@ CategoryIndexer::index(Xapian::Document & doc,
 	    }
 	}
 	doc.add_term(prefix + "C" + val, 0);
-	// FIXME - add terms for the parent categories.
-#if 0
-	const Category * cat_ptr = hierarchy->find(val);
-	if (cat_ptr != NULL) {
-	    for (Categories::const_iterator i = cat_ptr.ancestors->begin();
-		 i != cat_ptr.ancestors->end(); ++i) {
-		doc.add_term(prefix + "P" + *i, 0);
+	if (hierarchy != NULL) {
+	    // Add terms for the parent categories.
+	    const Category * cat_ptr = hierarchy->find(val);
+	    if (cat_ptr != NULL) {
+		for (Categories::const_iterator j = cat_ptr->ancestors.begin();
+		     j != cat_ptr->ancestors.end(); ++j) {
+		    doc.add_term(prefix + "P" + *j, 0);
+		}
 	    }
 	}
-#endif
     }
 
     if (!store_field.empty()) {
@@ -249,7 +257,8 @@ void
 TermGeneratorIndexer::index(Xapian::Document & doc,
 			    DocumentData & docdata,
 			    const Json::Value & values,
-			    std::string &) const
+			    std::string &,
+			    const CollectionConfig &) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
@@ -276,7 +285,8 @@ void
 CJKIndexer::index(Xapian::Document & doc,
 		  DocumentData & docdata,
 		  const Json::Value & values,
-		  std::string &) const
+		  std::string &,
+		  const CollectionConfig &) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {

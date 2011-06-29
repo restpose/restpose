@@ -222,12 +222,12 @@ class CollectionConfig {
 
     /** Get a CategoryHierarchy.
      *
-     *  Raises an exception if the hierarchy is not known.
+     *  Returns NULL if the hierarchy is not known.
      *
-     *  The returned reference is invalid after modifications have been made
+     *  The returned pointer is invalid after modifications have been made
      *  to the collection's categoriser configuration.
      */
-    const CategoryHierarchy &
+    const CategoryHierarchy *
 	    get_category(const std::string & category_name) const;
 
     /** Set a category hierarchy.
