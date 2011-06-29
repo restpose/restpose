@@ -37,7 +37,6 @@ struct CliOptions {
     enum action_type {
 	ACT_DEFAULT,
 	ACT_SERVE,
-	ACT_CMD,
 	ACT_SEARCH,
 	ACT_TRAIN
     };
@@ -47,11 +46,8 @@ struct CliOptions {
     int port;
     bool pedantic;
     std::string dbname;
-    std::string schema_path;
-    std::vector<std::string> indexdirs;
     std::vector<std::string> searchfiles;
     std::vector<std::string> languages;
-    bool show_info;
     std::string mongo_import;
 };
 

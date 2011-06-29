@@ -105,8 +105,6 @@ main_do(int argc, char * const* argv)
 	    }
 	}
 
-    } else if (opts.action == CliOptions::ACT_CMD) {
-	return do_cmd(opts.datadir, opts.dbname, opts.schema_path, opts.indexdirs, opts.searchfiles, opts.show_info);
     } else if (opts.action == CliOptions::ACT_TRAIN) {
 	Categoriser cat;
 	for (std::vector<std::string>::const_iterator
