@@ -171,12 +171,12 @@ DateIndexer::parse_date(const Json::Value & value)
     char * endptr = NULL;
     double year = strtod(value_str.c_str(), &endptr);
 
-    LOG_INFO("Year: " + str(year));
+    LOG_DEBUG("Year: " + str(year));
     if (*endptr == '-') {
 	++endptr;
     }
     int month = floor(strtod(endptr, &endptr));
-    LOG_INFO("Month: " + str(month));
+    LOG_DEBUG("Month: " + str(month));
     if (month <= 0 || month > 12) {
 	throw InvalidValueError("Unable to parse date value; got month out of range");
     }
@@ -185,7 +185,7 @@ DateIndexer::parse_date(const Json::Value & value)
 	++endptr;
     }
     int day = floor(strtod(endptr, &endptr));
-    LOG_INFO("Day: " + str(day));
+    LOG_DEBUG("Day: " + str(day));
     if (day <= 0 || day > 31) {
 	throw InvalidValueError("Unable to parse date value; got day out of range");
     }
