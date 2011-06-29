@@ -190,6 +190,58 @@ DateIndexer::parse_date(const Json::Value & value)
 }
 
 
+CategoryIndexer::~CategoryIndexer()
+{}
+
+void
+CategoryIndexer::index(Xapian::Document & doc,
+		       DocumentData & docdata,
+		       const Json::Value & values,
+		       std::string &) const
+{
+    for (Json::Value::const_iterator i = values.begin();
+	 i != values.end(); ++i) {
+
+	std::string val = json_get_idstyle_value(*i);
+	if (val.size() > max_length) {
+	    switch (too_long_action) {
+		case MaxLenFieldConfig::TOOLONG_ERROR:
+		    throw InvalidValueError("Field value of length " +
+					    Json::valueToString(Json::UInt64(val.size())) +
+					    " exceeds maximum permissible length"
+					    " for this field of " +
+					    Json::valueToString(Json::UInt64(max_length)));
+		case MaxLenFieldConfig::TOOLONG_HASH:
+		    // Note - this isn't UTF-8 aware.
+		    val = hash_long_term(val, max_length);
+		    break;
+		case MaxLenFieldConfig::TOOLONG_TRUNCATE:
+		    // Note - this isn't UTF-8 aware.
+		    val.erase(max_length);
+		    break;
+	    }
+	}
+	doc.add_term(prefix + "C" + val, 0);
+	// FIXME - add terms for the parent categories.
+#if 0
+	const Category * cat_ptr = hierarchy->find(val);
+	if (cat_ptr != NULL) {
+	    for (Categories::const_iterator i = cat_ptr.ancestors->begin();
+		 i != cat_ptr.ancestors->end(); ++i) {
+		doc.add_term(prefix + "P" + *i, 0);
+	    }
+	}
+#endif
+    }
+
+    if (!store_field.empty()) {
+	Json::FastWriter writer;
+	std::string storeval = writer.write(values);
+	docdata.set(store_field, storeval);
+    }
+}
+
+
 TermGeneratorIndexer::~TermGeneratorIndexer()
 {}
 

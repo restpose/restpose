@@ -52,6 +52,9 @@ FieldConfig::from_json(const Json::Value & value,
     string type = json_get_string_member(value, "type", string());
     if (type.size() > 0) {
 	switch(type[0]) {
+	    case 'c':
+		if (type == "cat") return new CategoryFieldConfig(value);
+		break;
 	    case 'd':
 		if (type == "date") return new DateFieldConfig(value);
 		break;
@@ -464,7 +467,6 @@ TextFieldConfig::query_parse(const Json::Value & qparams) const
     }
 }
 
-
 void
 TextFieldConfig::to_json(Json::Value & value) const
 {
@@ -554,6 +556,90 @@ DateFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "date";
     value["slot"] = slot;
+    value["store_field"] = store_field;
+}
+
+
+CategoryFieldConfig::CategoryFieldConfig(const Json::Value & value)
+	: MaxLenFieldConfig(value)
+{
+    // MaxLenFieldConfig constructor has already checked that value is an
+    // object.
+    prefix = json_get_string_member(value, "prefix", string());
+    if (prefix.empty()) {
+	throw InvalidValueError("Field configuration argument \"prefix\""
+				" may not be empty");
+    }
+    if (prefix.find('\t') != string::npos) {
+	throw InvalidValueError("Field configuration argument \"prefix\""
+				" contains invalid character \\t");
+    }
+    prefix.append("\t");
+
+    store_field = json_get_string_member(value, "store_field", string());
+}
+
+CategoryFieldConfig::~CategoryFieldConfig()
+{}
+
+FieldIndexer *
+CategoryFieldConfig::indexer() const
+{
+    return new CategoryIndexer(prefix, store_field,
+			       max_length, too_long_action);
+}
+
+Xapian::Query
+CategoryFieldConfig::query(const string & qtype,
+			   const Json::Value & value) const
+{
+    json_check_array(value, "field query value");
+    string term_prefix;
+    if (qtype == "is") {
+	// The categories associated with a document are stored with an
+	// additional C prefix.
+	term_prefix = prefix + "C";
+    } else if (qtype == "ancestor_is") {
+	// The ancestors of categories associated with a document are stored
+	// with an additional C prefix (the category itself is also stored this
+	// way).
+	term_prefix = prefix + "A";
+    } else {
+	throw InvalidValueError("Invalid query type \"" + qtype +
+				"\" for category field");
+    }
+
+    vector<string> terms;
+    for (Json::Value::const_iterator iter = value.begin();
+	 iter != value.end(); ++iter) {
+	if ((*iter).isString()) {
+	    terms.push_back(term_prefix + (*iter).asString());
+	} else {
+	    if (!(*iter).isConvertibleTo(Json::uintValue)) {
+		throw InvalidValueError("Category value must be an integer or a string");
+	    }
+	    if ((*iter) < Json::Value::Int(0)) {
+		throw InvalidValueError("JSON value for category was negative - wanted unsigned int");
+	    }
+	    if ((*iter) > Json::Value::maxUInt64) {
+		throw InvalidValueError("JSON value " + (*iter).toStyledString() +
+					" was larger than maximum allowed (" +
+					Json::valueToString(Json::Value::maxUInt64) +
+					")");
+	    }
+	    terms.push_back(term_prefix + Json::valueToString((*iter).asUInt64()));
+	}
+    }
+    return Xapian::Query(Xapian::Query::OP_OR, terms.begin(), terms.end());
+
+}
+
+void
+CategoryFieldConfig::to_json(Json::Value & value) const
+{
+    MaxLenFieldConfig::to_json(value);
+    value["type"] = "cat";
+    value["prefix"] = prefix.substr(0, prefix.size() - 1);
     value["store_field"] = store_field;
 }
 

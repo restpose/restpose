@@ -161,6 +161,35 @@ namespace RestPose {
     };
 
 
+    /** A field indexer which expects a category.
+     *
+     *  The category and all the parents of the category are stored in terms,
+     *  allowing quick searches for all documents in a category, or in a
+     *  descendent of a category.
+     */
+    class CategoryIndexer : public FieldIndexer {
+	std::string prefix;
+	std::string store_field;
+	unsigned int max_length;
+	MaxLenFieldConfig::TooLongAction too_long_action;
+      public:
+	CategoryIndexer(const std::string & prefix_,
+			const std::string & store_field_,
+			unsigned int max_length_,
+			MaxLenFieldConfig::TooLongAction too_long_action_)
+		: prefix(prefix_), store_field(store_field_),
+		  max_length(max_length_), too_long_action(too_long_action_)
+	{}
+
+	virtual ~CategoryIndexer();
+
+	void index(Xapian::Document & doc,
+		   DocumentData & docdata,
+		   const Json::Value & values,
+		   std::string & idterm) const;
+    };
+
+
     /** A field indexer which expects an array of strings as input, and
      *  indexes them using the Xapian TermGenerator.
      */

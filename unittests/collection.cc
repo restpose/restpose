@@ -410,3 +410,65 @@ TEST(CollectionCategoriser)
 		 "\"terms\":{\"\\tdefault\\t2\":{}}"
 		"}", json_serialise(tmp));
 }
+
+/// Test using a category hierarchy in a collection.
+TEST(CollectionCategory)
+{
+    TempDir path("/tmp/jsonxapian");
+    CollectionPool pool(path.get());
+    TaskManager * taskman = new TaskManager(pool);
+    taskman->start();
+    Json::Value tmp;
+
+    Collection * c = pool.get_writable("default");
+
+    c->from_json(json_unserialise("{"
+		"\"categories\":{\"foo\":{}},"
+		"\"format\": 3,"
+		"\"types\":{\"default\":{\"fields\":{"
+		  "\"cat\":{\"store_field\":\"cat\",\"type\":\"cat\",\"prefix\":\"cat\"},"
+		  "\"id\":{\"max_length\":64,"
+	                  "\"store_field\":\"\","
+	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
+		  "}}}"
+	"}", tmp));
+    CHECK_EQUAL("{"
+		"\"categories\":{\"foo\":{}},"
+		DEFAULT_TYPE_SCHEMA ","
+		"\"format\":3,"
+		"\"pipes\":{\"default\":{}},"
+		DEFAULT_SPECIAL_FIELDS ","
+		"\"types\":{\"default\":{\"fields\":{"
+		  "\"cat\":{\"max_length\":64,"
+			   "\"prefix\":\"cat\","
+			   "\"store_field\":\"cat\","
+			   "\"too_long_action\":\"error\","
+			   "\"type\":\"cat\"},"
+		  "\"id\":{\"max_length\":64,"
+	                  "\"store_field\":\"\","
+	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
+		  "},\"patterns\":[]}}"
+		"}", json_serialise(c->to_json(tmp)));
+
+    CategoryHierarchy h = c->get_category("foo");
+    Categories modified;
+    h.add_parent("child", "parent", modified);
+    c->set_category("foo", h);
+    CHECK_EQUAL("{"
+		"\"categories\":{\"foo\":{\"child\":[\"parent\"],\"parent\":[]}},"
+		DEFAULT_TYPE_SCHEMA ","
+		"\"format\":3,"
+		"\"pipes\":{\"default\":{}},"
+		DEFAULT_SPECIAL_FIELDS ","
+		"\"types\":{\"default\":{\"fields\":{"
+		  "\"cat\":{\"max_length\":64,"
+			   "\"prefix\":\"cat\","
+			   "\"store_field\":\"cat\","
+			   "\"too_long_action\":\"error\","
+			   "\"type\":\"cat\"},"
+		  "\"id\":{\"max_length\":64,"
+	                  "\"store_field\":\"\","
+	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
+		  "},\"patterns\":[]}}"
+		"}", json_serialise(c->to_json(tmp)));
+}

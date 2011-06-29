@@ -268,6 +268,39 @@ namespace RestPose {
 	void to_json(Json::Value & value) const;
     };
 
+    struct CategoryFieldConfig : public MaxLenFieldConfig {
+	/// The prefix that the category terms are stored under.
+	std::string prefix;
+
+	/// The fieldname to store field values under (empty to not store).
+	std::string store_field;
+
+	/// Create from a JSON object.
+	CategoryFieldConfig(const Json::Value & value);
+
+	/// Create from parameters.
+	CategoryFieldConfig(std::string prefix_,
+			    unsigned int max_length_ = 64,
+			    MaxLenFieldConfig::TooLongAction too_long_action_ = TOOLONG_ERROR,
+			    const std::string & store_field_ = std::string())
+		: MaxLenFieldConfig(max_length_, too_long_action_),
+		  prefix(prefix_),
+		  store_field(store_field_)
+	{}
+
+	virtual ~CategoryFieldConfig();
+
+	/// Create an indexer for the field.
+	FieldIndexer * indexer() const;
+
+	/// Create a query to search this field.
+	Xapian::Query query(const std::string & qtype,
+			    const Json::Value & value) const;
+
+	/// Add the configuration for a field to a JSON object.
+	void to_json(Json::Value & value) const;
+    };
+
     struct StoredFieldConfig : public FieldConfig {
 	/// The fieldname to store field values under (empty to not store).
 	std::string store_field;
