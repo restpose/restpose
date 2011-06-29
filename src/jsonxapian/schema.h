@@ -46,6 +46,9 @@ namespace RestPose {
 	virtual Xapian::Query query(const std::string & qtype,
 				    const Json::Value & value) const = 0;
 
+	/// Get the field that values are being stored under. ("" if none).
+	virtual std::string stored_field() const = 0;
+
 	/// Add the configuration for a field to a JSON object.
 	virtual void to_json(Json::Value & value) const = 0;
 
@@ -128,6 +131,11 @@ namespace RestPose {
 	Xapian::Query query(const std::string & qtype,
 			    const Json::Value & value) const;
 
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -166,6 +174,11 @@ namespace RestPose {
 	Xapian::Query query(const std::string & qtype,
 			    const Json::Value & value) const;
 
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -201,6 +214,11 @@ namespace RestPose {
 	Xapian::Query query(const std::string & qtype,
 			    const Json::Value & value) const;
 
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
 
@@ -235,6 +253,11 @@ namespace RestPose {
 	Xapian::Query query(const std::string & qtype,
 			    const Json::Value & value) const;
 
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -264,6 +287,11 @@ namespace RestPose {
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
 			    const Json::Value & value) const;
+
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
 
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
@@ -298,6 +326,11 @@ namespace RestPose {
 	Xapian::Query query(const std::string & qtype,
 			    const Json::Value & value) const;
 
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -323,6 +356,11 @@ namespace RestPose {
 	Xapian::Query query(const std::string & qtype,
 			    const Json::Value & value) const;
 
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -336,6 +374,11 @@ namespace RestPose {
 	/// Create a query to search this field.
 	Xapian::Query query(const std::string & qtype,
 			    const Json::Value & value) const;
+
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return std::string();
+	}
 
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;

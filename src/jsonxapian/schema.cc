@@ -1356,7 +1356,12 @@ Schema::display_doc(const Xapian::Document & doc,
     Json::Value fieldlist(Json::arrayValue);
     for (map<string, FieldConfig *>::const_iterator
 	 i = fields.begin(); i != fields.end(); ++i) {
-	fieldlist.append(i->first);
+	if (i->second != NULL) {
+	    string stored_field = i->second->stored_field();
+	    if (!stored_field.empty()) {
+		fieldlist.append(stored_field);
+	    }
+	}
     }
     display_doc(doc, fieldlist, result);
 }

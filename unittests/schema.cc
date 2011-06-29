@@ -301,8 +301,8 @@ TEST(DateFields)
     CollectionConfig config("test"); // dummy config, used for testing.
     Json::Value tmp, tmp2;
     Schema s2("");
-    s2.set("date", new DateFieldConfig(0, "date"));
-    CHECK_EQUAL("{\"fields\":{\"date\":{\"slot\":0,\"store_field\":\"date\",\"type\":\"date\"}},\"patterns\":[]}",
+    s2.set("date", new DateFieldConfig(0, "date2"));
+    CHECK_EQUAL("{\"fields\":{\"date\":{\"slot\":0,\"store_field\":\"date2\",\"type\":\"date\"}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
@@ -317,9 +317,36 @@ TEST(DateFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm, config);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL("{\"data\":{\"date\":[\"2010-06-08\"]},\"values\":{\"0\":\"\317\332&(\"}}",
+	CHECK_EQUAL("{\"data\":{\"date2\":[\"2010-06-08\"]},\"values\":{\"0\":\"\317\332&(\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
-	CHECK_EQUAL("{\"date\":[\"2010-06-08\"]}", s.display_doc_as_string(doc));
+	CHECK_EQUAL("{\"date2\":[\"2010-06-08\"]}", s.display_doc_as_string(doc));
+    }
+}
+
+TEST(CategoryFields)
+{
+    CollectionConfig config("test"); // dummy config, used for testing.
+    Json::Value tmp, tmp2;
+    Schema s2("");
+    s2.set("cat", new CategoryFieldConfig("cat", 30, ExactFieldConfig::TOOLONG_ERROR, "category"));
+    CHECK_EQUAL("{\"fields\":{\"cat\":{\"max_length\":30,\"prefix\":\"cat\",\"store_field\":\"category\",\"too_long_action\":\"error\",\"type\":\"cat\"}},\"patterns\":[]}",
+		json_serialise(s2.to_json(tmp2)));
+
+    Schema s("");
+    s.from_json(s2.to_json(tmp));
+    tmp = tmp2 = Json::nullValue;
+    CHECK_EQUAL(json_serialise(s.to_json(tmp)),
+		json_serialise(s2.to_json(tmp2)));
+
+    {
+	Json::Value v(Json::objectValue);
+	v["cat"] = "foo";
+	std::string idterm;
+	Xapian::Document doc = s.process(v, idterm, config);
+	CHECK_EQUAL(idterm, "");
+	CHECK_EQUAL("{\"data\":{\"category\":[\"foo\"]},\"terms\":{\"cat\\tCfoo\":{}}}",
+		    json_serialise(doc_to_json(doc, tmp)));
+	CHECK_EQUAL("{\"category\":[\"foo\"]}", s.display_doc_as_string(doc));
     }
 }
 
@@ -328,8 +355,8 @@ TEST(StoreFields)
     CollectionConfig config("test"); // dummy config, used for testing.
     Json::Value tmp, tmp2;
     Schema s2("");
-    s2.set("store", new StoredFieldConfig(std::string("store")));
-    CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store\",\"type\":\"stored\"}},\"patterns\":[]}",
+    s2.set("store", new StoredFieldConfig(std::string("store2")));
+    CHECK_EQUAL("{\"fields\":{\"store\":{\"store_field\":\"store2\",\"type\":\"stored\"}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
@@ -344,9 +371,10 @@ TEST(StoreFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm, config);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL("{\"data\":{\"store\":[\"Well, can you store me?\"]}}",
+	CHECK_EQUAL("{\"data\":{\"store2\":[\"Well, can you store me?\"]}}",
 		    json_serialise(doc_to_json(doc, tmp)));
-	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"store\":[\"Well, can you store me?\"]}");
+	CHECK_EQUAL("{\"store2\":[\"Well, can you store me?\"]}",
+		    s.display_doc_as_string(doc));
     }
 
     {
@@ -355,9 +383,9 @@ TEST(StoreFields)
 	std::string idterm;
 	Xapian::Document doc = s.process(v, idterm, config);
 	CHECK_EQUAL(idterm, "");
-	CHECK_EQUAL("{\"data\":{\"store\":[1283400000]}}",
+	CHECK_EQUAL("{\"data\":{\"store2\":[1283400000]}}",
 		    json_serialise(doc_to_json(doc, tmp)));
-	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"store\":[1283400000]}");
+	CHECK_EQUAL("{\"store2\":[1283400000]}", s.display_doc_as_string(doc));
     }
 }
 
