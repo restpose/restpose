@@ -285,7 +285,7 @@ namespace RestPose {
 			    MaxLenFieldConfig::TooLongAction too_long_action_ = TOOLONG_ERROR,
 			    const std::string & store_field_ = std::string())
 		: MaxLenFieldConfig(max_length_, too_long_action_),
-		  prefix(prefix_),
+		  prefix(prefix_ + "\t"),
 		  store_field(store_field_)
 	{}
 
