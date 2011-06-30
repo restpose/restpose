@@ -48,15 +48,23 @@ noinst_HEADERS += \
  libs/xapiancommon/safefcntl.h \
  libs/xapiancommon/safesysstat.h \
  libs/xapiancommon/safeunistd.h \
+ libs/xapiancommon/safeuuid.h \
+ libs/xapiancommon/safewindows.h \
  libs/xapiancommon/serialise.h \
  libs/xapiancommon/str.h \
  libs/xapiancommon/utils.h
+
 libxapiancommon_a_SOURCES = \
  libs/xapiancommon/diritor.cc \
  libs/xapiancommon/hashterm.cc \
  libs/xapiancommon/loadfile.cc \
  libs/xapiancommon/serialise.cc \
- libs/xapiancommon/utils.cc
+ libs/xapiancommon/utils.cc \
+
+# Windows-specific files
+EXTRA_DIST += \
+ libs/xapiancommon/win32_uuid.h \
+ libs/xapiancommon/win32_uuid.cc
 
 # UnitTest++
 noinst_LIBRARIES += libunittestpp.a
