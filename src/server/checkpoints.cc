@@ -47,6 +47,7 @@ IndexingErrorLog::append_error(const std::string & msg,
     if (errors.size() < max_errors) {
 	errors.push_back(IndexingError(msg, doc_type, doc_id));
     }
+    total_errors++;
 }
 
 Json::Value &
