@@ -2,6 +2,7 @@ noinst_LIBRARIES += libserver.a
 
 noinst_HEADERS += \
  src/server/basetasks.h \
+ src/server/checkpoints.h \
  src/server/ignore_sigpipe.h \
  src/server/result_handle.h \
  src/server/server.h \
@@ -13,6 +14,7 @@ noinst_HEADERS += \
  src/server/thread_pool.h
 
 libserver_a_SOURCES = \
+ src/server/checkpoints.cc \
  src/server/ignore_sigpipe.cc \
  src/server/result_handle.cc \
  src/server/server.cc \
