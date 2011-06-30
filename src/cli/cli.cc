@@ -151,5 +151,8 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
     if (action == ACT_DEFAULT) {
 	action = ACT_SERVE;
     }
+    if (datadir.empty()) {
+	datadir = "rspdbs";
+    }
     return 0;
 }
