@@ -255,7 +255,7 @@ class SearchResults(object):
         self.items = [SearchResult(rank, fields) for (rank, fields) in
                       enumerate(result.get('items', []), self.offset)]
 
-        self.info = result.get('info')
+        self.info = result.get('info', {})
 
     def __iter__(self):
         return iter(self.items)
@@ -275,6 +275,6 @@ class SearchResults(object):
             self.matches_upper_bound,
             u', '.join(unicode(item) for item in self.items),
         )
-        if self.info is not None:
+        if self.info:
             result += u', info=%s' % unicode(self.info)
         return result + u')'
