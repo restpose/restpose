@@ -477,7 +477,7 @@ CollectionConfig::set_category_hierarchy(const string & hierarchy_name,
     changed = true;
 }
 
-void
+const CategoryHierarchy &
 CollectionConfig::category_add(const std::string & hierarchy_name,
 			       const std::string & cat_name,
 			       Categories & modified)
@@ -485,9 +485,10 @@ CollectionConfig::category_add(const std::string & hierarchy_name,
     CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
     hierarchy.add(cat_name, modified);
     changed = true;
+    return hierarchy;
 }
 
-void
+const CategoryHierarchy &
 CollectionConfig::category_remove(const std::string & hierarchy_name,
 				  const std::string & cat_name,
 				  Categories & modified)
@@ -495,9 +496,10 @@ CollectionConfig::category_remove(const std::string & hierarchy_name,
     CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
     hierarchy.remove(cat_name, modified);
     changed = true;
+    return hierarchy;
 }
 
-void
+const CategoryHierarchy &
 CollectionConfig::category_add_parent(const std::string & hierarchy_name,
 				      const std::string & child_name,
 				      const std::string & parent_name,
@@ -506,9 +508,10 @@ CollectionConfig::category_add_parent(const std::string & hierarchy_name,
     CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
     hierarchy.add_parent(child_name, parent_name, modified);
     changed = true;
+    return hierarchy;
 }
 
-void
+const CategoryHierarchy &
 CollectionConfig::category_remove_parent(const std::string & hierarchy_name,
 					 const std::string & child_name,
 					 const std::string & parent_name,
@@ -517,6 +520,7 @@ CollectionConfig::category_remove_parent(const std::string & hierarchy_name,
     CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
     hierarchy.remove_parent(child_name, parent_name, modified);
     changed = true;
+    return hierarchy;
 }
 
 Json::Value &

@@ -243,20 +243,24 @@ class CollectionConfig {
     void set_category_hierarchy(const std::string & hierarchy_name,
 				const CategoryHierarchy & category);
 
-    void category_add(const std::string & hierarchy_name,
-		      const std::string & cat_name,
-		      Categories & modified);
-    void category_remove(const std::string & hierarchy_name,
-			 const std::string & cat_name,
-			 Categories & modified);
-    void category_add_parent(const std::string & hierarchy_name,
-			     const std::string & child_name,
-			     const std::string & parent_name,
-			     Categories & modified);
-    void category_remove_parent(const std::string & hierarchy_name,
-				const std::string & child_name,
-				const std::string & parent_name,
-				Categories & modified);
+    const CategoryHierarchy & category_add(
+	const std::string & hierarchy_name,
+	const std::string & cat_name,
+	Categories & modified);
+    const CategoryHierarchy & category_remove(
+	const std::string & hierarchy_name,
+	const std::string & cat_name,
+	Categories & modified);
+    const CategoryHierarchy & category_add_parent(
+	const std::string & hierarchy_name,
+	const std::string & child_name,
+	const std::string & parent_name,
+	Categories & modified);
+    const CategoryHierarchy & category_remove_parent(
+	const std::string & hierarchy_name,
+	const std::string & child_name,
+	const std::string & parent_name,
+	Categories & modified);
 
     /** Categorise a piece of text.
      *
