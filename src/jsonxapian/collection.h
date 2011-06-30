@@ -74,6 +74,12 @@ class Collection {
      */
     void write_config();
 
+    /** Update documents which are in the list of modified categories.
+     */
+    void update_modified_categories(const std::string & prefix,
+				    const CategoryHierarchy & hierarchy,
+				    const Categories & modified);
+
     /// Copying not allowed.
     Collection(const Collection &);
     /// Assignment not allowed.
@@ -192,6 +198,17 @@ class Collection {
      */
     void set_category_hierarchy(const std::string & hierarchy_name,
 				const CategoryHierarchy & category);
+
+    void category_add(const std::string & hierarchy_name,
+		      const std::string & cat_name);
+    void category_remove(const std::string & hierarchy_name,
+			 const std::string & cat_name);
+    void category_add_parent(const std::string & hierarchy_name,
+			     const std::string & child_name,
+			     const std::string & parent_name);
+    void category_remove_parent(const std::string & hierarchy_name,
+				const std::string & child_name,
+				const std::string & parent_name);
 
 
     /** Convert the collection configuration to JSON.

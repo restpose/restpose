@@ -30,6 +30,7 @@
 #include <cerrno>
 #include "jsonxapian/collection.h"
 #include "jsonxapian/collection_pool.h"
+#include "jsonxapian/doctojson.h"
 #include "jsonxapian/pipe.h"
 #include "server/task_manager.h"
 #include "utils.h"
@@ -426,7 +427,7 @@ TEST(CollectionCategory)
 		"\"categories\":{\"foo\":{}},"
 		"\"format\": 3,"
 		"\"types\":{\"default\":{\"fields\":{"
-		  "\"cat\":{\"store_field\":\"cat\",\"type\":\"cat\",\"prefix\":\"cat\"},"
+		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"cat\",\"prefix\":\"foo\"},"
 		  "\"id\":{\"max_length\":64,"
 	                  "\"store_field\":\"\","
 	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
@@ -439,9 +440,9 @@ TEST(CollectionCategory)
 		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{\"default\":{\"fields\":{"
-		  "\"cat\":{\"max_length\":64,"
-			   "\"prefix\":\"cat\","
-			   "\"store_field\":\"cat\","
+		  "\"foo\":{\"max_length\":64,"
+			   "\"prefix\":\"foo\","
+			   "\"store_field\":\"foo\","
 			   "\"too_long_action\":\"error\","
 			   "\"type\":\"cat\"},"
 		  "\"id\":{\"max_length\":64,"
@@ -461,9 +462,9 @@ TEST(CollectionCategory)
 		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{\"default\":{\"fields\":{"
-		  "\"cat\":{\"max_length\":64,"
-			   "\"prefix\":\"cat\","
-			   "\"store_field\":\"cat\","
+		  "\"foo\":{\"max_length\":64,"
+			   "\"prefix\":\"foo\","
+			   "\"store_field\":\"foo\","
 			   "\"too_long_action\":\"error\","
 			   "\"type\":\"cat\"},"
 		  "\"id\":{\"max_length\":64,"
@@ -471,4 +472,43 @@ TEST(CollectionCategory)
 	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
+
+    {
+	Json::Value doc(Json::objectValue);
+	doc["foo"] = "hello";
+	std::string idterm;
+	Xapian::Document xdoc = c->process_doc(doc, "default", "1", idterm);
+	CHECK_EQUAL(idterm, "\tdefault\t1");
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tChello\":{}}}",
+		    json_serialise(doc_to_json(xdoc, tmp)));
+
+	Json::Value & catval = doc["foo"] = Json::arrayValue;
+	catval.append("world");
+	catval.append("child");
+	xdoc = c->process_doc(doc, "default", "1", idterm);
+	CHECK_EQUAL(idterm, "\tdefault\t1");
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+		    json_serialise(doc_to_json(xdoc, tmp)));
+	c->raw_update_doc(xdoc, idterm);
+
+	Json::Value tmp2;
+	c->get_document("default", "1", tmp2);
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+		    json_serialise(tmp2));
+
+	c->category_add_parent("foo", "parent", "grand");
+	c->get_document("default", "1", tmp2);
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAgrand\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+		    json_serialise(tmp2));
+
+	c->category_remove("foo", "child");
+	c->get_document("default", "1", tmp2);
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+		    json_serialise(tmp2));
+
+	c->category_add_parent("foo", "child", "parent");
+	c->get_document("default", "1", tmp2);
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAgrand\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+		    json_serialise(tmp2));
+    }
 }
