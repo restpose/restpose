@@ -24,11 +24,11 @@ class RestPoseResponse(restkit.Response):
     def json(self):
         """Get the response body as JSON.
         
-        If the response content-type was application/json, convert the
+        If the response Content-Type was application/json, convert the
         response body to JSON and return it.  Otherwise, return None.
 
         """
-        ctype = self.headers.iget('content-type')
+        ctype = self.headers.get('Content-Type')
         if ctype == 'application/json':
             return json.loads(self.body_string())
         return None
@@ -59,7 +59,7 @@ class RestPoseResource(restkit.Resource):
             msg = getattr(e, 'msg', '')
             msgobj = None
             if e.response and msg:
-                ctype = e.response.headers.iget('content-type')
+                ctype = e.response.headers.get('Content-Type')
                 if ctype == 'application/json':
                     try:
                         msgobj = json.loads(msg)
