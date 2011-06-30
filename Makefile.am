@@ -9,6 +9,7 @@ INCLUDES =
 bin_PROGRAMS =
 check_PROGRAMS =
 TESTS =
+EXTRA_DIST =
 
 AM_LDFLAGS = $(NO_UNDEFINED)
 
@@ -38,7 +39,7 @@ SUBDIRS = libs/libmicrohttpd .
 
 DISTCHECK_CONFIGURE_FLAGS = "XAPIAN_CONFIG=$(XAPIAN_CONFIG)"
 
-EXTRA_DIST = \
+EXTRA_DIST += \
  examples/lang_guess_model.json \
  examples/schema.json \
  scripts/get_wikipedia_sample_text \

@@ -59,7 +59,7 @@ libxapiancommon_a_SOURCES = \
  libs/xapiancommon/hashterm.cc \
  libs/xapiancommon/loadfile.cc \
  libs/xapiancommon/serialise.cc \
- libs/xapiancommon/utils.cc \
+ libs/xapiancommon/utils.cc
 
 # Windows-specific files
 EXTRA_DIST += \
