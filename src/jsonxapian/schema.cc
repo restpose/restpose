@@ -574,6 +574,7 @@ CategoryFieldConfig::CategoryFieldConfig(const Json::Value & value)
 	throw InvalidValueError("Field configuration argument \"prefix\""
 				" contains invalid character \\t");
     }
+    hierarchy_name = prefix;
     prefix.append("\t");
 
     store_field = json_get_string_member(value, "store_field", string());
@@ -585,7 +586,7 @@ CategoryFieldConfig::~CategoryFieldConfig()
 FieldIndexer *
 CategoryFieldConfig::indexer() const
 {
-    return new CategoryIndexer(prefix, store_field,
+    return new CategoryIndexer(prefix, hierarchy_name, store_field,
 			       max_length, too_long_action);
 }
 

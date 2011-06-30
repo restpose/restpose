@@ -301,6 +301,16 @@ namespace RestPose {
 	/// The prefix that the category terms are stored under.
 	std::string prefix;
 
+	/** The name of the hierarchy that this category uses.
+	 *
+	 *  Currently, this is just the prefix (without the tab separator),
+	 *  since the hierarchy needs to know the prefix used in order to
+	 *  update the appropriate documents when the hierarchy is modified,
+	 *  and just using the prefix as the hierarchy name is the easiest way
+	 *  to do this.
+	 */
+	std::string hierarchy_name;
+
 	/// The fieldname to store field values under (empty to not store).
 	std::string store_field;
 
