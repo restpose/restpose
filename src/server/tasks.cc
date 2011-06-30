@@ -117,8 +117,16 @@ GetDocumentTask::perform(RestPose::Collection * collection)
     Json::Value result(Json::objectValue);
     collection->get_document(doc_type, doc_id, result);
     LOG_INFO("GetDocument '" + doc_id + "' from '" + collection->get_name() + "'");
-    resulthandle.response().set(result, 200);
-    resulthandle.set_ready();
+    LOG_INFO(json_serialise(result));
+    if (result.isNull()) {
+	result = Json::objectValue;
+	result["err"] = "No document found of type \"" + doc_type +
+		"\" and id \"" + doc_id + "\"";
+	resulthandle.failed(result, 404);
+    } else {
+	resulthandle.response().set(result, 200);
+	resulthandle.set_ready();
+    }
 }
 
 
