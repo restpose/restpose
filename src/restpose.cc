@@ -35,6 +35,7 @@
 #include "importer/mongo/mongo_import.h"
 #include "rest/default_routes.h"
 #include "rest/router.h"
+#include "safeerrno.h"
 #include "server/task_manager.h"
 #include "server/server.h"
 #include "utils/rsperrors.h"
@@ -43,7 +44,6 @@
 #include "ngramcat/categoriser.h"
 #include "utils/io_wrappers.h"
 #include "utils/jsonutils.h"
-#include <errno.h>
 
 #define PROGNAME "restpose"
 
@@ -113,10 +113,10 @@ main_do(int argc, char * const* argv)
 	    std::string text;
 	    int fd = io_open_read(path.c_str());
 	    if (fd == -1) {
-		throw RestPose::SysError("Unable to open data file at " + path, errno);
+		throw SysError("Unable to open data file at " + path, errno);
 	    }
 	    if (!io_read_exact(text, fd, 1024 * 1024)) {
-		throw RestPose::SysError("Unable to open read from file at " + path, errno);
+		throw SysError("Unable to open read from file at " + path, errno);
 	    }
 	    cat.add_target_profile(*i, text);
 	}
