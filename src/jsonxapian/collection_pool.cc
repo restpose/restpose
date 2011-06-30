@@ -27,6 +27,8 @@
 #include "diritor.h"
 #include <memory>
 #include "omassert.h"
+#include "safeerrno.h"
+#include "utils/rsperrors.h"
 #include "utils/stringutils.h"
 #include "utils.h"
 
@@ -41,6 +43,13 @@ CollectionPool::CollectionPool(const string & datadir_)
 {
     if (!string_endswith(datadir, DIR_SEPARATOR)) {
 	datadir += DIR_SEPARATOR;
+    }
+    string stripped_datadir = datadir.substr(0, datadir.size() - 1);
+    if (!dir_exists(stripped_datadir)) {
+	if (mkdir(stripped_datadir, 0777)) {
+	    throw SysError("Unable to create datadir \"" +
+			   stripped_datadir + "\"", errno);
+	}
     }
 }
 
