@@ -47,4 +47,15 @@ TEST(CheckPoints)
     cp.set_reached(log);
     CHECK_EQUAL("{\"errors\":[],\"reached\":true,\"total_errors\":0}",
 		json_serialise(cp.get_state(tmp)));
+
+    log = new IndexingErrorLog(2);
+    log->append_error("Error parsing something", "", "");
+    log->append_error("Error processing field", "type1", "doc1");
+    log->append_error("Error processing field", "type1", "doc2");
+    cp.set_reached(log);
+    CHECK_EQUAL("{\"errors\":["
+		"{\"msg\":\"Error parsing something\"},"
+		"{\"doc_id\":\"doc1\",\"doc_type\":\"type1\",\"msg\":\"Error processing field\"}"
+		"],\"reached\":true,\"total_errors\":3}",
+		json_serialise(cp.get_state(tmp)));
 }
