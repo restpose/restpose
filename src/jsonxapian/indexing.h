@@ -175,15 +175,19 @@ namespace RestPose {
      */
     class CategoryIndexer : public FieldIndexer {
 	std::string prefix;
+	std::string hierarchy_name;
 	std::string store_field;
 	unsigned int max_length;
 	MaxLenFieldConfig::TooLongAction too_long_action;
       public:
 	CategoryIndexer(const std::string & prefix_,
+			const std::string & hierarchy_name_,
 			const std::string & store_field_,
 			unsigned int max_length_,
 			MaxLenFieldConfig::TooLongAction too_long_action_)
-		: prefix(prefix_), store_field(store_field_),
+		: prefix(prefix_),
+		  hierarchy_name(hierarchy_name_),
+		  store_field(store_field_),
 		  max_length(max_length_), too_long_action(too_long_action_)
 	{}
 
