@@ -30,6 +30,7 @@
 #include "realtime.h"
 #include "server/thread_pool.h"
 #include "utils/jsonutils.h"
+#include "utils.h"
 
 #define DIR_SEPARATOR "/"
 
@@ -232,7 +233,12 @@ SearchThread::run()
 	} catch(const Xapian::DatabaseOpeningError & e) {
 	    LOG_ERROR("Readonly task failed with", e);
 	    Json::Value result(Json::objectValue);
-	    result["err"] = e.get_description();
+	    if (coll_name_ptr != NULL && !pool.exists(*coll_name_ptr)) {
+		result["err"] = "No collection of name \"" +
+			*coll_name_ptr + "\" exists";
+	    } else {
+		result["err"] = e.get_description();
+	    }
 	    rotask->resulthandle.failed(result, 404);
 	} catch(const Xapian::Error & e) {
 	    LOG_ERROR("Readonly task failed with", e);
