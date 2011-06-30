@@ -87,7 +87,7 @@ class QueryTarget(object):
 
     def query_all(self):
         """Create a query which matches all documents."""
-        return QueryAll(target=self._collection)
+        return QueryAll(target=self)
 
     def query_none(self):
         """Create a query which matches no documents."""
