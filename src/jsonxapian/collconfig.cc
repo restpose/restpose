@@ -118,6 +118,8 @@ CollectionConfig::set_default_schema()
 "    [ \"tag\", { \"type\": \"exact\", \"prefix\": \"g\", \"store_field\": \"tag\" } ],"
 "    [ \"*_url\", { \"type\": \"exact\", \"prefix\": \"u*\", \"store_field\": \"*_url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
 "    [ \"url\", { \"type\": \"exact\", \"prefix\": \"u\", \"store_field\": \"url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
+"    [ \"*_cat\", { \"type\": \"cat\", \"prefix\": \"c*\", \"store_field\": \"*_cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
+"    [ \"cat\", { \"type\": \"cat\", \"prefix\": \"c\", \"store_field\": \"cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
 "    [ \"id\", { \"type\": \"id\", \"store_field\": \"id\" } ],"
 "    [ \"type\", { \"type\": \"exact\", \"prefix\": \"!\", \"store_field\": \"type\" } ],"
 "    [ \"*\", { \"type\": \"text\", \"prefix\": \"t\", \"store_field\": \"*\" } ]"
@@ -584,10 +586,10 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 {
     json_check_object(doc_obj, "input document");
 
-    const Json::Value & type_obj = doc_obj[type_field];
     string doc_type_(doc_type);
     if (doc_type.empty()) {
 	// No document type supplied in URL - look for it in the document.
+	const Json::Value & type_obj = doc_obj[type_field];
 	if (type_obj.isNull()) {
 	    throw InvalidValueError(
 		"No document type supplied or stored in document.");
@@ -608,7 +610,11 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
     } else {
 	// Document type supplied in URL - check that it isn't different in
 	// document.
-	if (!type_obj.isNull()) {
+	Json::Value & type_obj = doc_obj[type_field];
+	if (type_obj.isNull()) {
+	    type_obj = Json::arrayValue;
+	    type_obj[0] = doc_type;
+	} else {
 	    string stored_type;
 	    if (type_obj.isArray()) {
 		if (type_obj.size() == 1) {
@@ -621,7 +627,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		stored_type = json_get_idstyle_value(type_obj);
 	    }
 	    if (!stored_type.empty() && doc_type != stored_type) {
-	    	throw InvalidValueError("Document type supplied differs from "
+		throw InvalidValueError("Document type supplied differs from "
 					"that inside document.");
 	    }
 	}
@@ -650,7 +656,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		stored_id = json_get_idstyle_value(id_obj);
 	    }
 	    if (!stored_id.empty() && doc_id != stored_id) {
-	    	throw InvalidValueError("Document id supplied differs from "
+		throw InvalidValueError("Document id supplied differs from "
 					"that inside document.");
 	    }
 	}
