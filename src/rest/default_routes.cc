@@ -41,11 +41,21 @@ setup_routes(Router & router)
     router.add("/coll", HTTP_GETHEAD, new CollListHandlerFactory);
     router.add("/coll/?", HTTP_GETHEAD, new CollInfoHandlerFactory);
     router.add("/coll/?", HTTP_PUT, new CollCreateHandlerFactory);
-    //router.add("/coll/?/checkpoint", HTTP_GETHEAD, new CollGetCheckpointsHandlerFactory);
-    router.add("/coll/?/checkpoint", HTTP_PUT, new CollCreateCheckpointHandlerFactory);
-    //router.add("/coll/?/checkpoint/?", HTTP_GETHEAD, new CollGetCheckpointHandlerFactory);
+
+    // Checkpoints
+    router.add("/coll/?/checkpoint", HTTP_GETHEAD, new CollGetCheckpointsHandlerFactory);
+    router.add("/coll/?/checkpoint", HTTP_POST, new CollCreateCheckpointHandlerFactory);
+    router.add("/coll/?/checkpoint/?", HTTP_GETHEAD, new CollGetCheckpointHandlerFactory);
+    //router.add("/coll/?/checkpoint/?", HTTP_DELETE, new CollDeleteCheckpointHandlerFactory);
+
+    // Documents
     router.add("/coll/?/type/?/id/?", HTTP_PUT, new IndexDocumentHandlerFactory);
-    router.add("/coll/?/type/?/id/?", HTTP_GET, new GetDocumentHandlerFactory);
+    //router.add("/coll/?/type/?/id/?", HTTP_DELETE, new DeleteDocumentHandlerFactory);
+    router.add("/coll/?/type/?/id/?", HTTP_GETHEAD, new GetDocumentHandlerFactory);
+
+    // Search
     router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
+
+    // Set a handler for anything else to return 404.
     router.set_default(new NotFoundHandlerFactory);
 }
