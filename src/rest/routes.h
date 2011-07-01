@@ -1,4 +1,4 @@
-/** @file default_routes.h
+/** @file routes.h
  * @brief Setup the routes to be used.
  */
 /* Copyright (c) 2011 Richard Boulton
@@ -21,12 +21,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-#ifndef RESTPOSE_INCLUDED_DEFAULT_ROUTES_H
-#define RESTPOSE_INCLUDED_DEFAULT_ROUTES_H
+#ifndef RESTPOSE_INCLUDED_ROUTES_H
+#define RESTPOSE_INCLUDED_ROUTES_H
 
 class Router;
 
 extern void
 setup_routes(Router & router);
 
-#endif /* RESTPOSE_INCLUDED_DEFAULT_ROUTES_H */
+#endif /* RESTPOSE_INCLUDED_ROUTES_H */

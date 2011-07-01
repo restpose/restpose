@@ -1,4 +1,4 @@
-/** @file default_routes.cc
+/** @file routes.cc
  * @brief Setup the routes to be used.
  */
 /* Copyright (c) 2011 Richard Boulton
@@ -23,7 +23,7 @@
  */
 
 #include <config.h>
-#include "rest/default_routes.h"
+#include "rest/routes.h"
 
 #include "features/checkpoint_handlers.h"
 #include "httpserver/httpserver.h"

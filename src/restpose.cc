@@ -33,7 +33,7 @@
 #include "httpserver/httpserver.h"
 // #include "importer/filesystem/filesystem_import.h"
 #include "importer/mongo/mongo_import.h"
-#include "rest/default_routes.h"
+#include "rest/routes.h"
 #include "rest/router.h"
 #include "safeerrno.h"
 #include "server/task_manager.h"
