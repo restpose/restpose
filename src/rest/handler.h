@@ -102,7 +102,8 @@ class QueuedHandler : public Handler {
   public:
     QueuedHandler();
     void handle(ConnectionInfo & conn);
-    virtual Queue::QueueState enqueue(const Json::Value & body) = 0;
+    virtual Queue::QueueState enqueue(ConnectionInfo & conn,
+				      const Json::Value & body) = 0;
 };
 
 /** Base class of handlers which put a task on a queue, and return immediately.
@@ -115,7 +116,8 @@ class NoWaitQueuedHandler : public Handler {
   public:
     NoWaitQueuedHandler();
     void handle(ConnectionInfo & conn);
-    virtual Queue::QueueState enqueue(const Json::Value & body) = 0;
+    virtual Queue::QueueState enqueue(ConnectionInfo & conn,
+				      const Json::Value & body) = 0;
 };
 
 #endif /* RESTPOSE_INCLUDED_HANDLER_H */

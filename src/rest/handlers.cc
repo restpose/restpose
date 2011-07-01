@@ -57,7 +57,8 @@ FileHandlerFactory::create(const vector<string> &path_params) const
 }
 
 Queue::QueueState
-FileHandler::enqueue(const Json::Value &)
+FileHandler::enqueue(ConnectionInfo &,
+		     const Json::Value &)
 {
     return taskman->queue_readonly("static",
 	new StaticFileTask(resulthandle, path));
@@ -71,7 +72,8 @@ ServerStatusHandlerFactory::create(const std::vector<std::string> &) const
 }
 
 Queue::QueueState
-ServerStatusHandler::enqueue(const Json::Value &)
+ServerStatusHandler::enqueue(ConnectionInfo &,
+			     const Json::Value &)
 {
     return taskman->queue_readonly("status",
 	new ServerStatusTask(resulthandle, taskman));
@@ -86,7 +88,8 @@ CollCreateHandlerFactory::create(
 }
 
 Queue::QueueState
-CollCreateHandler::enqueue(const Json::Value &)
+CollCreateHandler::enqueue(ConnectionInfo &,
+			   const Json::Value &)
 {
     return Queue::FULL; // FIXME
 }
@@ -103,7 +106,8 @@ IndexDocumentHandlerFactory::create(
 }
 
 Queue::QueueState
-IndexDocumentHandler::enqueue(const Json::Value & body)
+IndexDocumentHandler::enqueue(ConnectionInfo &,
+			      const Json::Value & body)
 {
     return taskman->queue_processing(coll_name,
 	new ProcessorProcessDocumentTask(doc_type, doc_id, body),
@@ -117,7 +121,8 @@ CollListHandlerFactory::create(const std::vector<std::string> &) const
 }
 
 Queue::QueueState
-CollListHandler::enqueue(const Json::Value &)
+CollListHandler::enqueue(ConnectionInfo &,
+			 const Json::Value &)
 {
     return taskman->queue_readonly("info",
 	new CollListTask(resulthandle, taskman->get_collections()));
@@ -132,7 +137,8 @@ CollInfoHandlerFactory::create(
 }
 
 Queue::QueueState
-CollInfoHandler::enqueue(const Json::Value &)
+CollInfoHandler::enqueue(ConnectionInfo &,
+			 const Json::Value &)
 {
     return taskman->queue_readonly("info",
 	new CollInfoTask(resulthandle, coll_name));
@@ -147,7 +153,8 @@ SearchHandlerFactory::create(const std::vector<std::string> & path_params) const
 }
 
 Queue::QueueState
-SearchHandler::enqueue(const Json::Value & body)
+SearchHandler::enqueue(ConnectionInfo &,
+		       const Json::Value & body)
 {
     return taskman->queue_readonly("search",
 	new PerformSearchTask(resulthandle, coll_name, body, doc_type));
@@ -163,7 +170,8 @@ GetDocumentHandlerFactory::create(const std::vector<std::string> & path_params) 
 }
 
 Queue::QueueState
-GetDocumentHandler::enqueue(const Json::Value &)
+GetDocumentHandler::enqueue(ConnectionInfo &,
+			    const Json::Value &)
 {
     return taskman->queue_readonly("search",
 	new GetDocumentTask(resulthandle, coll_name, doc_type, doc_id));

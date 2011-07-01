@@ -98,7 +98,7 @@ QueuedHandler::handle(ConnectionInfo & conn)
 		return;
 	    }
 	}
-	Queue::QueueState state = enqueue(body);
+	Queue::QueueState state = enqueue(conn, body);
 	if (handle_queue_push_fail(state, conn)) {
 	    return;
 	}
@@ -161,7 +161,7 @@ NoWaitQueuedHandler::handle(ConnectionInfo & conn)
 	json_unserialise(uploaded_data, body);
     }
 
-    Queue::QueueState state = enqueue(body);
+    Queue::QueueState state = enqueue(conn, body);
     if (handle_queue_push_fail(state, conn)) {
 	return;
     }
@@ -169,8 +169,8 @@ NoWaitQueuedHandler::handle(ConnectionInfo & conn)
 	// Return HTTP Accepted status code
 	// FIXME - this response should really include a pointer to a status
 	// monitor, or something similar.
-	conn.respond(202, "{\"ok\":1,\"busy\":1}", "application/json");
+	conn.respond(202, "{\"high_load\":1}", "application/json");
     } else {
-	conn.respond(202, "{\"ok\":1}", "application/json");
+	conn.respond(202, "{}", "application/json");
     }
 }
