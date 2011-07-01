@@ -1261,7 +1261,8 @@ Schema::perform_search(const Xapian::Database & db,
     if (search["checkatleast"] == -1) {
 	checkatleast = db.get_doccount();
     } else {
-	checkatleast = json_get_uint64_member(search, "checkatleast", Json::Value::maxUInt, 0);
+	checkatleast = json_get_uint64_member(search, "checkatleast",
+					      Json::Value::maxUInt, 0);
     }
 
     Xapian::Enquire enq(db);
