@@ -25,6 +25,12 @@
 #include <config.h>
 #include "server/checkpoints.h"
 
+#include "realtime.h"
+#include "safeuuid.h"
+
+using namespace RestPose;
+using namespace std;
+
 Json::Value &
 IndexingError::to_json(Json::Value & result) const
 {
@@ -40,9 +46,9 @@ IndexingError::to_json(Json::Value & result) const
 }
 
 void
-IndexingErrorLog::append_error(const std::string & msg,
-			       const std::string & doc_type,
-			       const std::string & doc_id)
+IndexingErrorLog::append_error(const string & msg,
+			       const string & doc_type,
+			       const string & doc_id)
 {
     if (errors.size() < max_errors) {
 	errors.push_back(IndexingError(msg, doc_type, doc_id));
@@ -55,7 +61,7 @@ IndexingErrorLog::to_json(Json::Value & result) const
 {
     result["total_errors"] = total_errors;
     Json::Value & errors_obj = result["errors"] = Json::arrayValue;
-    for (std::vector<IndexingError>::const_iterator i = errors.begin();
+    for (vector<IndexingError>::const_iterator i = errors.begin();
 	 i != errors.end(); ++i) {
 	i->to_json(errors_obj.append(Json::objectValue));
     }
@@ -64,8 +70,14 @@ IndexingErrorLog::to_json(Json::Value & result) const
 
 CheckPoint::CheckPoint()
 	: errors(NULL),
+	  last_touched(RealTime::now()),
 	  reached(false)
 {}
+
+CheckPoint::~CheckPoint()
+{
+    delete errors;
+}
 
 void
 CheckPoint::set_reached(IndexingErrorLog * errors_)
@@ -73,6 +85,7 @@ CheckPoint::set_reached(IndexingErrorLog * errors_)
     delete errors;
     errors = errors_;
     reached = true;
+    last_touched = RealTime::now();
 }
 
 Json::Value &
@@ -89,6 +102,70 @@ CheckPoint::get_state(Json::Value & result) const
 	}
     } else {
 	result["reached"] = false;
+    }
+    last_touched = RealTime::now();
+    return result;
+}
+
+double
+CheckPoint::seconds_since_touched() const
+{
+    return RealTime::now() - last_touched;
+}
+
+void
+CheckPoints::expire(double max_age)
+{
+    map<string, CheckPoint>::iterator i = points.begin();
+    while (i != points.end()) {
+	if (i->second.seconds_since_touched() > max_age) {
+	    points.erase(i++);
+	} else {
+	    ++i;
+	}
+    }
+}
+
+string
+CheckPoints::alloc_checkpoint()
+{
+    uuid_t uuid;
+    uuid_generate(uuid);
+    char buf[37];
+    uuid_unparse_lower(uuid, buf);
+    string checkid(buf, 36);
+    points[checkid];
+    return checkid;
+}
+
+Json::Value &
+CheckPoints::ids_to_json(Json::Value & result) const
+{
+    result = Json::arrayValue;
+    for (map<string, CheckPoint>::const_iterator i = points.begin();
+	 i != points.end(); ++i) {
+	result.append(i->first);
+    }
+    return result;
+}
+
+void
+CheckPoints::set_reached(const std::string & checkid,
+			 IndexingErrorLog * errors)
+{
+    CheckPoint & checkpoint = points[checkid];
+    checkpoint.set_reached(errors);
+}
+
+Json::Value &
+CheckPoints::get_state(const std::string & checkid,
+		       Json::Value & result) const
+{
+    map<string, CheckPoint>::const_iterator i = points.find(checkid);
+    if (i == points.end()) {
+	result = Json::nullValue;
+    } else {
+	i->second.get_state(result);
     }
     return result;
 }

@@ -27,6 +27,7 @@
 
 #include "json/value.h"
 #include <string>
+#include "utils/threading.h"
 #include <vector>
 
 /** An error when indexing.
@@ -115,6 +116,10 @@ class CheckPoint {
      */
     IndexingErrorLog * errors;
 
+    /** Time at which the checkpoint was last touched.
+     */
+    mutable double last_touched;
+
     /** Whether the checkpoint has been reached yet.
      */
     bool reached;
@@ -126,6 +131,8 @@ class CheckPoint {
      *  reached.
      */
     CheckPoint();
+
+    ~CheckPoint();
 
     /** Mark the checkpoint as having been reached.
      *
@@ -141,6 +148,67 @@ class CheckPoint {
      *  also returns the provided value.
      */
     Json::Value & get_state(Json::Value & result) const;
+
+    /** Get the time in seconds since the CheckPoint was modified or checked
+     *  (with get_state()).
+     *
+     *  Used for removing old checkpoints.
+     */
+    double seconds_since_touched() const;
+};
+
+/** Known checkpoints for a collection.
+ */
+class CheckPoints {
+    /** Map from the checkpoint ID to the checkpoint data.
+     */
+    std::map<std::string, CheckPoint> points;
+
+    CheckPoints(const CheckPoints &);
+    void operator=(const CheckPoints &);
+  public:
+    CheckPoints() {}
+    ~CheckPoints() {}
+
+    /** Expire any checkpoints which haven't been touched recently.
+     *
+     *  @param max_age The number of seconds after which checkpoints should be
+     *  removed if they haven't been touched.
+     */
+    void expire(double max_age);
+
+    /** Allocate a new checkpoint, and return its id.
+     */
+    std::string alloc_checkpoint();
+
+    /** Get the list of checkpoint IDs as a JSON value.
+     */
+    Json::Value & ids_to_json(Json::Value & result) const;
+
+    /** Mark a checkpoint as having been reached.
+     *
+     *  If the checkpoint doesn't exist (or has expired), this creates it.
+     *
+     *  Takes ownership of the supplied errors object.
+     *
+     *  @param checkid The checkpoint to mark.
+     *  @param errors The errors to associate with the checkpoint.  May be NULL.
+     */
+    void set_reached(const std::string & checkid,
+		     IndexingErrorLog * errors);
+
+    /** Get the status of the checkpoint.
+     *
+     *  Sets the provided Json value to describe the checkpoint status, and
+     *  also returns the provided value.
+     *
+     *  Returns a Json null value if the checkpoint isn't found (whether
+     *  because it never existed, or because it has expired).
+     *
+     *  @param checkid The checkpoint to get the status from..
+     */
+    Json::Value & get_state(const std::string & checkid,
+			    Json::Value & result) const;
 };
 
 #endif /* RESTPOSE_INCLUDED_CHECKPOINTS_H */

@@ -31,7 +31,7 @@
 using namespace RestPose;
 using namespace std;
 
-TEST(CheckPoints)
+TEST(CheckPoint)
 {
     Json::Value tmp;
     CheckPoint cp;
@@ -58,4 +58,60 @@ TEST(CheckPoints)
 		"{\"doc_id\":\"doc1\",\"doc_type\":\"type1\",\"msg\":\"Error processing field\"}"
 		"],\"reached\":true,\"total_errors\":3}",
 		json_serialise(cp.get_state(tmp)));
+}
+
+TEST(CheckPoints)
+{
+    Json::Value tmp;
+    CheckPoints cps;
+
+    CHECK_EQUAL("[]", json_serialise(cps.ids_to_json(tmp)));
+    CHECK_EQUAL("null", json_serialise(cps.get_state("unknown", tmp)));
+
+    string checkid = cps.alloc_checkpoint();
+    CHECK_EQUAL(checkid.size(), size_t(36));
+    CHECK_EQUAL("[\"" + checkid + "\"]",
+		json_serialise(cps.ids_to_json(tmp)));
+
+    // Test getting the state of an unfinished checkpoint
+    CHECK_EQUAL("{\"reached\":false}",
+		json_serialise(cps.get_state(checkid, tmp)));
+    CHECK_EQUAL("[\"" + checkid + "\"]",
+		json_serialise(cps.ids_to_json(tmp)));
+    CHECK_EQUAL("null", json_serialise(cps.get_state("unknown", tmp)));
+
+    // Test a finished checkpoint
+    cps.set_reached(checkid, NULL);
+    CHECK_EQUAL("{\"errors\":[],\"reached\":true,\"total_errors\":0}",
+		json_serialise(cps.get_state(checkid, tmp)));
+    CHECK_EQUAL("[\"" + checkid + "\"]",
+		json_serialise(cps.ids_to_json(tmp)));
+    CHECK_EQUAL("null", json_serialise(cps.get_state("unknown", tmp)));
+
+    // Test a finished checkpoint with errors.
+    IndexingErrorLog * log = new IndexingErrorLog(2);
+    log->append_error("Error parsing something", "", "");
+    log->append_error("Error processing field", "type1", "doc1");
+    log->append_error("Error processing field", "type1", "doc2");
+    cps.set_reached(checkid, log);
+
+    // Test expiry of checkpoints.
+    // The test should never take as long as this, so this shouldn't expire anything.
+    cps.expire(1000);
+    CHECK_EQUAL("{\"errors\":["
+		"{\"msg\":\"Error parsing something\"},"
+		"{\"doc_id\":\"doc1\",\"doc_type\":\"type1\",\"msg\":\"Error processing field\"}"
+		"],\"reached\":true,\"total_errors\":3}",
+		json_serialise(cps.get_state(checkid, tmp)));
+    CHECK_EQUAL("[\"" + checkid + "\"]",
+		json_serialise(cps.ids_to_json(tmp)));
+    CHECK_EQUAL("null", json_serialise(cps.get_state("unknown", tmp)));
+
+    // This should expire everything.
+    cps.expire(0);
+    CHECK_EQUAL("null",
+		json_serialise(cps.get_state(checkid, tmp)));
+    CHECK_EQUAL("[]",
+		json_serialise(cps.ids_to_json(tmp)));
+    CHECK_EQUAL("null", json_serialise(cps.get_state("unknown", tmp)));
 }
