@@ -66,7 +66,8 @@ class ConnectionInfo {
   public:
     struct MHD_Connection * connection;
     HTTPMethod method;
-    const char * url;
+    std::string host; // value from Host header
+    const char * url; // url path supplied in request (doesn't include method or host)
     const char * version;
     const char * upload_data;
     size_t * upload_data_size;

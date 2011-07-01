@@ -29,15 +29,15 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <sys/types.h>
-#include <sys/select.h>
-#include <sys/socket.h>
 #include <microhttpd.h>
-
 #include "omassert.h"
 #include "rest/handler.h"
 #include "rest/router.h"
 #include "server/ignore_sigpipe.h"
+#include <strings.h>
+#include <sys/types.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 #include <xapian.h>
@@ -244,6 +244,19 @@ ConnectionInfo::method_str() const
 }
 
 static int
+receive_header(void *cls,
+	       enum MHD_ValueKind,
+	       const char *key, const char *value)
+{
+    ConnectionInfo * conn_info = static_cast<ConnectionInfo *>(cls);
+    if (strcasecmp(key, "Host") == 0) {
+	conn_info->host = value;
+    }
+
+    return MHD_YES;
+}
+
+static int
 answer_connection_cb(void * cls,
 		     struct MHD_Connection *connection,
 		     const char *url,
@@ -263,6 +276,9 @@ answer_connection_cb(void * cls,
 	    conn_info = static_cast<ConnectionInfo *>(*con_cls);
 	    conn_info->first_call = false;
 	}
+
+	MHD_get_connection_values(connection, MHD_HEADER_KIND,
+				  &receive_header, conn_info);
 
 	// FIXME - are any of these always the same each time the callback is
 	// called, so can be initialised only once?
