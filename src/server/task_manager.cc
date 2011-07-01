@@ -47,7 +47,8 @@ TaskManager::TaskManager(CollectionPool & collections_)
 	  search_queues(100, 1000), // FIXME - pull out magic constants
 	  search_threads(),
 	  collections(collections_),
-	  collconfigs(collections)
+	  collconfigs(collections),
+	  checkpoints(100, 24 * 60 * 60) // Keep up to 100 log messages per checkpoint, and keep checkpoints for a day.  FIXME - pull out magic constants
 {
     // Create the nudge socket.
     int fds[2];
