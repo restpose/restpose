@@ -180,7 +180,7 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
 	Json::Value tmp;
 	config->to_json(tmp);
 	taskman->queue_indexing_from_processing(coll_name,
-						new IndexerConfigChangedTask(tmp));
+	    new IndexerConfigChangedTask(tmp));
 	config->clear_changed();
 
 	// Push the new config back to the cache.
