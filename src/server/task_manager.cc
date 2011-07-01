@@ -189,16 +189,6 @@ TaskManager::queue_processing(const string & queue,
     return result;
 }
 
-
-void
-TaskManager::queue_index_processed_doc(const std::string & collection,
-				       Xapian::Document xdoc,
-				       const std::string & idterm)
-{
-    return queue_indexing_from_processing(collection,
-	new IndexerUpdateDocumentTask(idterm, xdoc));
-}
-
 Queue::QueueState
 TaskManager::queue_pipe_document(const string & collection,
 				 const string & pipe,

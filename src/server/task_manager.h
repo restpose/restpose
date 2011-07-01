@@ -171,17 +171,6 @@ class TaskManager : public SubServer {
 				       bool allow_throttle,
 				       double end_time=0.0);
 
-
-    /** Queue a document for indexing.
-     *
-     *  This is intended to be called from the output of processing.
-     *  It blocks and retries if the queue is full, and disables the processing
-     *  queue for the collection if the queue is starting to have low space.
-     */
-    void queue_index_processed_doc(const std::string & collection,
-				   Xapian::Document xdoc,
-				   const std::string & idterm);
-
     Queue::QueueState queue_pipe_document(const std::string & collection,
 					  const std::string & pipe,
 					  const Json::Value & doc,
