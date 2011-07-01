@@ -229,17 +229,3 @@ IndexerDeleteDocumentTask::clone() const
 {
     return new IndexerDeleteDocumentTask(idterm);
 }
-
-void
-IndexerCommitTask::perform(RestPose::Collection & collection,
-			   TaskManager *)
-{
-    LOG_INFO("Commit in '" + collection.get_name() + "'");
-    collection.commit();
-}
-
-IndexingTask *
-IndexerCommitTask::clone() const
-{
-    return new IndexerCommitTask();
-}

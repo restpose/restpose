@@ -30,6 +30,7 @@
 #include "utils/compression.h"
 #include "utils/threading.h"
 
+#include "features/checkpoint_handlers.h"
 #include "jsonxapian/collection.h"
 #include "jsonxapian/schema.h"
 #include "jsonmanip/jsonpath.h"
@@ -47,6 +48,7 @@ extern "C" {
 #include "realtime.h"
 
 using namespace RestPose;
+using namespace std;
 
 struct MongoImporterConfig {
     /** The mongodb host IP address to connect to.
@@ -664,7 +666,9 @@ MongoImporter::Internal::run()
 	    if (count > batch_end) {
 		// FIXME - queue a commit to happen after processing all items
 		// in the queue, and wait for it to complete.
-		taskman->queue_commit(coll_name, true);
+		string checkid;
+		CollCreateCheckpointHandler::create_checkpoint(taskman,
+		    coll_name, checkid, true, false);
 		for (std::vector<std::string>::const_iterator
 		     i = unflushed_ids.begin();
 		     i != unflushed_ids.end();
@@ -687,7 +691,9 @@ MongoImporter::Internal::run()
 	{
 	    // FIXME - queue a commit to happen after processing all items
 	    // in the queue, and wait for it to complete.
-	    taskman->queue_commit(coll_name, true);
+	    string checkid;
+	    CollCreateCheckpointHandler::create_checkpoint(taskman, coll_name,
+		checkid, true, false);
 	    for (std::vector<std::string>::const_iterator
 		 i = unflushed_ids.begin();
 		 i != unflushed_ids.end();

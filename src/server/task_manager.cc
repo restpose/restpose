@@ -233,15 +233,6 @@ TaskManager::queue_delete_document(const string & collection,
 			  allow_throttle);
 }
 
-Queue::QueueState
-TaskManager::queue_commit(const std::string & collection,
-			  bool allow_throttle)
-{
-    return queue_indexing(collection,
-			  new IndexerCommitTask(),
-			  allow_throttle);
-}
-
 void
 TaskManager::start()
 {

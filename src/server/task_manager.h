@@ -213,15 +213,6 @@ class TaskManager : public SubServer {
 					    const std::string & idterm,
 					    bool allow_throttle);
 
-    /** Queue a commit to the index.
-     * @param collection The name of the collection to index to.
-     * @param allow_throttle If true, don't queue the document is the queue is
-     * already busy.  Otherwise, queue the document unless the queue is
-     * completely full.  See documentation for @a queue_index_document().
-     */
-    Queue::QueueState queue_commit(const std::string & collection,
-				   bool allow_throttle);
-
     /** Initialise the task manager server.
      */
     void start();

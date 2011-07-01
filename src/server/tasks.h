@@ -209,18 +209,4 @@ class IndexerDeleteDocumentTask : public IndexingTask {
     IndexingTask * clone() const;
 };
 
-/// Commit changes.
-class IndexerCommitTask : public IndexingTask {
-  public:
-    IndexerCommitTask()
-    {}
-
-    /// Perform the indexing task, given a collection (open for writing).
-    void perform(RestPose::Collection & collection,
-		 TaskManager * taskman);
-
-    /// Clone the task.
-    IndexingTask * clone() const;
-};
-
 #endif /* RESTPOSE_INCLUDED_TASKS_H */
