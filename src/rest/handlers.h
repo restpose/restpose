@@ -165,7 +165,6 @@ class GetDocumentHandler : public QueuedHandler {
 };
 
 
-
 class NotFoundHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
