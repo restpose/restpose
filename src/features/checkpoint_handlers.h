@@ -43,6 +43,28 @@ class CollCreateCheckpointHandler : public QueuedHandler {
 	    : coll_name(coll_name_)
     {}
 
+    /** Create a new checkpoint, and add it to the appropriate queue.
+     *
+     * @param coll_name The name of the collection to index to.
+     * @param checkid Will be set to the id of the newly created checkpoint.
+     * @param do_commit If true, the checkpoint will cause a commit.
+     * Otherwise, the checkpoint will just enforce ordering of operations.
+     * @param allow_throttle If true, don't queue the document is the queue is
+     * already busy.  Otherwise, queue the document unless the queue is
+     * completely full.
+     *
+     * Allow throttle should be specified for documents being read from a
+     * stream, if the source of documents can be paused to allow the queue to
+     * catch up.  This allows other sources of documents for indexing (such as
+     * pushes to the API) to have a chance at getting onto the queue.
+     */
+    static Queue::QueueState create_checkpoint(TaskManager * taskman,
+					       const std::string & coll_name,
+					       std::string & checkid,
+					       bool do_commit,
+					       bool allow_throttle);
+
+
     Queue::QueueState enqueue(ConnectionInfo & conn,
 			      const Json::Value & body);
 };

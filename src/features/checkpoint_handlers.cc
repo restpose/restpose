@@ -41,19 +41,31 @@ CollCreateCheckpointHandlerFactory::create(const std::vector<std::string> & path
 }
 
 Queue::QueueState
-CollCreateCheckpointHandler::enqueue(ConnectionInfo & conn,
-				     const Json::Value &)
+CollCreateCheckpointHandler::create_checkpoint(TaskManager * taskman,
+					       const std::string & coll_name,
+					       std::string & checkid,
+					       bool do_commit,
+					       bool allow_throttle)
 {
-    string checkid;
     checkid = taskman->get_checkpoints().alloc_checkpoint(coll_name);
-    bool do_commit = true; // FIXME - get this from a parameter.
     Queue::QueueState state = taskman->queue_processing(coll_name,
 	new ProcessorCheckpointTask(checkid, do_commit),
-	false);
+	allow_throttle);
     if (state != Queue::CLOSED && state != Queue::FULL) {
 	taskman->get_checkpoints().publish_checkpoint(coll_name, checkid);
     }
+    return state;
+}
 
+Queue::QueueState
+CollCreateCheckpointHandler::enqueue(ConnectionInfo & conn,
+				     const Json::Value &)
+
+{
+    string checkid;
+    bool do_commit = true; // FIXME - get this from a parameter.
+    Queue::QueueState state = create_checkpoint(taskman, coll_name, checkid,
+						do_commit, true);
     Json::Value result(Json::objectValue);
     result["checkid"] = checkid;
     resulthandle.response().set(result, 201);
@@ -62,7 +74,6 @@ CollCreateCheckpointHandler::enqueue(ConnectionInfo & conn,
 
     return state;
 }
-
 
 Handler *
 CollGetCheckpointsHandlerFactory::create(const std::vector<std::string> & path_params) const
