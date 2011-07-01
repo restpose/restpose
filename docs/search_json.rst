@@ -127,7 +127,7 @@ Get co-occurrence counts for words in matching documents
 
 Warning - fairly slow (and O(L*L), where L is the average document length).
 
-Returns counts for each pairs of terms seen, in decreasing order of
+Returns counts for each pair of terms seen, in decreasing order of
 cooccurrence.  The count entries are of the form: [suffix1, suffix2,
 co-occurrence count] or [suffix1, suffix2, co-occurrence count, termfreq of
 suffix1, termfreq of suffix2] if get_termfreqs was true.
@@ -153,8 +153,8 @@ occurrence count, termfreq] if get_termfreqs was true.
 
 INFO = {
     "occur": {
-        "prefix": <prefix of terms to check cooccurrence for>,
-        "doc_limit": <number of matching documents to stop checking after.  null=unlimited.  Integer of null.  Default=null>
+        "prefix": <prefix of terms to check occurrence for>,
+        "doc_limit": <number of matching documents to stop checking after.  null=unlimited.  Integer or null.  Default=null>
         "result_limit": <number of terms to return results for.  null=unlimited.  Integer or null. Default=null.>
 	"get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
 	"stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
