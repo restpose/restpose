@@ -43,7 +43,7 @@ class FileHandler : public QueuedHandler {
 	    : path(path_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 
@@ -54,7 +54,7 @@ class ServerStatusHandlerFactory : public HandlerFactory {
 
 class ServerStatusHandler : public QueuedHandler {
   public:
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 
@@ -70,7 +70,7 @@ class CollCreateHandler : public NoWaitQueuedHandler {
 	    : coll_name(coll_name_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 
@@ -92,7 +92,7 @@ class IndexDocumentHandler : public NoWaitQueuedHandler {
 	      doc_id(doc_id_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 
@@ -104,7 +104,7 @@ class CollListHandlerFactory : public HandlerFactory {
 
 class CollListHandler : public QueuedHandler {
   public:
-    Queue::QueueState enqueue(const Json::Value &) const;
+    Queue::QueueState enqueue(const Json::Value &);
 };
 
 
@@ -120,7 +120,7 @@ class CollInfoHandler : public QueuedHandler {
 	    : coll_name(coll_name_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 
@@ -139,7 +139,7 @@ class SearchHandler : public QueuedHandler {
 	      doc_type(doc_type_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 
@@ -161,7 +161,7 @@ class GetDocumentHandler : public QueuedHandler {
 	      doc_id(doc_id_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 
