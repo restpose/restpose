@@ -391,77 +391,74 @@ if test yes = "$enable_module_mongodb" ; then
 fi
 
 use_win32_uuid_api=0
-case $enable_backend_flint$enable_backend_chert$enable_backend_brass in
-*yes*)
-  dnl We use zlib for compressing tags in brass/chert/flint.  We could
-  dnl automatically disable support if zlib isn't found, but overall that
-  dnl probably does more harm than good - it's most likely that someone just
-  dnl forgot to install the -dev package for zlib.
-  dnl
-  dnl Similarly for uuid support.
 
-  dnl Check for zlib.h.
-  AC_CHECK_HEADERS(zlib.h, [], [
-    AC_MSG_ERROR([zlib.h not found - required for brass, chert and flint (you may need to install the zlib1g-dev or zlib-devel package)])
-    ], [ ])
+dnl We use zlib for decompressing binary items from mongodb.  We could
+dnl automatically disable support if zlib isn't found, but zlib is required for
+dnl Xapian anyway, so it's easier just to require it.
+dnl
+dnl Similarly for uuid support.
 
-  dnl Check for zlibVersion in -lz.
-  SAVE_LIBS=$LIBS
-  LIBS=
-  dnl mingw build needs -lzlib or -lzdll.
-  AC_SEARCH_LIBS([zlibVersion], [z zlib zdll], [], [
-    AC_MSG_ERROR([zlibVersion() not found in -lz, -lzlib, or -lzdll - required for brass, chert and flint (you may need to install the zlib1g-dev or zlib-devel package)])
-    ])
-  if test x != x"$LIBS" ; then
-    XAPIAN_LDFLAGS="$XAPIAN_LDFLAGS $LIBS"
-  fi
-  LIBS=$SAVE_LIBS
+dnl Check for zlib.h.
+AC_CHECK_HEADERS(zlib.h, [], [
+  AC_MSG_ERROR([zlib.h not found - required for brass, chert and flint (you may need to install the zlib1g-dev or zlib-devel package)])
+  ], [ ])
 
-  dnl Find the UUID library (from e2fsprogs/util-linux-ng, not the OSSP one).
+dnl Check for zlibVersion in -lz.
+SAVE_LIBS=$LIBS
+LIBS=
+dnl mingw build needs -lzlib or -lzdll.
+AC_SEARCH_LIBS([zlibVersion], [z zlib zdll], [], [
+  AC_MSG_ERROR([zlibVersion() not found in -lz, -lzlib, or -lzdll - required for brass, chert and flint (you may need to install the zlib1g-dev or zlib-devel package)])
+  ])
+if test x != x"$LIBS" ; then
+  RESTPOSE_LDFLAGS="$XAPIAN_LDFLAGS $LIBS"
+fi
+LIBS=$SAVE_LIBS
 
-  case $host_os in
-    *mingw* | *cygwin*) dnl Use built-in API.
-      use_win32_uuid_api=1
-      ;;
-    *)
-      dnl Check for uuid/uuid.h (e2fsprogs/util-linux-ng) or uuid.h
-      dnl (FreeBSD/NetBSD).
-      AC_CHECK_HEADERS([uuid/uuid.h], [
-	dnl util-linux-ng's uuid/uuid.h found - check for uuid_generate in
-	dnl -luuid.
-	SAVE_LIBS=$LIBS
-	LIBS=
-	AC_SEARCH_LIBS([uuid_generate], [uuid], [], [
-	  AC_MSG_ERROR([uuid_generate() not found in -luuid - required for brass, chert and flint (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
-	  ])
-	if test x != x"$LIBS" ; then
-	  XAPIAN_LDFLAGS="$XAPIAN_LDFLAGS $LIBS"
-	fi
+dnl Find the UUID library (from e2fsprogs/util-linux-ng, not the OSSP one).
+
+case $host_os in
+  *mingw* | *cygwin*) dnl Use built-in API.
+    use_win32_uuid_api=1
+    ;;
+  *)
+    dnl Check for uuid/uuid.h (e2fsprogs/util-linux-ng) or uuid.h
+    dnl (FreeBSD/NetBSD).
+    AC_CHECK_HEADERS([uuid/uuid.h], [
+      dnl util-linux-ng's uuid/uuid.h found - check for uuid_generate in
+      dnl -luuid.
+      SAVE_LIBS=$LIBS
+      LIBS=
+      AC_SEARCH_LIBS([uuid_generate], [uuid], [], [
+	AC_MSG_ERROR([uuid_generate() not found in -luuid - required for brass, chert and flint (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
+	])
+      if test x != x"$LIBS" ; then
+	XAPIAN_LDFLAGS="$XAPIAN_LDFLAGS $LIBS"
+      fi
+    ], [
+      dnl Try uuid.h as found on FreeBSD/NetBSD, with associated code in libc.
+      AC_CHECK_HEADERS([uuid.h], [
+	dnl Check for uuid_create with no extra libraries required.
+	AC_CHECK_FUNC([uuid_create], [], [
+	  AC_MSG_ERROR([uuid.h found, but uuid_create() not found.  You probably wants to install libuuid from util-linux-ng or e2fsprogs (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
+	])
       ], [
-	dnl Try uuid.h as found on FreeBSD/NetBSD, with associated code in libc.
-	AC_CHECK_HEADERS([uuid.h], [
-	  dnl Check for uuid_create with no extra libraries required.
-	  AC_CHECK_FUNC([uuid_create], [], [
-	    AC_MSG_ERROR([uuid.h found, but uuid_create() not found.  You probably wants to install libuuid from util-linux-ng or e2fsprogs (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
-	  ])
-	], [
-	  AC_MSG_ERROR([Neither uuid/uuid.h nor uuid.h found - required for brass, chert and flint (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
-	], [ ])
+	AC_MSG_ERROR([Neither uuid/uuid.h nor uuid.h found - required for brass, chert and flint (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
       ], [ ])
-      ;;
-  esac
-
-  dnl Older versions of libuuid (such as that on CentOS 4.7) don't have
-  dnl uuid_unparse_lower(), only uuid_unparse().
-  AC_LINK_IFELSE([AC_LANG_CALL([], [uuid_unparse_lower])], [found=true], [found=false])
-  if $found ; then
-    AC_DEFINE([HAVE_UUID_UNPARSE_LOWER], [1],
-	      [Define to 1 if you have the 'uuid_unparse_lower' function.])
-  fi
-
-  LIBS=$SAVE_LIBS
-  ;;
+    ], [ ])
+    ;;
 esac
+
+dnl Older versions of libuuid (such as that on CentOS 4.7) don't have
+dnl uuid_unparse_lower(), only uuid_unparse().
+AC_LINK_IFELSE([AC_LANG_CALL([], [uuid_unparse_lower])], [found=true], [found=false])
+if $found ; then
+  AC_DEFINE([HAVE_UUID_UNPARSE_LOWER], [1],
+	    [Define to 1 if you have the 'uuid_unparse_lower' function.])
+fi
+
+LIBS=$SAVE_LIBS
+
 AM_CONDITIONAL([USE_WIN32_UUID_API], [test "$use_win32_uuid_api" = 1])
 
 AC_ARG_ENABLE(quiet,
