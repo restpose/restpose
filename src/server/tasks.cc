@@ -174,7 +174,10 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     string idterm;
     config->clear_changed();
     Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm);
-    taskman->queue_index_processed_doc(coll_name, xdoc, idterm);
+
+    taskman->queue_indexing_from_processing(coll_name,
+	new IndexerUpdateDocumentTask(idterm, xdoc));
+
     if (config->is_changed()) {
 	// FIXME - could push just the new config for the schema for the doc_type in question, to save work.
 	Json::Value tmp;
@@ -206,7 +209,8 @@ void
 IndexerUpdateDocumentTask::perform(RestPose::Collection & collection,
 				   TaskManager *)
 {
-    LOG_INFO("UpdateDocument idterm '" + idterm + "' in '" + collection.get_name() + "'");
+    LOG_INFO("UpdateDocument idterm '" + idterm + "' in '" +
+	     collection.get_name() + "'");
     collection.raw_update_doc(doc, idterm);
 }
 
