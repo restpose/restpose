@@ -25,6 +25,7 @@
 #include <config.h>
 #include "rest/default_routes.h"
 
+#include "features/checkpoint_handlers.h"
 #include "httpserver/httpserver.h"
 #include "rest/handlers.h"
 #include "rest/router.h"
@@ -40,6 +41,9 @@ setup_routes(Router & router)
     router.add("/coll", HTTP_GETHEAD, new CollListHandlerFactory);
     router.add("/coll/?", HTTP_GETHEAD, new CollInfoHandlerFactory);
     router.add("/coll/?", HTTP_PUT, new CollCreateHandlerFactory);
+    //router.add("/coll/?/checkpoint", HTTP_GETHEAD, new CollGetCheckpointsHandlerFactory);
+    router.add("/coll/?/checkpoint", HTTP_PUT, new CollCreateCheckpointHandlerFactory);
+    //router.add("/coll/?/checkpoint/?", HTTP_GETHEAD, new CollGetCheckpointHandlerFactory);
     router.add("/coll/?/type/?/id/?", HTTP_PUT, new IndexDocumentHandlerFactory);
     router.add("/coll/?/type/?/id/?", HTTP_GET, new GetDocumentHandlerFactory);
     router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);

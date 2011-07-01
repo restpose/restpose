@@ -9,6 +9,7 @@ restpose_LDADD = \
  libmongoimporter.a \
  libhttpserver.a \
  librest.a \
+ libfeatures.a \
  libserver.a \
  libjsonxapian.a \
  libjsonmanip.a \

@@ -22,6 +22,7 @@ include libs/Makefile.mk
 include src/Makefile.mk
 include src/cli/Makefile.mk
 include src/dbgroup/Makefile.mk
+include src/features/Makefile.mk
 include src/httpserver/Makefile.mk
 # include src/importer/filesystem/Makefile.mk
 include src/importer/mongo/Makefile.mk
