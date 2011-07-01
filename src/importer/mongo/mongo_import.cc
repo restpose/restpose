@@ -707,9 +707,7 @@ MongoImporter::Internal::run()
 	    batch_count += 1;
 	}
 
-	{
-	    update_status(count, batch_count);
-	}
+	update_status(count, batch_count);
 
 	server->shutdown();
 
