@@ -6,9 +6,6 @@ logger mutex, then does the write, blocking all other threads.  Instead, log
 messages should be added to a queue, and a logger thread should write them to
 disk, syslog, or whatever the appropriate target is.)
 
-If no datadir is set, restpose must either complain, or use cwd.  (Currently
-uses /, which is a security hole waiting to happen.)
-
 Collection names should only be allowed to contain [a-z0-9_-].  Validation
 should be performed in handlers, but also lower level (so that pipes, etc,
 can't become security risks).
@@ -33,3 +30,6 @@ Before an initial release
 
  - Position data for multiple text fields should not overlap - and there should
    be a setting to define the spacing.
+
+ - If the client doesn't send a Host header, we need to synthesise one so that
+   Location headers in responses are valid.
