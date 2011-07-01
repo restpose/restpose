@@ -43,7 +43,8 @@ class CollCreateCheckpointHandler : public QueuedHandler {
 	    : coll_name(coll_name_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body);
+    Queue::QueueState enqueue(ConnectionInfo & conn,
+			      const Json::Value & body);
 };
 
 
@@ -64,7 +65,8 @@ class CollGetCheckpointsHandler : public QueuedHandler {
 	    : coll_name(coll_name_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body);
+    Queue::QueueState enqueue(ConnectionInfo & conn,
+			      const Json::Value & body);
 };
 
 
@@ -89,7 +91,8 @@ class CollGetCheckpointHandler : public QueuedHandler {
 	      checkid(checkid_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body);
+    Queue::QueueState enqueue(ConnectionInfo & conn,
+			      const Json::Value & body);
 };
 
 #endif /* RESTPOSE_INCLUDED_CHECKPOINT_HANDLERS_H */

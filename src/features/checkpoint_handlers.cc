@@ -26,6 +26,7 @@
 #include "features/checkpoint_handlers.h"
 
 #include "features/checkpoint_tasks.h"
+#include "httpserver/httpserver.h"
 #include "httpserver/response.h"
 #include "server/task_manager.h"
 
@@ -40,7 +41,8 @@ CollCreateCheckpointHandlerFactory::create(const std::vector<std::string> & path
 }
 
 Queue::QueueState
-CollCreateCheckpointHandler::enqueue(const Json::Value &)
+CollCreateCheckpointHandler::enqueue(ConnectionInfo & conn,
+				     const Json::Value &)
 {
     string checkid;
     checkid = taskman->get_checkpoints().alloc_checkpoint(coll_name);
@@ -53,10 +55,9 @@ CollCreateCheckpointHandler::enqueue(const Json::Value &)
     }
 
     Json::Value result(Json::objectValue);
-    result["id"] = checkid;
-    result["ok"] = 1;
+    result["checkid"] = checkid;
     resulthandle.response().set(result, 201);
-    resulthandle.response().add_header("Location", "/coll/" + coll_name + "/checkpoint/" + checkid);
+    resulthandle.response().add_header("Location", "http://" + conn.host + "/coll/" + coll_name + "/checkpoint/" + checkid);
     resulthandle.set_ready();
 
     return state;
@@ -71,7 +72,8 @@ CollGetCheckpointsHandlerFactory::create(const std::vector<std::string> & path_p
 }
 
 Queue::QueueState
-CollGetCheckpointsHandler::enqueue(const Json::Value &)
+CollGetCheckpointsHandler::enqueue(ConnectionInfo &,
+				   const Json::Value &)
 {
     return taskman->queue_readonly("checkpoints",
 	new CollGetCheckpointsTask(resulthandle, coll_name, taskman));
@@ -87,7 +89,8 @@ CollGetCheckpointHandlerFactory::create(const std::vector<std::string> & path_pa
 }
 
 Queue::QueueState
-CollGetCheckpointHandler::enqueue(const Json::Value &)
+CollGetCheckpointHandler::enqueue(ConnectionInfo &,
+				  const Json::Value &)
 {
     return taskman->queue_readonly("checkpoints",
 	new CollGetCheckpointTask(resulthandle, coll_name, taskman, checkid));
