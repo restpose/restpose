@@ -27,6 +27,7 @@
 #include "jsonxapian/collconfigs.h"
 #include "jsonxapian/collection.h"
 #include "jsonxapian/collection_pool.h"
+#include "server/checkpoints.h"
 #include "server/result_handle.h"
 #include "server/server.h"
 #include "server/tasks.h"
@@ -111,6 +112,10 @@ class TaskManager : public SubServer {
      */
     RestPose::CollectionConfigs collconfigs;
 
+    /** The checkpoints and recent logs.
+     */
+    CheckPointManager checkpoints;
+
     TaskManager(const TaskManager &);
     void operator=(const TaskManager &);
   public:
@@ -123,6 +128,10 @@ class TaskManager : public SubServer {
 
     RestPose::CollectionConfigs & get_collconfigs() {
 	return collconfigs;
+    }
+
+    CheckPointManager & get_checkpoints() {
+	return checkpoints;
     }
 
     /** Get the write end of the nudge pipe.
