@@ -67,13 +67,10 @@ QueuedHandler::handle_queue_push_fail(Queue::QueueState state,
 void
 QueuedHandler::handle(ConnectionInfo & conn)
 {
-#if 0
-    printf("QueuedHandler: firstcall=%d, queued=%d, data=!%s!, size=%d\n",
-	   conn.first_call, queued,
-	   conn.upload_data,
-	   *(conn.upload_data_size)
-	  );
-#endif
+    LOG_DEBUG("QueuedHandler: firstcall=" + str(conn.first_call) +
+	      ", queued=" + str(queued) +
+	      ", data=\"" + conn.upload_data +
+	      "\", size=" + *(conn.upload_data_size) + "\n");
     if (conn.first_call) {
 	resulthandle.set_nudge(taskman->get_nudge_fd(), 'H');
 	return;
@@ -89,7 +86,7 @@ QueuedHandler::handle(ConnectionInfo & conn)
 	// FIXME - check Content-Type
 	Json::Value body(Json::nullValue);
 	if (uploaded_data.size() != 0) {
-	    // FIXME - handle failure to parse data
+	    // Handle failure to parse data
 	    try {
 		json_unserialise(uploaded_data, body);
 	    } catch(InvalidValueError & e) {
