@@ -26,6 +26,7 @@
 #include "features/checkpoint_handlers.h"
 
 #include "features/checkpoint_tasks.h"
+#include "httpserver/response.h"
 #include "server/task_manager.h"
 
 using namespace std;
@@ -39,16 +40,55 @@ CollCreateCheckpointHandlerFactory::create(const std::vector<std::string> & path
 }
 
 Queue::QueueState
-CollCreateCheckpointHandler::enqueue(const Json::Value &) const
+CollCreateCheckpointHandler::enqueue(const Json::Value &)
 {
     string checkid;
     checkid = taskman->get_checkpoints().alloc_checkpoint(coll_name);
+    bool do_commit = true; // FIXME - get this from a parameter.
     Queue::QueueState state = taskman->queue_processing(coll_name,
-	new ProcessorCheckpointTask(checkid, true),
+	new ProcessorCheckpointTask(checkid, do_commit),
 	false);
     if (state != Queue::CLOSED && state != Queue::FULL) {
 	taskman->get_checkpoints().publish_checkpoint(coll_name, checkid);
     }
 
+    Json::Value result(Json::objectValue);
+    result["id"] = checkid;
+    result["ok"] = 1;
+    resulthandle.response().set(result, 201);
+    resulthandle.response().add_header("Location", "/coll/" + coll_name + "/checkpoint/" + checkid);
+    resulthandle.set_ready();
+
     return state;
+}
+
+
+Handler *
+CollGetCheckpointsHandlerFactory::create(const std::vector<std::string> & path_params) const
+{
+    string coll_name = path_params[0];
+    return new CollGetCheckpointsHandler(coll_name);
+}
+
+Queue::QueueState
+CollGetCheckpointsHandler::enqueue(const Json::Value &)
+{
+    return taskman->queue_readonly("checkpoints",
+	new CollGetCheckpointsTask(resulthandle, coll_name, taskman));
+}
+
+
+Handler *
+CollGetCheckpointHandlerFactory::create(const std::vector<std::string> & path_params) const
+{
+    string coll_name = path_params[0];
+    string checkid = path_params[1];
+    return new CollGetCheckpointHandler(coll_name, checkid);
+}
+
+Queue::QueueState
+CollGetCheckpointHandler::enqueue(const Json::Value &)
+{
+    return taskman->queue_readonly("checkpoints",
+	new CollGetCheckpointTask(resulthandle, coll_name, taskman, checkid));
 }

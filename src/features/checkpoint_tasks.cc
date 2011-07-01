@@ -25,6 +25,7 @@
 #include <config.h>
 #include "features/checkpoint_tasks.h"
 
+#include "httpserver/response.h"
 #include "server/task_manager.h"
 
 void
@@ -45,10 +46,30 @@ IndexingCheckpointTask::perform(RestPose::Collection & collection)
     } else {
 	LOG_INFO("Checkpoint '" + checkid + "' reached in '" + collection.get_name() + "'");
     }
+    // FIXME - get taskman
+    //taskman->get_checkpoints().set_reached(collection, checkid);
 }
 
 IndexingTask *
 IndexingCheckpointTask::clone() const
 {
     return new IndexingCheckpointTask(checkid, do_commit);
+}
+
+void
+CollGetCheckpointsTask::perform(RestPose::Collection *)
+{
+    Json::Value result(Json::objectValue);
+    taskman->get_checkpoints().ids_to_json(coll_name, result);
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
+}
+
+void
+CollGetCheckpointTask::perform(RestPose::Collection *)
+{
+    Json::Value result(Json::objectValue);
+    taskman->get_checkpoints().get_state(coll_name, checkid, result);
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
 }

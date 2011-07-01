@@ -43,7 +43,28 @@ class CollCreateCheckpointHandler : public QueuedHandler {
 	    : coll_name(coll_name_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
+};
+
+
+/** Get the list of all checkpoints in a collection.
+ *
+ *  Expects 1 path parameter:
+ *
+ *   - the collection name
+ */
+class CollGetCheckpointsHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+class CollGetCheckpointsHandler : public QueuedHandler {
+    std::string coll_name;
+  public:
+    CollGetCheckpointsHandler(const std::string & coll_name_)
+	    : coll_name(coll_name_)
+    {}
+
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 
@@ -68,7 +89,7 @@ class CollGetCheckpointHandler : public QueuedHandler {
 	      checkid(checkid_)
     {}
 
-    Queue::QueueState enqueue(const Json::Value & body) const;
+    Queue::QueueState enqueue(const Json::Value & body);
 };
 
 #endif /* RESTPOSE_INCLUDED_CHECKPOINT_HANDLERS_H */

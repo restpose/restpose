@@ -63,4 +63,49 @@ class IndexingCheckpointTask : public IndexingTask {
     IndexingTask * clone() const;
 };
 
+/** Get the list of checkpoints for a collection.
+ *
+ *  Note - this is a ReadonlyTask instead of a ReadonlyCollTask because it
+ *  doesn't access the collection object - it just accesses the checkpoint list
+ *  for the collection, which is stored separately.
+ */
+class CollGetCheckpointsTask : public ReadonlyTask {
+    const std::string coll_name;
+    TaskManager * taskman;
+  public:
+    CollGetCheckpointsTask(const RestPose::ResultHandle & resulthandle_,
+			   const std::string & coll_name_,
+			   TaskManager * taskman_)
+	    : ReadonlyTask(resulthandle_),
+	      coll_name(coll_name_),
+	      taskman(taskman_)
+    {}
+
+    void perform(RestPose::Collection * collection);
+};
+
+/** Get the status of a checkpoint in a collection.
+ *
+ *  Note - this is a ReadonlyTask instead of a ReadonlyCollTask because it
+ *  doesn't access the collection object - it just accesses the checkpoint list
+ *  for the collection, which is stored separately.
+ */
+class CollGetCheckpointTask : public ReadonlyTask {
+    const std::string coll_name;
+    TaskManager * taskman;
+    std::string checkid;
+  public:
+    CollGetCheckpointTask(const RestPose::ResultHandle & resulthandle_,
+			  const std::string & coll_name_,
+			  TaskManager * taskman_,
+			  const std::string & checkid_)
+	    : ReadonlyTask(resulthandle_),
+	      coll_name(coll_name_),
+	      taskman(taskman_),
+	      checkid(checkid_)
+    {}
+
+    void perform(RestPose::Collection * collection);
+};
+
 #endif /* RESTPOSE_INCLUDED_CHECKPOINT_TASKS_H */
