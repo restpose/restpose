@@ -139,6 +139,10 @@ NoWaitQueuedHandler::handle_queue_push_fail(Queue::QueueState state,
 void
 NoWaitQueuedHandler::handle(ConnectionInfo & conn)
 {
+    LOG_DEBUG("NoWaitQueuedHandler: firstcall=" + str(conn.first_call) +
+	      ", queued=" + str(queued) +
+	      ", data=\"" + conn.upload_data +
+	      "\", size=" + *(conn.upload_data_size) + "\n");
     if (conn.first_call) {
 	return;
     }
@@ -162,8 +166,11 @@ NoWaitQueuedHandler::handle(ConnectionInfo & conn)
 	return;
     }
     if (state == Queue::LOW_SPACE) {
-	conn.respond(200, "{\"ok\":1,\"busy\":1}", "application/json");
+	// Return HTTP Accepted status code
+	// FIXME - this response should really include a pointer to a status
+	// monitor, or something similar.
+	conn.respond(202, "{\"ok\":1,\"busy\":1}", "application/json");
     } else {
-	conn.respond(200, "{\"ok\":1}", "application/json");
+	conn.respond(202, "{\"ok\":1}", "application/json");
     }
 }
