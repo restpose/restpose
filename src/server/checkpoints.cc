@@ -25,6 +25,8 @@
 #include <config.h>
 #include "server/checkpoints.h"
 
+#include "logger/logger.h"
+#include <memory>
 #include "realtime.h"
 #include "safeuuid.h"
 
@@ -113,12 +115,24 @@ CheckPoint::seconds_since_touched() const
     return RealTime::now() - last_touched;
 }
 
+
+CheckPoints::~CheckPoints()
+{
+    for (map<string, CheckPoint *>::iterator
+	 i = points.begin(); i != points.end(); ++i) {
+	delete i->second;
+    }
+}
+
 void
 CheckPoints::expire(double max_age)
 {
-    map<string, CheckPoint>::iterator i = points.begin();
+    map<string, CheckPoint *>::iterator i = points.begin();
     while (i != points.end()) {
-	if (i->second.seconds_since_touched() > max_age) {
+	if (i->second == NULL) {
+	    points.erase(i++);
+	} else if (i->second->seconds_since_touched() >= max_age) {
+	    LOG_INFO("expiring old checkpoint: " + i->first);
 	    points.erase(i++);
 	} else {
 	    ++i;
@@ -126,46 +140,153 @@ CheckPoints::expire(double max_age)
     }
 }
 
-string
-CheckPoints::alloc_checkpoint()
+void
+CheckPoints::publish_checkpoint(const string & checkid)
 {
-    uuid_t uuid;
-    uuid_generate(uuid);
-    char buf[37];
-    uuid_unparse_lower(uuid, buf);
-    string checkid(buf, 36);
-    points[checkid];
-    return checkid;
+    CheckPoint * & cp = points[checkid];
+    if (cp != NULL) {
+	// cp would not be null if the uuid generated wasn't unique.
+	// Incredibly unlikely if uuid generator is working, but let's be
+	// paranoid anyway.
+	delete cp;
+    }
+    cp = new CheckPoint;
 }
 
 Json::Value &
 CheckPoints::ids_to_json(Json::Value & result) const
 {
     result = Json::arrayValue;
-    for (map<string, CheckPoint>::const_iterator i = points.begin();
+    for (map<string, CheckPoint *>::const_iterator i = points.begin();
 	 i != points.end(); ++i) {
-	result.append(i->first);
+	if (i->second != NULL) {
+	    result.append(i->first);
+	}
     }
     return result;
 }
 
 void
-CheckPoints::set_reached(const std::string & checkid,
+CheckPoints::set_reached(const string & checkid,
 			 IndexingErrorLog * errors)
 {
-    CheckPoint & checkpoint = points[checkid];
-    checkpoint.set_reached(errors);
+    auto_ptr<IndexingErrorLog> errorsptr(errors);
+    CheckPoint * & cp = points[checkid];
+    if (cp == NULL) {
+	cp = new CheckPoint;
+    }
+    cp->set_reached(errorsptr.release());
 }
 
 Json::Value &
-CheckPoints::get_state(const std::string & checkid,
+CheckPoints::get_state(const string & checkid,
 		       Json::Value & result) const
 {
-    map<string, CheckPoint>::const_iterator i = points.find(checkid);
-    if (i == points.end()) {
+    map<string, CheckPoint *>::const_iterator i = points.find(checkid);
+    if (i == points.end() || i->second == NULL) {
 	result = Json::nullValue;
     } else {
-	i->second.get_state(result);
+	i->second->get_state(result);
     }
     return result;
+}
+
+
+CheckPointManager::~CheckPointManager()
+{
+    for (map<string, IndexingErrorLog *>::iterator
+	 i = recent_errors.begin(); i != recent_errors.end(); ++i) {
+	delete i->second;
+    }
+}
+
+void
+CheckPointManager::append_error(const string & coll_name,
+				const string & msg,
+				const string & doc_type,
+				const string & doc_id)
+{
+    ContextLocker lock(mutex);
+    IndexingErrorLog * & log = recent_errors[coll_name];
+    if (log == NULL) {
+	log = new IndexingErrorLog(max_recent_errors);
+    }
+    log->append_error(msg, doc_type, doc_id);
+}
+
+string
+CheckPointManager::alloc_checkpoint(const string &)
+{
+    uuid_t uuid;
+    uuid_generate(uuid);
+    char buf[37];
+    uuid_unparse_lower(uuid, buf);
+    string checkid(buf, 36);
+    return checkid;
+}
+
+void
+CheckPointManager::publish_checkpoint(const string & coll_name,
+				      const string & checkid)
+{
+    ContextLocker lock(mutex);
+    CheckPoints * & cps = checkpoints[coll_name];
+    if (cps == NULL) {
+	cps = new CheckPoints;
+    } else {
+	cps->expire(expiry_time);
+    }
+    return cps->publish_checkpoint(checkid);
+}
+
+Json::Value &
+CheckPointManager::ids_to_json(const string & coll_name,
+			       Json::Value & result)
+{
+    ContextLocker lock(mutex);
+    map<string, CheckPoints *>::iterator i = checkpoints.find(coll_name);
+    if (i == checkpoints.end() || i->second == NULL) {
+	result = Json::arrayValue;
+	return result;
+    }
+    i->second->expire(expiry_time);
+    return i->second->ids_to_json(result);
+}
+
+void
+CheckPointManager::set_reached(const string & coll_name,
+			       const string & checkid)
+{
+    ContextLocker lock(mutex);
+    CheckPoints * & cps = checkpoints[coll_name];
+    if (cps == NULL) {
+	cps = new CheckPoints;
+    } else {
+	cps->expire(expiry_time);
+    }
+
+    map<string, IndexingErrorLog *>::iterator
+	    i = recent_errors.find(coll_name);
+    if (i == recent_errors.end()) {
+	cps->set_reached(checkid, NULL);
+    } else {
+	auto_ptr<IndexingErrorLog> errors(i->second);
+	recent_errors.erase(i);
+	cps->set_reached(checkid, errors.release());
+    }
+}
+
+Json::Value &
+CheckPointManager::get_state(const string & coll_name,
+			     const string & checkid,
+			     Json::Value & result)
+{
+    ContextLocker lock(mutex);
+    map<string, CheckPoints *>::iterator i = checkpoints.find(coll_name);
+    if (i == checkpoints.end() || i->second == NULL) {
+	result = Json::nullValue;
+	return result;
+    }
+    i->second->expire(expiry_time);
+    return i->second->get_state(checkid, result);
 }

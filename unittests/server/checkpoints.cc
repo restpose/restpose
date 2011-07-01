@@ -68,8 +68,8 @@ TEST(CheckPoints)
     CHECK_EQUAL("[]", json_serialise(cps.ids_to_json(tmp)));
     CHECK_EQUAL("null", json_serialise(cps.get_state("unknown", tmp)));
 
-    string checkid = cps.alloc_checkpoint();
-    CHECK_EQUAL(checkid.size(), size_t(36));
+    string checkid = "checkid";
+    cps.publish_checkpoint(checkid);
     CHECK_EQUAL("[\"" + checkid + "\"]",
 		json_serialise(cps.ids_to_json(tmp)));
 
@@ -114,4 +114,63 @@ TEST(CheckPoints)
     CHECK_EQUAL("[]",
 		json_serialise(cps.ids_to_json(tmp)));
     CHECK_EQUAL("null", json_serialise(cps.get_state("unknown", tmp)));
+}
+
+TEST(CheckPointManager)
+{
+    Json::Value tmp;
+    CheckPointManager man(2, 10000);
+
+    string checkid = man.alloc_checkpoint("mycoll");
+    CHECK_EQUAL(checkid.size(), size_t(36));
+    CHECK_EQUAL("[]",
+		json_serialise(man.ids_to_json("mycoll", tmp)));
+    CHECK_EQUAL("null",
+		json_serialise(man.get_state("mycoll", checkid, tmp)));
+
+    // Check that publishing makes a checkpoint visible, but only in the right
+    // collection.
+    man.publish_checkpoint("mycoll", checkid);
+    CHECK_EQUAL("[\"" + checkid + "\"]",
+		json_serialise(man.ids_to_json("mycoll", tmp)));
+    CHECK_EQUAL("[]",
+		json_serialise(man.ids_to_json("othercoll", tmp)));
+    CHECK_EQUAL("{\"reached\":false}",
+		json_serialise(man.get_state("mycoll", checkid, tmp)));
+    CHECK_EQUAL("null",
+		json_serialise(man.get_state("othercoll", checkid, tmp)));
+
+    // Check that appending an error doesn't have any effect (before the
+    // checkpoint is reached)
+    man.append_error("mycoll", "Error processing field", "type1", "doc1");
+    CHECK_EQUAL("[\"" + checkid + "\"]",
+		json_serialise(man.ids_to_json("mycoll", tmp)));
+    CHECK_EQUAL("[]",
+		json_serialise(man.ids_to_json("othercoll", tmp)));
+    CHECK_EQUAL("{\"reached\":false}",
+		json_serialise(man.get_state("mycoll", checkid, tmp)));
+    CHECK_EQUAL("null",
+		json_serialise(man.get_state("othercoll", checkid, tmp)));
+
+    // Check that the appropriate thing happens when a checkpoint is reached.
+    man.set_reached("mycoll", checkid);
+    CHECK_EQUAL("[\"" + checkid + "\"]",
+		json_serialise(man.ids_to_json("mycoll", tmp)));
+    CHECK_EQUAL("[]",
+		json_serialise(man.ids_to_json("othercoll", tmp)));
+    CHECK_EQUAL("{\"errors\":["
+		"{\"doc_id\":\"doc1\",\"doc_type\":\"type1\",\"msg\":\"Error processing field\"}"
+		"],\"reached\":true,\"total_errors\":1}",
+		json_serialise(man.get_state("mycoll", checkid, tmp)));
+    CHECK_EQUAL("null",
+		json_serialise(man.get_state("othercoll", checkid, tmp)));
+
+
+
+    // A manager which expires checkpoints immediately.
+    CheckPointManager man2(2, 0.0);
+    checkid = man2.alloc_checkpoint("mycoll");
+    man2.publish_checkpoint("mycoll", checkid);
+    CHECK_EQUAL("[]",
+		json_serialise(man2.ids_to_json("mycoll", tmp)));
 }

@@ -26,6 +26,7 @@
 #define RESTPOSE_INCLUDED_CHECKPOINTS_H
 
 #include "json/value.h"
+#include <map>
 #include <string>
 #include "utils/threading.h"
 #include <vector>
@@ -83,6 +84,8 @@ class IndexingErrorLog {
      */
     unsigned int max_errors;
 
+    IndexingErrorLog(const IndexingErrorLog &);
+    void operator=(const IndexingErrorLog &);
   public:
     /** Make a new IndexingErrorLog.
      *
@@ -124,6 +127,8 @@ class CheckPoint {
      */
     bool reached;
 
+    CheckPoint(const CheckPoint &);
+    void operator=(const CheckPoint &);
   public:
     /** Create a checkpoint.
      *
@@ -162,13 +167,13 @@ class CheckPoint {
 class CheckPoints {
     /** Map from the checkpoint ID to the checkpoint data.
      */
-    std::map<std::string, CheckPoint> points;
+    std::map<std::string, CheckPoint *> points;
 
     CheckPoints(const CheckPoints &);
     void operator=(const CheckPoints &);
   public:
     CheckPoints() {}
-    ~CheckPoints() {}
+    ~CheckPoints();
 
     /** Expire any checkpoints which haven't been touched recently.
      *
@@ -177,9 +182,9 @@ class CheckPoints {
      */
     void expire(double max_age);
 
-    /** Allocate a new checkpoint, and return its id.
+    /** Publish a new checkpoint, with a given id.
      */
-    std::string alloc_checkpoint();
+    void publish_checkpoint(const std::string & checkid);
 
     /** Get the list of checkpoint IDs as a JSON value.
      */
@@ -209,6 +214,89 @@ class CheckPoints {
      */
     Json::Value & get_state(const std::string & checkid,
 			    Json::Value & result) const;
+};
+
+/** Threadsafe manager for checkpoints across all collections.
+ */
+class CheckPointManager {
+    mutable Mutex mutex;
+
+    /** Recent indexing error log messages for a collection. */
+    std::map<std::string, IndexingErrorLog *> recent_errors;
+
+    /** Mapping from "coll_name/checkid" to a checkpoint structure. */
+    std::map<std::string, CheckPoints *> checkpoints;
+
+    /** Maximum number of recent errors to remember, per collection.
+     */
+    unsigned int max_recent_errors;
+
+    /** Time after which a checkpoint expires if it's not been modified or
+     *  checked.
+     */
+    double expiry_time;
+
+    CheckPointManager(const CheckPointManager &);
+    void operator=(const CheckPointManager &);
+  public:
+    CheckPointManager(unsigned int max_recent_errors_,
+		      double expiry_time_)
+	    : max_recent_errors(max_recent_errors_),
+	      expiry_time(expiry_time_)
+    {}
+    ~CheckPointManager();
+
+    /** Append an error to the error log for a collection.
+     */
+    void append_error(const std::string & coll_name,
+		      const std::string & msg,
+		      const std::string & doc_type,
+		      const std::string & doc_id);
+
+    /** Allocate a new checkpoint ID for the given collection.
+     *
+     *  Doesn't actually create the checkpoint - just creates a unique ID for
+     *  it.
+     */
+    std::string alloc_checkpoint(const std::string & coll_name);
+
+    /** Make a checkpoint visible.
+     */
+    void publish_checkpoint(const std::string & coll_name,
+			    const std::string & checkid);
+
+    /** Get the list of checkpoint IDs as a JSON value.
+     */
+    Json::Value & ids_to_json(const std::string & coll_name,
+			      Json::Value & result);
+
+    /** Mark a checkpoint as having been reached.
+     *
+     *  If the checkpoint doesn't exist (or has expired), this creates it.
+     *
+     *  Any errors which have happened on the collection since the last
+     *  checkpoint are assigned to it.
+     *
+     *  @param coll_name The collection the checkpoint is in.
+     *  @param checkid The checkpoint to mark.
+     *  @param errors The errors to associate with the checkpoint. May be NULL.
+     */
+    void set_reached(const std::string & coll_name,
+		     const std::string & checkid);
+
+    /** Get the status of the checkpoint.
+     *
+     *  Sets the provided Json value to describe the checkpoint status, and
+     *  also returns the provided value.
+     *
+     *  Returns a Json null value if the checkpoint isn't found (whether
+     *  because it never existed, or because it has expired).
+     *
+     *  @param checkid The checkpoint to get the status from..
+     */
+    Json::Value & get_state(const std::string & coll_name,
+			    const std::string & checkid,
+			    Json::Value & result);
 };
 
 #endif /* RESTPOSE_INCLUDED_CHECKPOINTS_H */
