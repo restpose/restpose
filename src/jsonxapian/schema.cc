@@ -990,6 +990,12 @@ Schema::process(const Json::Value & value,
 	 ++viter) {
 	const string & fieldname = viter.memberName();
 	const FieldIndexer * indexer = get_indexer(fieldname);
+	if (!indexer) {
+	    LOG_INFO(string("New field type: ") + fieldname);
+	    set(fieldname, patterns.get(fieldname, doc_type));
+	    indexer = get_indexer(fieldname);
+	}
+
 	if (indexer) {
 	    //fprintf(stderr, "field '%s'\n", fieldname.c_str());
 	    if ((*viter).isNull()) {
@@ -1007,9 +1013,6 @@ Schema::process(const Json::Value & value,
 		arrayval.append(*viter);
 		indexer->index(result, docdata, arrayval, idterm, collconfig);
 	    }
-	} else {
-	    LOG_INFO(string("New field type: ") + fieldname);
-	    set(fieldname, patterns.get(fieldname, doc_type));
 	}
     }
 
