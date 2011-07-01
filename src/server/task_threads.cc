@@ -146,7 +146,7 @@ IndexingThread::run()
 		    break;
 		}
 		IndexingTask * colltask = static_cast<IndexingTask *>(task);
-		colltask->perform(*collection);
+		colltask->perform(*collection, taskman);
 	    }
 
 	    collection->commit();

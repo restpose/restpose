@@ -108,7 +108,8 @@ class ProcessingTask : public Task {
 class IndexingTask : public Task {
   public:
     IndexingTask() : Task(false) {}
-    virtual void perform(RestPose::Collection & collection) = 0;
+    virtual void perform(RestPose::Collection & collection,
+			 TaskManager * taskman) = 0;
     virtual IndexingTask * clone() const = 0;
 };
 

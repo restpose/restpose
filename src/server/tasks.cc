@@ -189,7 +189,8 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
 }
 
 void
-IndexerConfigChangedTask::perform(RestPose::Collection & collection)
+IndexerConfigChangedTask::perform(RestPose::Collection & collection,
+				  TaskManager *)
 {
     LOG_INFO("Updating configuration for collection " + collection.get_name());
     collection.from_json(new_config);
@@ -202,7 +203,8 @@ IndexerConfigChangedTask::clone() const
 }
 
 void
-IndexerUpdateDocumentTask::perform(RestPose::Collection & collection)
+IndexerUpdateDocumentTask::perform(RestPose::Collection & collection,
+				   TaskManager *)
 {
     LOG_INFO("UpdateDocument idterm '" + idterm + "' in '" + collection.get_name() + "'");
     collection.raw_update_doc(doc, idterm);
@@ -215,7 +217,8 @@ IndexerUpdateDocumentTask::clone() const
 }
 
 void
-IndexerDeleteDocumentTask::perform(RestPose::Collection & collection)
+IndexerDeleteDocumentTask::perform(RestPose::Collection & collection,
+				   TaskManager *)
 {
     LOG_INFO("DeleteDocument idterm '" + idterm + "' in '" + collection.get_name() + "'");
     collection.raw_delete_doc(idterm);
@@ -228,7 +231,8 @@ IndexerDeleteDocumentTask::clone() const
 }
 
 void
-IndexerCommitTask::perform(RestPose::Collection & collection)
+IndexerCommitTask::perform(RestPose::Collection & collection,
+			   TaskManager *)
 {
     LOG_INFO("Commit in '" + collection.get_name() + "'");
     collection.commit();

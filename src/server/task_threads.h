@@ -126,6 +126,10 @@ class IndexingThread : public TaskThread {
      */
     std::string coll_name;
 
+    /** The task manager for this thread.
+     */
+    TaskManager * taskman;
+
     /** The task being performed.
      */
     Task * task;
@@ -138,8 +142,10 @@ class IndexingThread : public TaskThread {
     /** Create an indexer for a collection.
      */
     IndexingThread(TaskQueueGroup & queuegroup_,
-		  CollectionPool & pool_)
+		   CollectionPool & pool_,
+		   TaskManager * taskman_)
 	    : TaskThread(queuegroup_, pool_),
+	      taskman(taskman_),
 	      task(NULL)
     {}
 

@@ -259,7 +259,8 @@ TaskManager::start()
 
     for (int i = indexing_thread_count; i != 0; --i) {
 	indexing_threads.add_thread(new IndexingThread(indexing_queues,
-						       collections));
+						       collections,
+						       this));
     }
     for (int i = processing_thread_count; i != 0; --i) {
 	processing_threads.add_thread(new ProcessingThread(processing_queues,

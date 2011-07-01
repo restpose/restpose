@@ -38,7 +38,8 @@ ProcessorCheckpointTask::perform(const std::string & coll_name,
 }
 
 void
-IndexingCheckpointTask::perform(RestPose::Collection & collection)
+IndexingCheckpointTask::perform(RestPose::Collection & collection,
+				TaskManager * taskman)
 {
     if (do_commit) {
 	LOG_INFO("Checkpoint '" + checkid + "' reached in '" + collection.get_name() + "' - committing");
@@ -46,8 +47,7 @@ IndexingCheckpointTask::perform(RestPose::Collection & collection)
     } else {
 	LOG_INFO("Checkpoint '" + checkid + "' reached in '" + collection.get_name() + "'");
     }
-    // FIXME - get taskman
-    //taskman->get_checkpoints().set_reached(collection, checkid);
+    taskman->get_checkpoints().set_reached(collection.get_name(), checkid);
 }
 
 IndexingTask *
