@@ -66,6 +66,12 @@ EXTRA_DIST += \
  libs/xapiancommon/win32_uuid.h \
  libs/xapiancommon/win32_uuid.cc
 
+if USE_WIN32_UUID_API
+libxapiancommon_a_SOURCES += \
+ libs/xapiancommon/win32_uuid.cc
+AM_LDFLAGS += -lrpcrt4
+endif
+
 # UnitTest++
 noinst_LIBRARIES += libunittestpp.a
 INCLUDES += \
