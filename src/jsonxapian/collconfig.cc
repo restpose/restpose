@@ -559,7 +559,9 @@ CollectionConfig::send_to_pipe(TaskManager * taskman,
 	// FIXME - remove hardcoded "default" here - pipes should have a way to
 	// say what type the output document is.
 	Xapian::Document xdoc = process_doc(obj, "default", "", idterm);
-	taskman->queue_index_processed_doc(get_name(), xdoc, idterm);
+	taskman->queue_indexing_from_processing(get_name(),
+	    new IndexerUpdateDocumentTask(idterm, xdoc));
+
 	return;
     }
     const Pipe & pipe = get_pipe(pipe_name);
