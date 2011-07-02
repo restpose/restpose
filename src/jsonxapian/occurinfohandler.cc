@@ -75,8 +75,8 @@ OccurInfoHandler::OccurInfoHandler(const Json::Value & params,
 	}
     }
 
-    if (checkatleast < result_limit) {
-	checkatleast = result_limit;
+    if (checkatleast < doc_limit) {
+	checkatleast = doc_limit;
     }
     enq.add_matchspy(spy);
 }
@@ -108,8 +108,8 @@ CoOccurInfoHandler::CoOccurInfoHandler(const Json::Value & params,
     }
 
 
-    if (checkatleast < result_limit) {
-	checkatleast = result_limit;
+    if (checkatleast < doc_limit) {
+	checkatleast = doc_limit;
     }
     enq.add_matchspy(spy);
 }
