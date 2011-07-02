@@ -33,3 +33,6 @@ Before an initial release
 
  - If the client doesn't send a Host header, we need to synthesise one so that
    Location headers in responses are valid.
+
+ - Needs to be possible to long-poll for checkpoints when waiting for them to
+   be reached.  Probably with a timeout, defaulting to 30 seconds.
