@@ -218,6 +218,56 @@ class Search(object):
         if display:
             self.body['display'] = display
 
+    def calc_occur(self, prefix, doc_limit=None, result_limit=None,
+                   get_termfreqs=False, stopwords=[]):
+        """Get occurrence counts of terms in the matching documents.
+
+        Warning - fairly slow.
+
+        Causes the search results to contain counts for each term seen, in
+        decreasing order of occurrence.  The count entries are of the form:
+        [suffix, occurrence count] or [suffix, occurrence count, termfreq] if
+        get_termfreqs was true.
+
+        @param prefix: prefix of terms to check occurrence for
+        @param doc_limit: number of matching documents to stop checking after.  None=unlimited.  Integer or None.  Default=None
+        @param result_limit: number of terms to return results for.  None=unlimited.  Integer or None. Default=None
+        @param get_termfreqs: set to true to also get frequencies of terms in the db.  Boolean.  Default=False
+        @param stopwords: list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]
+
+        """
+        info = self.body.setdefault('info', [])
+        info.append({'occur': dict(prefix=prefix,
+                                   doc_limit=doc_limit,
+                                   result_limit=result_limit,
+                                   get_termfreqs=get_termfreqs,
+                                   stopwords=stopwords,
+                                  )})
+        return self
+
+    def calc_cooccur(self, prefix, doc_limit=None, result_limit=None,
+                     get_termfreqs=False, stopwords=[]):
+        """Get cooccurrence counts of terms in the matching documents.
+
+        Warning - fairly slow (and O(L*L), where L is the average document
+        length).
+
+        Causes the search results to contain counts for each pair of terms
+        seen, in decreasing order of cooccurrence.  The count entries are of
+        the form: [suffix1, suffix2, co-occurrence count] or [suffix1, suffix2,
+        co-occurrence count, termfreq of suffix1, termfreq of suffix2] if
+        get_termfreqs was true.
+
+        """
+        info = self.body.setdefault('info', [])
+        info.append({'cooccur': dict(prefix=prefix,
+                                     doc_limit=doc_limit,
+                                     result_limit=result_limit,
+                                     get_termfreqs=get_termfreqs,
+                                     stopwords=stopwords,
+                                    )})
+        return self
+
     def do(self):
         return self.target.search(self)
 
@@ -231,31 +281,58 @@ class SearchResult(object):
             self.rank, self.fields,
         )
 
+class InfoItem(object):
+    def __init__(self, raw):
+        self._raw = raw
+
+
 class SearchResults(object):
-    def __init__(self, result):
-        #: The offset of the first result item.
-        self.offset = result.get('from', 0)
+    def __init__(self, raw):
+        self._raw = raw
+        self._items = None
+        self._infos = None
 
-        #: The requested size.
-        self.size = result.get('size', 0)
+    @property
+    def offset(self):
+        """The offset of the first result item."""
+        return self._raw.get('from', 0)
 
-        #: The requested checkatleast value.
-        self.checkatleast = result.get('checkatleast', 0)
+    @property
+    def size(self):
+        """The requested size."""
+        return self._raw.get('size', 0)
 
-        #: A lower bound on the number of matches.
-        self.matches_lower_bound = result.get('matches_lower_bound', 0)
+    @property
+    def checkatleast(self):
+        """The requested checkatleast value."""
+        return self._raw.get('checkatleast', 0)
 
-        #: An estimate of the number of matches.
-        self.matches_estimated = result.get('matches_estimated', 0)
+    @property
+    def matches_lower_bound(self):
+        """A lower bound on the number of matches."""
+        return self._raw.get('matches_lower_bound', 0)
 
-        #: An upper bound on the number of matches.
-        self.matches_upper_bound = result.get('matches_upper_bound', 0)
+    @property
+    def matches_estimated(self):
+        """An estimate of the number of matches."""
+        return self._raw.get('matches_estimated', 0)
 
-        #: The matching result items.
-        self.items = [SearchResult(rank, fields) for (rank, fields) in
-                      enumerate(result.get('items', []), self.offset)]
+    @property
+    def matches_upper_bound(self):
+        """An upper bound on the number of matches."""
+        return self._raw.get('matches_upper_bound', 0)
 
-        self.info = result.get('info', {})
+    @property
+    def items(self):
+        """The matching result items."""
+        if self._items is None:
+            self._items = [SearchResult(rank, fields) for (rank, fields) in
+                enumerate(self._raw.get('items', []), self.offset)]
+        return self._items
+
+    @property
+    def info(self):
+        return self._raw.get('info', {})
 
     def __iter__(self):
         return iter(self.items)

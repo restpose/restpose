@@ -14,26 +14,34 @@ Example:
     >>> doc = { 'text': 'Hello world', 'tag': 'A tag' }
     >>> coll = server.collection("my_coll")
     >>> coll.add_doc(doc, type="blurb", docid="1")
-    >>> #chkpt_id = coll.checkpoint()
-    >>> #coll.waitfor(chkpt_id)
+    >>> checkpt = coll.checkpoint().wait()
+    >>> checkpt.total_errors, checkpt.errors, checkpt.reached, checkpt.expired
+    (0, [], True, False)
     >>> query = coll.type("blurb").field_is('tag', 'A tag')
     >>> results = query.search().do()
-    >>> str(results)
-    "SearchResults(offset=0, size=10, checkatleast=0, matches_lower_bound=1, matches_estimated=1, matches_upper_bound=1, items=[SearchResult(rank=0, fields={'text': ['Hello world'], 'tag': ['A tag'], 'id': ['1']})])"
-
-    >>> results = query.search(info=[{'cooccur': {'prefix': 't'}}]).do()
-    >>> str(results)
-    "SearchResults(offset=0, size=10, checkatleast=4294967295, matches_lower_bound=1, matches_estimated=1, matches_upper_bound=1, items=[SearchResult(rank=0, fields={'text': ['Hello world'], 'tag': ['A tag'], 'id': ['1']})], info=[{'type': 'cooccur', 'counts': [['hello', 'world', 1]], 'terms_seen': 2, 'docs_seen': 1, 'prefix': 't'}])"
+    >>> results.matches_estimated
+    1
+    >>> results.items[0].fields['id']
+    ['1']
+    >>> results.items[0].fields['type']
+    ['blurb']
 
 """
 
 from .resource import RestPoseResource
 from .query import Query, QueryAll, QueryNone, QueryField, \
                    Search, SearchResults
+from .errors import CheckPointExpiredError
 import re
 
 coll_name_re = re.compile('^[a-z0-9_-]+$')
 doc_type_re = re.compile('^[a-z0-9_-]+$')
+
+def check_coll_name(coll_name):
+    if coll_name_re.match(coll_name) is None:
+        raise ValueError("Invalid character in collection name: names may "
+                         "contain only lowercase letters, numbers, "
+                         "underscore and hyphen.")
 
 class Server(object):
     """Representation of a RestPose server.
@@ -174,8 +182,42 @@ class QueryTarget(object):
             body = query
         result = self._resource.post(self._basepath + "/search",
                                      payload=body).json
-        # FIXME - wrap result in a more useful wrapper
         return SearchResults(result)
+
+
+class Document(object):
+    def __init__(self, doctype_obj, docid):
+        self._resource = doctype_obj._resource
+        self._path = doctype_obj._basepath + '/id/' + docid
+        self._fields = None
+        self._terms = None
+        self._values = None
+        self._fetched = False
+
+    def _fetch(self):
+        val = self._resource.get(self._path).json
+        self._fields = val.get('fields')
+        self._terms = val.get('terms')
+        self._values = val.get('values')
+        self._fetched = True
+
+    @property
+    def fields(self):
+        if not self._fetched:
+            self._fetch()
+        return self._fields
+
+    @property
+    def terms(self):
+        if not self._fetched:
+            self._fetch()
+        return self._terms
+
+    @property
+    def values(self):
+        if not self._fetched:
+            self._fetch()
+        return self._values
 
 
 class DocumentType(QueryTarget):
@@ -198,17 +240,17 @@ class DocumentType(QueryTarget):
         else:
             path += '/id/%s' % docid
         if use_put:
-            self._resource.put(path, payload=doc).json
+            result = self._resource.put(path, payload=doc).json
         else:
-            self._resource.post(path, payload=doc).json
+            result = self._resource.post(path, payload=doc).json
+
+    def get_doc(self, docid):
+        return Document(self, docid)
 
 
 class Collection(QueryTarget):
     def __init__(self, server, coll_name):
-        if coll_name_re.match(coll_name) is None:
-            raise ValueError("Invalid character in collection name: names may "
-                             "contain only lowercase letters, numbers, "
-                             "underscore and hyphen.")
+        check_coll_name(coll_name)
         self._basepath = '/coll/' + coll_name
         self._resource = server._resource
 
@@ -244,8 +286,15 @@ class Collection(QueryTarget):
         else:
             self._resource.post(path, payload=doc).json
 
-    def checkpoint(self, checkid=None):
-        """Set a checkpoint to the collection.
+    def get_doc(self, type, docid):
+        """Get a document from the collection.
+
+        """
+        path = '%s/type/%s/id/%s' % (self._basepath, type, docid)
+        return self._resource.get(path).json
+
+    def checkpoint(self):
+        """Set a checkpoint on the collection.
 
         This creates a resource on the server which can be queried to detect
         whether indexing has reached the checkpoint yet.  All updates sent
@@ -254,5 +303,105 @@ class Collection(QueryTarget):
         before indexing reaches the checkpoint.
 
         """
-        # FIXME - unimplemented here, or on server, so far.
-        return CheckPoint(self._resource.post(self._basepath + "/checkpoint").json)
+        return CheckPoint(self,
+            self._resource.post(self._basepath + "/checkpoint").json)
+
+class CheckPoint(object):
+    """A checkpoint, used to check the progress of indexing.
+
+    """
+    def __init__(self, collection, chkpt_response):
+        self._check_id = chkpt_response.get('checkid')
+        self._basepath = collection._basepath + '/checkpoint/' + self._check_id
+        self._resource = collection._resource
+        self._raw = None
+
+    @property
+    def check_id(self):
+        """The ID of the checkpoint.
+
+        This is used to identify the checkpoint on the server.
+
+        """
+        return self._check_id
+
+    def _refresh(self):
+        """Contact the server, and get the status of the checkpoint.
+
+        """
+        res = self._resource.get(self._basepath).json
+        if res is None:
+            self._raw = 'expired'
+        elif res.get('reached', False):
+            self._raw = res
+
+    @property
+    def expired(self):
+        """Return true if a checkpoint has expired.
+
+        Contacts the server to check the current state.
+
+        """
+        if self._raw != 'expired':
+            self._refresh()
+        return self._raw == 'expired'
+
+    @property
+    def reached(self):
+        """Return true if the checkpoint has been reached.
+        
+        Contacts the server to check the current state.
+
+        """
+        if self._raw is None:
+            self._refresh()
+        return self._raw is not None
+
+    @property
+    def errors(self):
+        """Return the list of errors associated with the CheckPoint.
+
+        Note that if there are many errors, only the first few will be
+        returned.
+
+        Returns None if the checkpoint hasn't been reached yet.
+
+        """
+        if self._raw is None:
+            return None
+        return self._raw.get('errors', [])
+
+    @property
+    def total_errors(self):
+        """Return the total count of errors associated with the CheckPoint.
+
+        This may be larger than len(self.errors), if there were more errors
+        than the CheckPoint is able to hold.
+
+        Returns None if the checkpoint hasn't been reached yet.
+
+        """
+        if self._raw is None:
+            return None
+        return self._raw.get('total_errors', 0)
+
+    def wait(self):
+        """Wait for the checkpoint to be reached.
+
+        This will contact the server, and wait until the checkpoint has been
+        reached.
+
+        If the checkpoint expires (before or during the call), a
+        CheckPointExpiredError will be raised..
+        
+        """
+        while True:
+            self._refresh()
+            res = self._resource.get(self._basepath).json
+            if res.get('reached', False):
+                self._raw = res
+                return self
+            # FIXME - sleep a bit.  Currently the server doesn't long-poll for
+            # the checkpoint, so we need to sleep to avoid using lots of CPU.
+            import time
+            time.sleep(0.1)
