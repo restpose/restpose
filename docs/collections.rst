@@ -166,9 +166,10 @@ Timestamp fields
 Timestamp fields expect an integer number of seconds since the Unix epoch
 (1970).  They can only handle positive values.
 
-They have one additional parameter: the "slot" parameter, which is an unsigned
-integer value.  Each timestamp that should be searchable should be given a
-distinct value for the "slot" parameter.
+They have one additional parameter: the "slot" parameter, which is the number
+or name of the slot that the timestamps will be stored in.  Each timestamp that
+should be searchable should be given a distinct value for the "slot" parameter.
+See the `slot_numbers`_ section for more details about slot numbers.
 
 Date fields
 -----------
@@ -178,9 +179,10 @@ Date fields
 Date fields expect a date in the form "year-month-day", in which year, month
 and day are integer values.  Negative years are allowed.
 
-They have one additional parameter: the "slot" parameter, which is an unsigned
-integer value.  Each date that should be searchable should be given a distinct
-value for the "slot" parameter.
+They have one additional parameter: the "slot" parameter, which is the number
+or name of the slot that dates will be stored in.  Each date that should be
+searchable should be given a distinct value for the "slot" parameter.  See the
+`slot_numbers`_ section for more details about slot numbers.
 
 Geo fields
 ----------
@@ -221,6 +223,36 @@ default action for unknown fields being performed on them.
 
 .. todo: check that the behaviour for an ignore field which has a store_field parameter is sensible, and document it.
 
+
+
+.. _slot_numbers:
+
+Slot numbers
+------------
+
+Various fields (eg, timestamp and date fields) have a "slot" parameter in their
+configuration.  This is related to a concept in Xapian called "value slots" -
+each document can have values associated with it, to be used at search time for
+filtering, sorting, etc.
+
+Xapian has a limitation that the slots are addressed only by numbers rather
+than by strings.  For convenience, restpose allows slots to be addressed by
+strings, and hashes the strings to produce a number.  There is a small chance
+of hash collision, but this is unlikely to be a problem unless you are using
+
+It is still possible to use a number to reference a slot.  If you use a number
+directly, it is advisable to use a number less than 0x0fffffff, since the
+results of the hashing algorithm will always be in the range 0x10000000 to
+0xffffffff.
+
+Note that the string `"1"` is not the same as the number 1.  The string will be
+hashed to produce a slot number, whereas the number will be used directly as
+the slot number.
+
+Prefixes
+--------
+
+.. todo: Write up some notes about prefixes, how they should be used, and concerns about collisions.
 
 .. _patterns:
 
