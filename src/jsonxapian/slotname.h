@@ -35,7 +35,7 @@ class SlotName {
     Xapian::valueno num;
 
   public:
-    static const unsigned long int max_explicit_slot_num = 0x0fffffff;
+    static const unsigned long int max_explicit_slot_num = 0x0fffffffu;
 
     static Xapian::valueno hash_slot(const char * ptr, size_t len)
     {
@@ -44,7 +44,7 @@ class SlotName {
 	for (; ptr != end; ++ptr) {
 	    h += (h << 5) + static_cast<unsigned char>(*ptr);
 	}
-	h = max_explicit_slot_num + 1 + (h & 0xefffffff);
+	h = max_explicit_slot_num + 1 + (h & 0xefffffffu);
 	return h;
     }
 

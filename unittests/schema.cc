@@ -451,3 +451,31 @@ TEST(CJKFields)
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"text\":[\"Some english text\"]}");
     }
 }
+
+TEST(SlotNumbers)
+{
+    SlotName name;
+    CHECK_EQUAL(Xapian::BAD_VALUENO, name.get());
+
+    // Check a specific value (should help catch portability issues).
+    name = std::string("1");
+    CHECK_EQUAL(268435538u, name.get());
+    name = std::string("alternate string");
+    CHECK_EQUAL(2470924216u, name.get());
+    name = std::string("string alternate");
+    CHECK_EQUAL(3524491384u, name.get());
+
+    name = 1;
+    CHECK_EQUAL(1u, name.get());
+
+    name = std::string("");
+    CHECK(name.get() >= 0x10000000u && name.get() <= 0xffffffffu);
+    CHECK(name.get() != 268435538u);  // check not all hashes are the same!
+
+    name = std::string("Short string");
+    CHECK(name.get() >= 0x10000000u && name.get() <= 0xffffffffu);
+
+    name = std::string("Long sdjug siduh sidu ysidu ysiduy siduy string");
+    CHECK(name.get() >= 0x10000000u && name.get() <= 0xffffffffu);
+}
+

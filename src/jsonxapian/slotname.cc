@@ -54,10 +54,10 @@ SlotName::SlotName(const Json::Value & value)
 	if (value < Json::Value::Int(0)) {
 	    throw InvalidValueError("Value for slot number was negative");
 	}
-	if (value > 0xffffffff) {
+	if (value > 0xffffffffu) {
 	    throw InvalidValueError("Value for slot number was larger than "
 				    "maximum allowed (" +
-				    str(0xffffffff) + ")");
+				    str(0xffffffffu) + ")");
 	}
 	num = value.asUInt();
     } else if (value.isString()) {
