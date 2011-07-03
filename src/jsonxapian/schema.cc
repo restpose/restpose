@@ -34,6 +34,7 @@
 #include "json/writer.h"
 #include "logger/logger.h"
 #include <memory>
+#include "slotname.h"
 #include <string>
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
@@ -479,7 +480,7 @@ TextFieldConfig::to_json(Json::Value & value) const
 TimestampFieldConfig::TimestampFieldConfig(const Json::Value & value)
 {
     json_check_object(value, "schema object");
-    slot = json_get_uint64_member(value, "slot", Xapian::BAD_VALUENO);
+    slot = value["slot"];
     store_field = json_get_string_member(value, "store_field", string());
 }
 
@@ -489,7 +490,7 @@ TimestampFieldConfig::~TimestampFieldConfig()
 FieldIndexer *
 TimestampFieldConfig::indexer() const
 {
-    return new TimeStampIndexer(slot, store_field);
+    return new TimeStampIndexer(slot.get(), store_field);
 }
 
 Xapian::Query
@@ -506,14 +507,14 @@ TimestampFieldConfig::query(const string & qtype,
     }
     string start = Xapian::sortable_serialise(json_get_uint64(value[Json::UInt(0u)]));
     string end = Xapian::sortable_serialise(json_get_uint64(value[1u]));
-    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot, start, end);
+    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
 }
 
 void
 TimestampFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "timestamp";
-    value["slot"] = slot;
+    slot.to_json(value["slot"]);
     value["store_field"] = store_field;
 }
 
@@ -531,7 +532,7 @@ DateFieldConfig::~DateFieldConfig()
 FieldIndexer *
 DateFieldConfig::indexer() const
 {
-    return new DateIndexer(slot, store_field);
+    return new DateIndexer(slot.get(), store_field);
 }
 
 Xapian::Query
@@ -548,14 +549,14 @@ DateFieldConfig::query(const string & qtype,
     }
     string start = DateIndexer::parse_date(value[Json::UInt(0u)]);
     string end = DateIndexer::parse_date(value[1u]);
-    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot, start, end);
+    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
 }
 
 void
 DateFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "date";
-    value["slot"] = slot;
+    slot.to_json(value["slot"]);
     value["store_field"] = store_field;
 }
 

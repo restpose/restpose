@@ -28,6 +28,7 @@
 #include <cstdio>
 #include "json/value.h"
 #include <map>
+#include "jsonxapian/slotname.h"
 #include <string>
 #include <xapian.h>
 
@@ -229,7 +230,7 @@ namespace RestPose {
 
     struct TimestampFieldConfig : public FieldConfig {
 	/// The slot to use for the field.
-	unsigned int slot;
+	SlotName slot;
 
 	/// The fieldname to store field values under (empty to not store).
 	std::string store_field;
@@ -264,7 +265,7 @@ namespace RestPose {
 
     struct DateFieldConfig : public FieldConfig {
 	/// The slot to use for the field.
-	unsigned int slot;
+	SlotName slot;
 
 	/// The fieldname to store field values under (empty to not store).
 	std::string store_field;
