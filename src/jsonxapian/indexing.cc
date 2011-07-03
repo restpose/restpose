@@ -123,8 +123,11 @@ TimeStampIndexer::index(Xapian::Document & doc,
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
-	unsigned int secs = json_get_uint64(*i);
-	doc.add_value(slot, Xapian::sortable_serialise(secs));
+	if ((*i).isConvertibleTo(Json::realValue)) {
+	    doc.add_value(slot, Xapian::sortable_serialise((*i).asDouble()));
+	} else {
+	    throw InvalidValueError("Timestamp field must be numeric");
+	}
     }
 
     if (!store_field.empty()) {

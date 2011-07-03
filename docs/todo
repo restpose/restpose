@@ -3,6 +3,8 @@ TODO
 
 Update index.rst - wildly out of date (talks about jxd and jx.py)
 
+Test passing double values (both positive and negative) to timestamp fields.
+
 Make logging do writes asynchronously.  (Currently, a log call acquires the
 logger mutex, then does the write, blocking all other threads.  Instead, log
 messages should be added to a queue, and a logger thread should write them to
