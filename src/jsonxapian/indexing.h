@@ -51,7 +51,20 @@ namespace RestPose {
     };
 
     struct IndexingErrors {
+	/** Errors occurring while indexing.
+	 *
+	 *  First item in each pair is the fieldname, next item is the error
+	 *  message.
+	 */
 	std::vector<std::pair<std::string, std::string> > errors;
+
+	/** Flag indicating if the error is a total failure to process the
+	 * document (if true), or a failure of processing part of the document
+	 * (if false).
+	 */
+	bool total_failure;
+
+	IndexingErrors() : total_failure(false) {}
 
 	void append(const std::string & fieldname,
 		    const std::string & error) {

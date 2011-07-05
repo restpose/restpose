@@ -176,8 +176,16 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     config->clear_changed();
     IndexingErrors errors;
     Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm, errors);
-    if (!errors.errors.empty()) {
-	throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
+    if (errors.total_failure) {
+	// Currently, there can only be one error if a total_failure occurs, so
+	// we just raise it.
+	throw InvalidValueError(errors.errors[0].first + ": " +
+				errors.errors[0].second);
+    }
+    for (vector<pair<string, string> >::const_iterator
+	 i = errors.errors.begin(); i != errors.errors.end(); ++i) {
+	LOG_ERROR("Indexing error in field \"" + i->first + "\": \"" +
+		  i->second + "\"");
     }
 
     taskman->queue_indexing_from_processing(coll_name,

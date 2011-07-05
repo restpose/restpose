@@ -608,6 +608,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	if (type_obj.isNull()) {
 	    errors.append(type_field,
 			  "No document type supplied or stored in document.");
+	    errors.total_failure = true;
 	    return doc;
 	}
 	if (type_obj.isArray()) {
@@ -616,15 +617,18 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		doc_type_ = json_get_idstyle_value(type_obj[0], error);
 		if (!error.empty()) {
 		    errors.append(type_field, error);
+		    errors.total_failure = true;
 		    return doc;
 		}
 	    } else if (type_obj.size() == 0) {
 		errors.append(type_field,
 			      "No document type stored in document.");
+		errors.total_failure = true;
 		return doc;
 	    } else {
 		errors.append(type_field,
 			      "Multiple document types stored in document.");
+		errors.total_failure = true;
 		return doc;
 	    }
 	} else {
@@ -632,6 +636,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	    doc_type_ = json_get_idstyle_value(type_obj, error);
 	    if (!error.empty()) {
 		errors.append(type_field, error);
+		errors.total_failure = true;
 		return doc;
 	    }
 	}
@@ -650,11 +655,13 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		    stored_type = json_get_idstyle_value(type_obj[0], error);
 		    if (!error.empty()) {
 			errors.append(type_field, error);
+			errors.total_failure = true;
 			return doc;
 		    }
 		} else if (type_obj.size() > 1) {
 		    errors.append(type_field,
 				  "Multiple document types stored in document.");
+		    errors.total_failure = true;
 		    return doc;
 		}
 	    } else {
@@ -662,6 +669,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		stored_type = json_get_idstyle_value(type_obj, error);
 		if (!error.empty()) {
 		    errors.append(type_field, error);
+		    errors.total_failure = true;
 		    return doc;
 		}
 	    }
@@ -669,6 +677,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		errors.append(type_field,
 			      "Document type supplied differs from "
 			      "that inside document.");
+		errors.total_failure = true;
 		return doc;
 	    }
 	}
@@ -692,11 +701,13 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		    stored_id = json_get_idstyle_value(id_obj[0], error);
 		    if (!error.empty()) {
 			errors.append(id_field, error);
+			errors.total_failure = true;
 			return doc;
 		    }
 		} else if (id_obj.size() > 1) {
 		    errors.append(id_field,
 				  "Multiple document ids stored in document.");
+		    errors.total_failure = true;
 		    return doc;
 		}
 	    } else {
@@ -704,6 +715,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		stored_id = json_get_idstyle_value(id_obj, error);
 		if (!error.empty()) {
 		    errors.append(id_field, error);
+		    errors.total_failure = true;
 		    return doc;
 		}
 	    }
@@ -712,6 +724,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 			      "Document id supplied ('" + doc_id +
 			      "') differs from that inside document ('" +
 			      stored_id + "').");
+		errors.total_failure = true;
 		return doc;
 	    }
 	}
