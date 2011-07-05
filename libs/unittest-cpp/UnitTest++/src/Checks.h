@@ -21,7 +21,7 @@ void CheckEqual(TestResults& results, Expected const& expected, Actual const& ac
     if (!(expected == actual))
     {
         UnitTest::MemoryOutStream stream;
-        stream << "Expected " << expected << " but was " << actual;
+        stream << "Expected \n" << expected << " but was \n" << actual;
 
         results.OnTestFailure(details, stream.GetText());
     }
