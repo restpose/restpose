@@ -990,7 +990,7 @@ Schema::process(const Json::Value & value,
 {
     json_check_object(value, "input document");
 
-    IndexingState state(collconfig);
+    IndexingState state(idterm, collconfig);
 
     for (Json::Value::const_iterator viter = value.begin();
 	 viter != value.end();
@@ -1024,7 +1024,6 @@ Schema::process(const Json::Value & value,
     }
 
     state.doc.set_data(state.docdata.serialise());
-    idterm = state.idterm;
     return state.doc;
 }
 

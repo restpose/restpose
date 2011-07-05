@@ -77,16 +77,20 @@ namespace RestPose {
 	 *
 	 *  This gets set when processing the document ID field.
 	 */
-	std::string idterm;
+	std::string & idterm;
 
 	/** The configuration of the collection.
 	 */
 	const CollectionConfig & collconfig;
 
 
-	IndexingState(const CollectionConfig & collconfig_)
-		: collconfig(collconfig_)
-	{}
+	IndexingState(std::string & idterm_,
+		      const CollectionConfig & collconfig_)
+		: idterm(idterm_),
+		  collconfig(collconfig_)
+	{
+	    idterm.resize(0);
+	}
 
 	/** Set the idterm.
 	 *
