@@ -1,5 +1,5 @@
 /** @file handler.cc
- * @brief Base classes of handlers used in routing. 
+ * @brief Base classes of handlers used in routing.
  */
 /* Copyright (c) 2011 Richard Boulton
  *

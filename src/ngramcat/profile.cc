@@ -196,7 +196,7 @@ void
 SortedNGramProfile::from_json(const Json::Value & value)
 {
     json_check_object(value, "ngram profile");
-    
+
     const Json::Value & ngram_obj = value["ngrams"];
     json_check_array(ngram_obj, "ngram list in ngram profile");
 

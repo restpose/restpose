@@ -106,7 +106,7 @@ void
 Collection::write_config()
 {
     Json::Value config_obj;
-    group.set_metadata("_restpose_config", 
+    group.set_metadata("_restpose_config",
 		       json_serialise(config.to_json(config_obj)));
 }
 

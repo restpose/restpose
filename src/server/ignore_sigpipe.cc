@@ -41,7 +41,7 @@ catcher(int /* sig */)
 // Set a handler for SIGPIPE which ignores it.
 void
 ignore_sigpipe()
-{ 
+{
     struct sigaction oldsig;
     struct sigaction sig;
 

@@ -332,7 +332,7 @@ DbGroup::open_writable()
 void
 DbGroup::open_readonly()
 {
-    // We don't always need to rebuild the group db after this, if 
+    // We don't always need to rebuild the group db after this, if
     // all of the fragments were open, and the fragment list hasn't changed.
     // FIXME - check if this is the case, and don't invalidate the group db
     // if so.

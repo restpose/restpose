@@ -159,7 +159,7 @@ RestPose::do_cmd(std::string datadir, std::string dbname,
 
 	{
 	    Schema schema("FIXME");
-	    Xapian::WritableDatabase db = 
+	    Xapian::WritableDatabase db =
 		    jxdb_create_or_open(database_path, schema_path, schema);
 
 	    if (show_info) {

@@ -178,7 +178,7 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm, errors);
     if (!errors.errors.empty()) {
 	throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
-    }       
+    }
 
     taskman->queue_indexing_from_processing(coll_name,
 	new IndexerUpdateDocumentTask(idterm, xdoc));

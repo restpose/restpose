@@ -46,7 +46,7 @@ RouteLevel::get_method(ConnectionInfo & conn) const
     if (!conn.require_method(allowed_methods)) {
 	return NULL;
     }
-    map<int, const HandlerFactory *>::const_iterator 
+    map<int, const HandlerFactory *>::const_iterator
 	    i = handlers.find(conn.method);
     if (i == handlers.end()) {
 	// Shouldn't happen; the check on allowed_methods earlier should
@@ -180,7 +180,7 @@ Router::route_find(ConnectionInfo & conn) const
 	return factory->create(path_params);
     } else {
 	return NULL;
-    } 
+    }
 }
 
 Router::Router(TaskManager * taskman_, Server * server_)

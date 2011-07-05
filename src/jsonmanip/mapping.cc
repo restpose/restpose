@@ -67,7 +67,7 @@ Mapping::to_json(Json::Value & value) const
 	    // value["default"] = "preserve_top";
 	    break;
     }
-    
+
     Json::Value path = Json::arrayValue;
     std::vector<std::pair<ActionMap::const_iterator,
 			  ActionMap::const_iterator> > stack;
@@ -89,7 +89,7 @@ Mapping::to_json(Json::Value & value) const
 	if (stack.empty()) {
 	    break;
 	}
-	
+
 	ActionMap::const_iterator & pos = stack.back().first;
 
 	path[path.size() - 1] = pos->first.get();

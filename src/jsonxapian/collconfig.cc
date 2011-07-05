@@ -128,7 +128,7 @@ CollectionConfig::set_default_schema()
 "  ],"
 "  \"fields\": {"
 "  }"
-"}", tmp)); 
+"}", tmp));
     defschema.to_json(default_type_config);
 }
 
@@ -567,8 +567,8 @@ CollectionConfig::send_to_pipe(TaskManager * taskman,
 	Xapian::Document xdoc = process_doc(obj, "default", "", idterm, errors);
 
 	if (!errors.errors.empty()) {
-	    throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);                      
-	}                                                                         
+	    throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
+	}
 
 	taskman->queue_indexing_from_processing(get_name(),
 	    new IndexerUpdateDocumentTask(idterm, xdoc));
@@ -710,7 +710,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	    if (!stored_id.empty() && doc_id != stored_id) {
 		errors.append(id_field,
 			      "Document id supplied ('" + doc_id +
-			      "') differs from that inside document ('" + 
+			      "') differs from that inside document ('" +
 			      stored_id + "').");
 		return doc;
 	    }

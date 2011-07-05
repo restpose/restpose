@@ -52,7 +52,7 @@ FileHandlerFactory::create(const vector<string> &path_params) const
 	filepath += DIR_SEPARATOR;
 	filepath += *i;
     }
-    
+
     return new FileHandler(filepath);
 }
 

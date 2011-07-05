@@ -70,8 +70,6 @@ class TaskQueueGroup {
 	bool active;
 
 	/** True for queues which have a dedicated handler assigned.
-	 *
-	 *  This has no effect on pushes or pops, but is used by 
 	 */
 	bool assigned;
 
