@@ -27,11 +27,13 @@
 #include <json/json.h>
 #include "jsonxapian/collconfig.h"
 #include "jsonxapian/doctojson.h"
+#include "jsonxapian/indexing.h"
 #include "jsonxapian/schema.h"
 #include "utils/rsperrors.h"
 #include "utils/jsonutils.h"
 
 using namespace RestPose;
+using namespace std;
 
 TEST(SearchIntegerExactFields)
 {
@@ -47,8 +49,10 @@ TEST(SearchIntegerExactFields)
 	Json::Reader reader;
 	Json::Value value;
 	CHECK(reader.parse("{\"id\": 32, \"intid\": 18446744073709551615}", value, false)); // 2**64-1
-	std::string idterm;
-	Xapian::Document doc(s.process(value, idterm, config));
+	string idterm;
+	IndexingErrors errors;
+	Xapian::Document doc(s.process(value, config, idterm, errors));
+	CHECK_EQUAL(0u, errors.errors.size());
 	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"\\t\\t32\":{},\"intid\\t18446744073709551615\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
@@ -59,8 +63,10 @@ TEST(SearchIntegerExactFields)
 	Json::Reader reader;
 	Json::Value value;
 	CHECK(reader.parse("{\"id\": 18446744073709551615, \"intid\": 31}", value, false)); // 2**64-1
-	std::string idterm;
-	Xapian::Document doc(s.process(value, idterm, config));
+	string idterm;
+	IndexingErrors errors;
+	Xapian::Document doc(s.process(value, config, idterm, errors));
+	CHECK_EQUAL(0u, errors.errors.size());
 	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"intid\":[31]},\"terms\":{\"\\t\\t18446744073709551615\":{},\"intid\\t31\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
@@ -71,7 +77,7 @@ TEST(SearchIntegerExactFields)
     // First, check a search which should return nothing
     {
 	Json::Value search_results(Json::objectValue);
-	std::string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[\"31\"]]}}";
+	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[\"31\"]]}}";
 	s.perform_search(db, search_str, search_results);
 	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size\":10}",
 		    json_serialise(search_results));
@@ -80,7 +86,7 @@ TEST(SearchIntegerExactFields)
     // Check a search matching on a low-range id as a string
     {
 	Json::Value search_results(Json::objectValue);
-	std::string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[\"32\"]]}}";
+	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[\"32\"]]}}";
 	s.perform_search(db, search_str, search_results);
 	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
 		    json_serialise(search_results));
@@ -89,7 +95,7 @@ TEST(SearchIntegerExactFields)
     // Check a search matching on a low-range id as a number
     {
 	Json::Value search_results(Json::objectValue);
-	std::string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[32]]}}";
+	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[32]]}}";
 	s.perform_search(db, search_str, search_results);
 	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
 		    json_serialise(search_results));
@@ -98,7 +104,7 @@ TEST(SearchIntegerExactFields)
     // Check a search matching on a high-range id as a number
     {
 	Json::Value search_results(Json::objectValue);
-	std::string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[18446744073709551615]]}}";
+	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[18446744073709551615]]}}";
 	s.perform_search(db, search_str, search_results);
 	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[{\"intid\":[31]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
 		    json_serialise(search_results));
@@ -107,7 +113,7 @@ TEST(SearchIntegerExactFields)
     // Check a search matching on a massive intid
     {
 	Json::Value search_results(Json::objectValue);
-	std::string search_str = "{\"query\":{\"field\":[\"intid\",\"is\",[\"18446744073709551615\"]]}}";
+	string search_str = "{\"query\":{\"field\":[\"intid\",\"is\",[\"18446744073709551615\"]]}}";
 	s.perform_search(db, search_str, search_results);
 	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
 		    json_serialise(search_results));
@@ -116,7 +122,7 @@ TEST(SearchIntegerExactFields)
     // Check a failing match on a massive intid
     {
 	Json::Value search_results(Json::objectValue);
-	std::string search_str = "{\"query\":{\"field\":[\"intid\",\"is\",[\"18446744073709551614\"]]}}";
+	string search_str = "{\"query\":{\"field\":[\"intid\",\"is\",[\"18446744073709551614\"]]}}";
 	s.perform_search(db, search_str, search_results);
 	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size\":10}",
 		    json_serialise(search_results));

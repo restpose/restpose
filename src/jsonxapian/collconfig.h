@@ -35,9 +35,10 @@ class TaskManager;
 
 namespace RestPose {
 
-class Schema;
-class Pipe;
 class Categoriser;
+class IndexingErrors;
+class Pipe;
+class Schema;
 
 /** All the configuration of the collection.
  *
@@ -298,7 +299,8 @@ class CollectionConfig {
     Xapian::Document process_doc(Json::Value & doc_obj,
 				 const std::string & doc_type,
 				 const std::string & doc_id,
-				 std::string & idterm);
+				 std::string & idterm,
+				 IndexingErrors & errors);
 };
 
 }

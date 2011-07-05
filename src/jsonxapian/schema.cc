@@ -985,12 +985,13 @@ Schema::set(const string & fieldname, FieldConfig * config)
 
 Xapian::Document
 Schema::process(const Json::Value & value,
+		const CollectionConfig & collconfig,
 		string & idterm,
-		const CollectionConfig & collconfig)
+		IndexingErrors & errors)
 {
     json_check_object(value, "input document");
 
-    IndexingState state(idterm, collconfig);
+    IndexingState state(collconfig, idterm, errors);
 
     for (Json::Value::const_iterator viter = value.begin();
 	 viter != value.end();
@@ -1017,10 +1018,6 @@ Schema::process(const Json::Value & value,
 		indexer->index(state, fieldname, arrayval);
 	    }
 	}
-    }
-
-    if (!state.errors.empty()) {
-	throw InvalidValueError(state.errors[0].second);
     }
 
     state.doc.set_data(state.docdata.serialise());

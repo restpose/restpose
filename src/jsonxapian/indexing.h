@@ -50,6 +50,16 @@ namespace RestPose {
 	bool errors;
     };
 
+    struct IndexingErrors {
+	std::vector<std::pair<std::string, std::string> > errors;
+
+	void append(const std::string & fieldname,
+		    const std::string & error) {
+	    errors.push_back(std::pair<std::string, std::string>
+			     (fieldname, error));
+	}
+    };
+
     /** Container for the state when indexing a document.
      */
     struct IndexingState {
@@ -66,12 +76,9 @@ namespace RestPose {
 	 */
 	std::map<std::string, FieldPresence> presence;
 
-	/** Errors produced when processing the document.
-	 *
-	 *  First item in the pair is the fieldname, second item is the
-	 *  error string.
+	/** The configuration of the collection.
 	 */
-	std::vector<std::pair<std::string, std::string> > errors;
+	const CollectionConfig & collconfig;
 
 	/** The term representing the document ID.
 	 *
@@ -79,15 +86,20 @@ namespace RestPose {
 	 */
 	std::string & idterm;
 
-	/** The configuration of the collection.
+	/** Errors produced when processing the document.
+	 *
+	 *  First item in the pair is the fieldname, second item is the
+	 *  error string.
 	 */
-	const CollectionConfig & collconfig;
+	IndexingErrors & errors;
 
 
-	IndexingState(std::string & idterm_,
-		      const CollectionConfig & collconfig_)
-		: idterm(idterm_),
-		  collconfig(collconfig_)
+	IndexingState(const CollectionConfig & collconfig_,
+		      std::string & idterm_,
+		      IndexingErrors & errors_)
+		: collconfig(collconfig_),
+		  idterm(idterm_),
+		  errors(errors_)
 	{
 	    idterm.resize(0);
 	}
@@ -117,7 +129,7 @@ namespace RestPose {
 	void append_error(const std::string & fieldname,
 			  const std::string & error) {
 	    presence[fieldname].errors = true;
-	    errors.push_back(make_pair(fieldname, error));
+	    errors.append(fieldname, error);
 	}
     };
 

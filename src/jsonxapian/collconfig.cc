@@ -27,6 +27,7 @@
 
 #include <xapian.h>
 #include "jsonxapian/doctojson.h"
+#include "jsonxapian/indexing.h"
 #include "jsonxapian/pipe.h"
 #include "logger/logger.h"
 #include "str.h"
@@ -560,9 +561,15 @@ CollectionConfig::send_to_pipe(TaskManager * taskman,
 
     if (pipe_name.empty()) {
 	string idterm;
+	IndexingErrors errors;
 	// FIXME - remove hardcoded "default" here - pipes should have a way to
 	// say what type the output document is.
-	Xapian::Document xdoc = process_doc(obj, "default", "", idterm);
+	Xapian::Document xdoc = process_doc(obj, "default", "", idterm, errors);
+
+	if (!errors.errors.empty()) {
+	    throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);                      
+	}                                                                         
+
 	taskman->queue_indexing_from_processing(get_name(),
 	    new IndexerUpdateDocumentTask(idterm, xdoc));
 
@@ -588,30 +595,45 @@ Xapian::Document
 CollectionConfig::process_doc(Json::Value & doc_obj,
 			      const string & doc_type,
 			      const string & doc_id,
-			      string & idterm)
+			      string & idterm,
+			      IndexingErrors & errors)
 {
     json_check_object(doc_obj, "input document");
+    Xapian::Document doc;
 
     string doc_type_(doc_type);
     if (doc_type.empty()) {
 	// No document type supplied in URL - look for it in the document.
 	const Json::Value & type_obj = doc_obj[type_field];
 	if (type_obj.isNull()) {
-	    throw InvalidValueError(
-		"No document type supplied or stored in document.");
+	    errors.append(type_field,
+			  "No document type supplied or stored in document.");
+	    return doc;
 	}
 	if (type_obj.isArray()) {
 	    if (type_obj.size() == 1) {
-		doc_type_ = json_get_idstyle_value(type_obj[0]);
+		string error;
+		doc_type_ = json_get_idstyle_value(type_obj[0], error);
+		if (!error.empty()) {
+		    errors.append(type_field, error);
+		    return doc;
+		}
 	    } else if (type_obj.size() == 0) {
-		throw InvalidValueError(
-		    "No document type stored in document.");
+		errors.append(type_field,
+			      "No document type stored in document.");
+		return doc;
 	    } else {
-		throw InvalidValueError(
-		    "Multiple document types stored in document.");
+		errors.append(type_field,
+			      "Multiple document types stored in document.");
+		return doc;
 	    }
 	} else {
-	    doc_type_ = json_get_idstyle_value(type_obj);
+	    string error;
+	    doc_type_ = json_get_idstyle_value(type_obj, error);
+	    if (!error.empty()) {
+		errors.append(type_field, error);
+		return doc;
+	    }
 	}
     } else {
 	// Document type supplied in URL - check that it isn't different in
@@ -624,17 +646,30 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	    string stored_type;
 	    if (type_obj.isArray()) {
 		if (type_obj.size() == 1) {
-		    stored_type = json_get_idstyle_value(type_obj[0]);
+		    string error;
+		    stored_type = json_get_idstyle_value(type_obj[0], error);
+		    if (!error.empty()) {
+			errors.append(type_field, error);
+			return doc;
+		    }
 		} else if (type_obj.size() > 1) {
-		    throw InvalidValueError(
-			"Multiple document types stored in document.");
+		    errors.append(type_field,
+				  "Multiple document types stored in document.");
+		    return doc;
 		}
 	    } else {
-		stored_type = json_get_idstyle_value(type_obj);
+		string error;
+		stored_type = json_get_idstyle_value(type_obj, error);
+		if (!error.empty()) {
+		    errors.append(type_field, error);
+		    return doc;
+		}
 	    }
 	    if (!stored_type.empty() && doc_type != stored_type) {
-		throw InvalidValueError("Document type supplied differs from "
-					"that inside document.");
+		errors.append(type_field,
+			      "Document type supplied differs from "
+			      "that inside document.");
+		return doc;
 	    }
 	}
     }
@@ -653,17 +688,31 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	    string stored_id;
 	    if (id_obj.isArray()) {
 		if (id_obj.size() == 1) {
-		    stored_id = json_get_idstyle_value(id_obj[0]);
+		    string error;
+		    stored_id = json_get_idstyle_value(id_obj[0], error);
+		    if (!error.empty()) {
+			errors.append(id_field, error);
+			return doc;
+		    }
 		} else if (id_obj.size() > 1) {
-		    throw InvalidValueError(
-			"Multiple document ids stored in document.");
+		    errors.append(id_field,
+				  "Multiple document ids stored in document.");
+		    return doc;
 		}
 	    } else {
-		stored_id = json_get_idstyle_value(id_obj);
+		string error;
+		stored_id = json_get_idstyle_value(id_obj, error);
+		if (!error.empty()) {
+		    errors.append(id_field, error);
+		    return doc;
+		}
 	    }
 	    if (!stored_id.empty() && doc_id != stored_id) {
-		throw InvalidValueError("Document id supplied differs from "
-					"that inside document.");
+		errors.append(id_field,
+			      "Document id supplied ('" + doc_id +
+			      "') differs from that inside document ('" + 
+			      stored_id + "').");
+		return doc;
 	    }
 	}
     }
@@ -674,5 +723,6 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	newschema.from_json(default_type_config);
 	schema = set_schema(doc_type_, newschema);
     }
-    return schema->process(doc_obj, idterm, *this);
+    doc = schema->process(doc_obj, *this, idterm, errors);
+    return doc;
 }

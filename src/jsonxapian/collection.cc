@@ -27,6 +27,7 @@
 
 #include <xapian.h>
 #include "jsonxapian/doctojson.h"
+#include "jsonxapian/indexing.h"
 #include "jsonxapian/pipe.h"
 #include "logger/logger.h"
 #include "str.h"
@@ -377,7 +378,11 @@ Collection::add_doc(Json::Value & doc_obj,
 		    const string & doc_type)
 {
     string idterm;
-    Xapian::Document doc(config.process_doc(doc_obj, doc_type, "FIXME", idterm));
+    IndexingErrors errors;
+    Xapian::Document doc(config.process_doc(doc_obj, doc_type, "FIXME", idterm, errors));
+    if (!errors.errors.empty()) {
+	throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
+    }
     raw_update_doc(doc, idterm);
 }
 
@@ -387,7 +392,12 @@ Collection::process_doc(Json::Value & doc_obj,
 			const string & doc_id,
 			string & idterm)
 {
-    return config.process_doc(doc_obj, doc_type, doc_id, idterm);
+    IndexingErrors errors;
+    Xapian::Document doc(config.process_doc(doc_obj, doc_type, doc_id, idterm, errors));
+    if (!errors.errors.empty()) {
+	throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
+    }
+    return doc;
 }
 
 void

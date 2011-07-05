@@ -123,7 +123,8 @@ namespace RestPose {
      *
      *  @param value The JSON object to get the id from.
      */
-    std::string json_get_idstyle_value(const Json::Value & value);
+    std::string json_get_idstyle_value(const Json::Value & value,
+				       std::string & errors);
 
     /** Serialise a JSON value as a string, in standard JSON format.
      */

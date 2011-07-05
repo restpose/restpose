@@ -479,16 +479,18 @@ TEST(CollectionCategory)
 	Json::Value doc(Json::objectValue);
 	doc["foo"] = "hello";
 	std::string idterm;
-	Xapian::Document xdoc = c->process_doc(doc, "default", "1", idterm);
-	CHECK_EQUAL(idterm, "\tdefault\t1");
-	CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tChello\":{}}}",
+	Xapian::Document xdoc = c->process_doc(doc, "default", "0", idterm);
+	CHECK_EQUAL("\tdefault\t0", idterm);
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"]},\"terms\":{\"\\tdefault\\t0\":{},\"foo\\tChello\":{}}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
 
+	doc = Json::objectValue;
 	Json::Value & catval = doc["foo"] = Json::arrayValue;
 	catval.append("world");
 	catval.append("child");
+	idterm.resize(0);
 	xdoc = c->process_doc(doc, "default", "1", idterm);
-	CHECK_EQUAL(idterm, "\tdefault\t1");
+	CHECK_EQUAL("\tdefault\t1", idterm);
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
 	c->raw_update_doc(xdoc, idterm);

@@ -70,7 +70,11 @@ ExactStringIndexer::index(IndexingState & state,
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
-	std::string val = json_get_idstyle_value(*i);
+	std::string error;
+	std::string val = json_get_idstyle_value(*i, error);
+	if (!error.empty()) {
+	    state.append_error(fieldname, error);
+	}
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
@@ -217,7 +221,11 @@ CategoryIndexer::index(IndexingState & state,
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
-	std::string val = json_get_idstyle_value(*i);
+	std::string error;
+	std::string val = json_get_idstyle_value(*i, error);
+	if (!error.empty()) {
+	    state.append_error(fieldname, error);
+	}
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:

@@ -28,6 +28,7 @@
 #include "httpserver/response.h"
 #include "jsonxapian/collection.h"
 #include "jsonxapian/collection_pool.h"
+#include "jsonxapian/indexing.h"
 #include "jsonxapian/pipe.h"
 #include "loadfile.h"
 #include "logger/logger.h"
@@ -173,7 +174,11 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
 				      .get(coll_name));
     string idterm;
     config->clear_changed();
-    Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm);
+    IndexingErrors errors;
+    Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm, errors);
+    if (!errors.errors.empty()) {
+	throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
+    }       
 
     taskman->queue_indexing_from_processing(coll_name,
 	new IndexerUpdateDocumentTask(idterm, xdoc));
