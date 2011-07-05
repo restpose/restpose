@@ -172,6 +172,24 @@ namespace RestPose {
 	virtual ~FieldIndexer();
     };
 
+    /** A field indexer for the metadata field.
+     */
+    class MetaIndexer : public FieldIndexer {
+	std::string prefix;
+	unsigned int slot;
+      public:
+	MetaIndexer(const std::string & prefix_,
+		    unsigned int slot_)
+		: prefix(prefix_), slot(slot_)
+	{}
+
+	virtual ~MetaIndexer();
+
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
+    };
+
     /** A field indexer which expects a single string as input, and indexes it
      *  with a prefix.
      */

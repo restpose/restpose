@@ -73,6 +73,36 @@ namespace RestPose {
 	void operator=(const FieldConfig &);
     };
 
+    /** Configuration for the Meta field.
+     */
+    struct MetaFieldConfig : public FieldConfig {
+	/// The prefix to use for the field.
+	std::string prefix;
+
+	/// The slot to use for the field.
+	SlotName slot;
+
+	/// Create from a JSON object.
+	MetaFieldConfig(const Json::Value & value);
+
+	virtual ~MetaFieldConfig();
+
+	/// Create an indexer for the field.
+	FieldIndexer * indexer() const;
+
+	/// Create a query to search this field.
+	Xapian::Query query(const std::string & qtype,
+			    const Json::Value & value) const;
+
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return std::string();
+	}
+
+	/// Add the configuration for the field to a JSON object.
+	void to_json(Json::Value & value) const;
+    };
+
     /** Configuration for fields which have a maximum length.
      */
     struct MaxLenFieldConfig : public FieldConfig {

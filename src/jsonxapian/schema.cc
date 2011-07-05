@@ -32,6 +32,8 @@
 #include "json/reader.h"
 #include "json/value.h"
 #include "json/writer.h"
+#include "jsonxapian/collconfig.h"
+#include "jsonxapian/indexing.h"
 #include "logger/logger.h"
 #include <memory>
 #include "slotname.h"
@@ -66,6 +68,9 @@ FieldConfig::from_json(const Json::Value & value,
 		if (type == "id") return new IDFieldConfig(value, doc_type);
 		if (type == "ignore") return new IgnoredFieldConfig();
 		break;
+	    case 'm':
+		if (type == "meta") return new MetaFieldConfig(value);
+		break;
 	    case 's':
 		if (type == "stored") return new StoredFieldConfig(value);
 		break;
@@ -80,6 +85,94 @@ FieldConfig::from_json(const Json::Value & value,
 
 FieldConfig::~FieldConfig()
 {}
+
+
+MetaFieldConfig::MetaFieldConfig(const Json::Value & value)
+{
+    json_check_object(value, "field configuration");
+    prefix = json_get_string_member(value, "prefix", string());
+    if (prefix.empty()) {
+	throw InvalidValueError("Field configuration argument \"prefix\""
+				" may not be empty");
+    }
+    if (prefix.find('\t') != string::npos) {
+	throw InvalidValueError("Field configuration argument \"prefix\""
+				" contains invalid character \\t");
+    }
+    prefix.append("\t");
+
+    slot = value["slot"];
+}
+
+MetaFieldConfig::~MetaFieldConfig()
+{}
+
+FieldIndexer *
+MetaFieldConfig::indexer() const
+{
+    return new MetaIndexer(prefix, slot.get());
+}
+
+Xapian::Query
+MetaFieldConfig::query(const std::string & qtype,
+		       const Json::Value & value) const
+{
+    json_check_array(value, "field query value");
+    char code = '\0';
+    if (qtype.size() > 1) {
+	switch (qtype[1]) {
+	    case 'x':
+		if (qtype == "exists") {
+		    code = 'F';
+		}
+		break;
+	    case 'o':
+		if (qtype == "nonempty") {
+		    code = 'N';
+		}
+		break;
+	    case 'm':
+		if (qtype == "empty") {
+		    code = 'M';
+		}
+		break;
+	    case 'r':
+		if (qtype == "error") {
+		    code = 'E';
+		}
+		break;
+	}
+    }
+    if (code == '\0') {
+	throw InvalidValueError("Invalid query type \"" + qtype +
+				"\" for meta field");
+    }
+
+    vector<string> terms;
+    for (Json::Value::const_iterator iter = value.begin();
+	 iter != value.end(); ++iter) {
+	if ((*iter).isNull()) {
+	    terms.push_back(prefix + code);
+	} else if ((*iter).isString()) {
+	    terms.push_back(prefix + code + (*iter).asString());
+	} else {
+	    throw InvalidValueError("Invalid query value (" +
+				    json_serialise(*iter) +
+				    ") for meta field - must be string or null");
+	}
+    }
+    return Xapian::Query(Xapian::Query::OP_OR, terms.begin(), terms.end());
+}
+
+void
+MetaFieldConfig::
+to_json(Json::Value & value) const
+{
+    value["type"] = "meta";
+    value["prefix"] = prefix.substr(0, prefix.size() - 1);
+    slot.to_json(value["slot"]);
+}
+
 
 MaxLenFieldConfig::MaxLenFieldConfig(const Json::Value & value)
 {
@@ -128,10 +221,10 @@ IDFieldConfig::IDFieldConfig(const Json::Value & value,
     store_field = json_get_string_member(value, "store_field", string());
 }
 
-IDFieldConfig::IDFieldConfig(const std::string & doc_type,
+IDFieldConfig::IDFieldConfig(const string & doc_type,
 			     unsigned int max_length_,
 			     MaxLenFieldConfig::TooLongAction too_long_action_,
-			     const std::string & store_field_)
+			     const string & store_field_)
 	: MaxLenFieldConfig(max_length_, too_long_action_),
 	  store_field(store_field_),
 	  prefix("\t" + doc_type + "\t")
@@ -993,10 +1086,19 @@ Schema::process(const Json::Value & value,
 
     IndexingState state(collconfig, idterm, errors);
 
+    string meta_field(collconfig.get_meta_field());
+
     for (Json::Value::const_iterator viter = value.begin();
 	 viter != value.end();
 	 ++viter) {
 	const string & fieldname = viter.memberName();
+
+	if (fieldname == meta_field) {
+	    state.append_error(fieldname, "Value provided in metadata field - "
+			       "should be empty");
+	    continue;
+	}
+
 	const FieldIndexer * indexer = get_indexer(fieldname);
 	if (!indexer) {
 	    LOG_INFO(string("New field type: ") + fieldname);
@@ -1017,6 +1119,15 @@ Schema::process(const Json::Value & value,
 		arrayval.append(*viter);
 		indexer->index(state, fieldname, arrayval);
 	    }
+	}
+    }
+
+    if (!meta_field.empty()) {
+	const FieldIndexer * indexer = get_indexer(meta_field);
+	if (!indexer) {
+	    LOG_INFO(string("New field type: ") + meta_field);
+	    set(meta_field, patterns.get(meta_field, doc_type));
+	    indexer = get_indexer(meta_field);
 	}
     }
 

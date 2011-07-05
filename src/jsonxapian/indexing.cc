@@ -44,6 +44,7 @@
 #include "utils/rsperrors.h"
 
 using namespace RestPose;
+using namespace std;
 
 void
 IndexingState::set_idterm(const std::string & fieldname,
@@ -58,6 +59,50 @@ IndexingState::set_idterm(const std::string & fieldname,
 
 FieldIndexer::~FieldIndexer()
 {}
+
+MetaIndexer::~MetaIndexer()
+{}
+
+void
+MetaIndexer::index(IndexingState & state,
+		   const string &,
+		   const Json::Value &) const
+{
+    // Generate terms with the following codes
+    // F: fields which exist
+    // N: fields which are non empty
+    // M: fields which are empty
+    // E: fields which had errors
+    bool had_nonempty(false);
+    bool had_empty(false);
+    bool had_errors(false);
+    for (map<string, FieldPresence>::const_iterator i = state.presence.begin();
+	 i != state.presence.end(); ++i) {
+	const string & fieldname(i->first);
+	state.doc.add_term(prefix + "F" + fieldname, 0);
+	if (i->second.nonempty) {
+	    state.doc.add_term(prefix + "N" + fieldname, 0);
+	    had_nonempty = true;
+	}
+	if (i->second.empty) {
+	    state.doc.add_term(prefix + "M" + fieldname, 0);
+	    had_empty = true;
+	}
+	if (i->second.errors) {
+	    state.doc.add_term(prefix + "E" + fieldname, 0);
+	    had_errors = true;
+	}
+    }
+    if (had_nonempty) {
+	state.doc.add_term(prefix + "N", 0);
+    }
+    if (had_empty) {
+	state.doc.add_term(prefix + "M", 0);
+    }
+    if (had_errors) {
+	state.doc.add_term(prefix + "E", 0);
+    }
+}
 
 ExactStringIndexer::~ExactStringIndexer()
 {}
