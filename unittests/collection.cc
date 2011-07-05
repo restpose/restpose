@@ -58,7 +58,7 @@ using namespace RestPose;
   "]" \
 "}"
 
-#define DEFAULT_SPECIAL_FIELDS "\"special_fields\":{\"id_field\":\"id\",\"type_field\":\"type\"}"
+#define DEFAULT_SPECIAL_FIELDS "\"special_fields\":{\"id_field\":\"id\",\"meta_field\":\"_meta\",\"type_field\":\"type\"}"
 
 class TempDir {
     std::string path;

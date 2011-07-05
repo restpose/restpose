@@ -25,6 +25,7 @@
 #ifndef RESTPOSE_INCLUDED_INDEXING_H
 #define RESTPOSE_INCLUDED_INDEXING_H
 
+#include "jsonxapian/docdata.h"
 #include "json/value.h"
 #include <map>
 #include <string>
@@ -34,8 +35,87 @@
 #include "schema.h"
 
 namespace RestPose {
-    class DocumentData;
     class CollectionConfig;
+
+    /** Information about the presence of a field in a document.
+     */
+    struct FieldPresence {
+	/// True if the field has a non-empty occurrence.
+	bool nonempty;
+
+	/// True if the field has an empty occurrence.
+	bool empty;
+
+	/// True if the field has an occurrence which produced an error.
+	bool errors;
+    };
+
+    /** Container for the state when indexing a document.
+     */
+    struct IndexingState {
+	/** The Xapian document holding the result of indexing.
+	 */
+	Xapian::Document doc;
+
+	/** The document data fields, which will be stored in the Xapian
+	 *  document data.
+	 */
+	DocumentData docdata;
+
+	/** Fields which are present in a document.
+	 */
+	std::map<std::string, FieldPresence> presence;
+
+	/** Errors produced when processing the document.
+	 *
+	 *  First item in the pair is the fieldname, second item is the
+	 *  error string.
+	 */
+	std::vector<std::pair<std::string, std::string> > errors;
+
+	/** The term representing the document ID.
+	 *
+	 *  This gets set when processing the document ID field.
+	 */
+	std::string idterm;
+
+	/** The configuration of the collection.
+	 */
+	const CollectionConfig & collconfig;
+
+
+	IndexingState(const CollectionConfig & collconfig_)
+		: collconfig(collconfig_)
+	{}
+
+	/** Set the idterm.
+	 *
+	 *  If the idterm is already set, this doesn't alter it, and instead
+	 *  records an error.
+	 */
+	void set_idterm(const std::string & fieldname,
+			const std::string & idterm_);
+
+	/** Register a field as being present, and having an empty value.
+	 */
+	void field_empty(const std::string & fieldname) {
+	    presence[fieldname].empty = true;
+	}
+
+	/** Register a field as being present, and having a non-empty value.
+	 */
+	void field_nonempty(const std::string & fieldname) {
+	    presence[fieldname].nonempty = true;
+	}
+
+	/** Log an error having occurred when processing a field.
+	 */
+	void append_error(const std::string & fieldname,
+			  const std::string & error) {
+	    presence[fieldname].errors = true;
+	    errors.push_back(make_pair(fieldname, error));
+	}
+    };
 
     /** Base class for field indexers: these process a JSON value and store
      *  the result in a field.
@@ -51,16 +131,15 @@ namespace RestPose {
 	 *
 	 *  If the field is an ID field, it should set the idterm appropriately.
 	 *
+	 *  @param state
 	 *  @param doc The document to store terms and values in.
 	 *  @param docdata The document data (may be modified by the method).
 	 *  @param value The JSON value held in the field.
 	 *  @param idterm A string which may be set to the document ID.
 	 */
-	virtual void index(Xapian::Document & doc,
-			   DocumentData & docdata,
-			   const Json::Value & value,
-			   std::string & idterm,
-			   const CollectionConfig & collconfig) const = 0;
+	virtual void index(IndexingState & state,
+			   const std::string & fieldname,
+			   const Json::Value & values) const = 0;
 	virtual ~FieldIndexer();
     };
 
@@ -88,11 +167,9 @@ namespace RestPose {
 
 	virtual ~ExactStringIndexer();
 
-	void index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & value,
-		   std::string & idterm,
-		   const CollectionConfig & collconfig) const;
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
     };
 
     /** A field indexer which expects a single string as input, and stores it.
@@ -106,11 +183,9 @@ namespace RestPose {
 
 	virtual ~StoredIndexer();
 
-	void index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & value,
-		   std::string & idterm,
-		   const CollectionConfig & collconfig) const;
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
     };
 
 
@@ -127,11 +202,9 @@ namespace RestPose {
 
 	virtual ~TimeStampIndexer();
 
-	void index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & value,
-		   std::string & idterm,
-		   const CollectionConfig & collconfig) const;
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
     };
 
 
@@ -155,15 +228,14 @@ namespace RestPose {
 
 	virtual ~DateIndexer();
 
-	void index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & value,
-		   std::string & idterm,
-		   const CollectionConfig & collconfig) const;
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
 
 	/** Parse a date into the form in which it is stored in the slot.
 	 */
-	static std::string parse_date(const Json::Value & value);
+	static std::string parse_date(const Json::Value & value,
+				      std::string & error);
     };
 
 
@@ -193,11 +265,9 @@ namespace RestPose {
 
 	virtual ~CategoryIndexer();
 
-	void index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & values,
-		   std::string & idterm,
-		   const CollectionConfig & collconfig) const;
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
     };
 
 
@@ -219,11 +289,9 @@ namespace RestPose {
 
 	virtual ~TermGeneratorIndexer();
 
-	void index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & value,
-		   std::string & idterm,
-		   const CollectionConfig & collconfig) const;
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
     };
 
     /** A field indexer which expects an array of strings as input, and
@@ -240,11 +308,9 @@ namespace RestPose {
 
 	virtual ~CJKIndexer();
 
-	void index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & value,
-		   std::string & idterm,
-		   const CollectionConfig & collconfig) const;
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
     };
 
 };

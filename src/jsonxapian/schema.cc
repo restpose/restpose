@@ -547,8 +547,15 @@ DateFieldConfig::query(const string & qtype,
     if (value.size() != 2) {
 	throw InvalidValueError("Date field range must have exactly two points");
     }
-    string start = DateIndexer::parse_date(value[Json::UInt(0u)]);
-    string end = DateIndexer::parse_date(value[1u]);
+    string error;
+    string start = DateIndexer::parse_date(value[Json::UInt(0u)], error);
+    if (!error.empty()) {
+	throw InvalidValueError(error);
+    }
+    string end = DateIndexer::parse_date(value[1u], error);
+    if (!error.empty()) {
+	throw InvalidValueError(error);
+    }
     return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
 }
 
@@ -983,8 +990,7 @@ Schema::process(const Json::Value & value,
 {
     json_check_object(value, "input document");
 
-    Xapian::Document result;
-    DocumentData docdata;
+    IndexingState state(collconfig);
 
     for (Json::Value::const_iterator viter = value.begin();
 	 viter != value.end();
@@ -1004,21 +1010,22 @@ Schema::process(const Json::Value & value,
 		continue;
 	    }
 	    if ((*viter).isArray()) {
-		if ((*viter).size() > 0) {
-		    indexer->index(result, docdata, *viter, idterm, collconfig);
-		} else {
-		    //fprintf(stderr, "empty array value ignored\n");
-		}
+		indexer->index(state, fieldname, *viter);
 	    } else {
 		Json::Value arrayval(Json::arrayValue);
 		arrayval.append(*viter);
-		indexer->index(result, docdata, arrayval, idterm, collconfig);
+		indexer->index(state, fieldname, arrayval);
 	    }
 	}
     }
 
-    result.set_data(docdata.serialise());
-    return result;
+    if (!state.errors.empty()) {
+	throw InvalidValueError(state.errors[0].second);
+    }
+
+    state.doc.set_data(state.docdata.serialise());
+    idterm = state.idterm;
+    return state.doc;
 }
 
 Xapian::Query

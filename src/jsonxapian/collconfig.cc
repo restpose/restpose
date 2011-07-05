@@ -104,6 +104,7 @@ CollectionConfig::set_default_schema()
 
     id_field = "id";
     type_field = "type";
+    meta_field = "_meta";
 
     Schema defschema("");
     Json::Value tmp;
@@ -147,6 +148,7 @@ CollectionConfig::schemas_config_to_json(Json::Value & value) const
     Json::Value & special_obj(value["special_fields"]);
     special_obj["id_field"] = id_field;
     special_obj["type_field"] = type_field;
+    special_obj["meta_field"] = meta_field;
 }
 
 void
@@ -177,6 +179,8 @@ CollectionConfig::schemas_config_from_json(const Json::Value & value)
 	id_field = json_get_string_member(special_obj, "id_field", id_field);
 	type_field = json_get_string_member(special_obj, "type_field",
 					    type_field);
+	meta_field = json_get_string_member(special_obj, "meta_field",
+					    meta_field);
     }
 }
 
@@ -546,7 +550,7 @@ CollectionConfig::send_to_pipe(TaskManager * taskman,
 			       const string & pipe_name,
 			       Json::Value & obj)
 {
-    //printf("pipe %s: %s\n", pipe_name.c_str(), json_serialise(obj).c_str());
+    LOG_DEBUG("Sending to pipe \"" + pipe_name + "\"");
     // FIXME - this method just uses a recursive implementation, and doesn't
     // check that a document isn't being passed to a pipe it's already come
     // from (which would almost certainly be a mistake), so it's easy for it

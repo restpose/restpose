@@ -45,6 +45,17 @@
 
 using namespace RestPose;
 
+void
+IndexingState::set_idterm(const std::string & fieldname,
+			  const std::string & idterm_)
+{
+    if (idterm.empty()) {
+	idterm = idterm_;
+    } else if (!idterm_.empty()) {
+	append_error(fieldname, "Multiple ID values provided - must have only one");
+    }
+}
+
 FieldIndexer::~FieldIndexer()
 {}
 
@@ -52,15 +63,10 @@ ExactStringIndexer::~ExactStringIndexer()
 {}
 
 void
-ExactStringIndexer::index(Xapian::Document & doc,
-			  DocumentData & docdata,
-			  const Json::Value & values,
-			  std::string & idterm,
-			  const CollectionConfig &) const
+ExactStringIndexer::index(IndexingState & state,
+			  const std::string & fieldname,
+			  const Json::Value & values) const
 {
-    if (isid && values.size() != 1) {
-	throw InvalidValueError("Multiple values supplied to ID field - must have only one");
-    }
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
@@ -68,11 +74,12 @@ ExactStringIndexer::index(Xapian::Document & doc,
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
-		    throw InvalidValueError("Field value of length " +
-					    Json::valueToString(Json::UInt64(val.size())) +
-					    " exceeds maximum permissible length"
-					    " for this field of " +
-					    Json::valueToString(Json::UInt64(max_length)));
+		    state.append_error(fieldname,
+			"Field value of length " +
+			Json::valueToString(Json::UInt64(val.size())) +
+			" exceeds maximum permissible length for this field "
+			"of " + Json::valueToString(Json::UInt64(max_length)));
+		     continue;
 		case MaxLenFieldConfig::TOOLONG_HASH:
 		    // Note - this isn't UTF-8 aware.
 		    val = hash_long_term(val, max_length);
@@ -83,16 +90,14 @@ ExactStringIndexer::index(Xapian::Document & doc,
 		    break;
 	    }
 	}
-	doc.add_term(prefix + val, wdfinc);
+	state.doc.add_term(prefix + val, wdfinc);
 	if (isid) {
-	    idterm = prefix + val;
+	    state.set_idterm(fieldname, prefix + val);
 	}
     }
 
     if (!store_field.empty()) {
-	Json::FastWriter writer;
-	std::string storeval = writer.write(values);
-	docdata.set(store_field, storeval);
+	state.docdata.set(store_field, json_serialise(values));
     }
 }
 
@@ -100,40 +105,33 @@ StoredIndexer::~StoredIndexer()
 {}
 
 void
-StoredIndexer::index(Xapian::Document &,
-		     DocumentData & docdata,
-		     const Json::Value & values,
-		     std::string &,
-		     const CollectionConfig &) const
+StoredIndexer::index(IndexingState & state,
+		     const std::string &,
+		     const Json::Value & values) const
 {
-    Json::FastWriter writer;
-    std::string val = writer.write(values);
-    docdata.set(store_field, val);
+    state.docdata.set(store_field, json_serialise(values));
 }
 
 TimeStampIndexer::~TimeStampIndexer()
 {}
 
 void
-TimeStampIndexer::index(Xapian::Document & doc,
-			DocumentData & docdata,
-			const Json::Value & values,
-			std::string &,
-			const CollectionConfig &) const
+TimeStampIndexer::index(IndexingState & state,
+			const std::string & fieldname,
+			const Json::Value & values) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 	if ((*i).isConvertibleTo(Json::realValue)) {
-	    doc.add_value(slot, Xapian::sortable_serialise((*i).asDouble()));
+	    state.doc.add_value(slot,
+				Xapian::sortable_serialise((*i).asDouble()));
 	} else {
-	    throw InvalidValueError("Timestamp field must be numeric");
+	    state.append_error(fieldname, "Timestamp field must be numeric");
 	}
     }
 
     if (!store_field.empty()) {
-	Json::FastWriter writer;
-	std::string storeval = writer.write(values);
-	docdata.set(store_field, storeval);
+	state.docdata.set(store_field, json_serialise(values));
     }
 }
 
@@ -142,29 +140,32 @@ DateIndexer::~DateIndexer()
 {}
 
 void
-DateIndexer::index(Xapian::Document & doc,
-		   DocumentData & docdata,
-		   const Json::Value & values,
-		   std::string &,
-		   const CollectionConfig &) const
+DateIndexer::index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
-	doc.add_value(slot, parse_date(*i));
+	std::string error;
+	std::string parsed = parse_date(*i, error);
+	if (!error.empty()) {
+	    state.append_error(fieldname, error);
+	} else {
+	    state.doc.add_value(slot, parsed);
+	}
     }
 
     if (!store_field.empty()) {
-	Json::FastWriter writer;
-	std::string storeval = writer.write(values);
-	docdata.set(store_field, storeval);
+	state.docdata.set(store_field, json_serialise(values));
     }
 }
 
 std::string
-DateIndexer::parse_date(const Json::Value & value)
+DateIndexer::parse_date(const Json::Value & value, std::string & error)
 {
     if (!value.isString()) {
-	throw InvalidValueError("DateIndexer requires indexer");
+	error = "Non-string value supplied to date field.";
+	return std::string();
     }
     std::string value_str(value.asString());
 
@@ -181,7 +182,9 @@ DateIndexer::parse_date(const Json::Value & value)
     int month = floor(strtod(endptr, &endptr));
     LOG_DEBUG("Month: " + str(month));
     if (month <= 0 || month > 12) {
-	throw InvalidValueError("Unable to parse date value; got month out of range");
+	error = "Unable to parse date value; got month value (" + str(month) +
+		") out of range";
+	return std::string();
     }
 
     if (*endptr == '-') {
@@ -190,7 +193,9 @@ DateIndexer::parse_date(const Json::Value & value)
     int day = floor(strtod(endptr, &endptr));
     LOG_DEBUG("Day: " + str(day));
     if (day <= 0 || day > 31) {
-	throw InvalidValueError("Unable to parse date value; got day out of range");
+	error = "Unable to parse date value; got day value (" + str(day) +
+		") out of range";
+	return std::string();
     }
 
     return Xapian::sortable_serialise(year) +
@@ -203,14 +208,12 @@ CategoryIndexer::~CategoryIndexer()
 {}
 
 void
-CategoryIndexer::index(Xapian::Document & doc,
-		       DocumentData & docdata,
-		       const Json::Value & values,
-		       std::string &,
-		       const CollectionConfig & collconfig) const
+CategoryIndexer::index(IndexingState & state,
+		       const std::string & fieldname,
+		       const Json::Value & values) const
 {
     const CategoryHierarchy * hierarchy =
-	    collconfig.get_category_hierarchy(hierarchy_name);
+	    state.collconfig.get_category_hierarchy(hierarchy_name);
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
@@ -218,11 +221,12 @@ CategoryIndexer::index(Xapian::Document & doc,
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
-		    throw InvalidValueError("Field value of length " +
-					    Json::valueToString(Json::UInt64(val.size())) +
-					    " exceeds maximum permissible length"
-					    " for this field of " +
-					    Json::valueToString(Json::UInt64(max_length)));
+		    state.append_error(fieldname,
+			"Field value of length " +
+			Json::valueToString(Json::UInt64(val.size())) +
+			" exceeds maximum permissible length for this field "
+			"of " + Json::valueToString(Json::UInt64(max_length)));
+		     continue;
 		case MaxLenFieldConfig::TOOLONG_HASH:
 		    // Note - this isn't UTF-8 aware.
 		    val = hash_long_term(val, max_length);
@@ -233,23 +237,21 @@ CategoryIndexer::index(Xapian::Document & doc,
 		    break;
 	    }
 	}
-	doc.add_term(prefix + "C" + val, 0);
+	state.doc.add_term(prefix + "C" + val, 0);
 	if (hierarchy != NULL) {
 	    // Add terms for the parent categories.
 	    const Category * cat_ptr = hierarchy->find(val);
 	    if (cat_ptr != NULL) {
 		for (Categories::const_iterator j = cat_ptr->ancestors.begin();
 		     j != cat_ptr->ancestors.end(); ++j) {
-		    doc.add_term(prefix + "A" + *j, 0);
+		    state.doc.add_term(prefix + "A" + *j, 0);
 		}
 	    }
 	}
     }
 
     if (!store_field.empty()) {
-	Json::FastWriter writer;
-	std::string storeval = writer.write(values);
-	docdata.set(store_field, storeval);
+	state.docdata.set(store_field, json_serialise(values));
     }
 }
 
@@ -258,11 +260,9 @@ TermGeneratorIndexer::~TermGeneratorIndexer()
 {}
 
 void
-TermGeneratorIndexer::index(Xapian::Document & doc,
-			    DocumentData & docdata,
-			    const Json::Value & values,
-			    std::string &,
-			    const CollectionConfig &) const
+TermGeneratorIndexer::index(IndexingState & state,
+			    const std::string &,
+			    const Json::Value & values) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
@@ -271,14 +271,12 @@ TermGeneratorIndexer::index(Xapian::Document & doc,
 
 	Xapian::TermGenerator tg;
 	tg.set_stemmer(Xapian::Stem(stem_lang));
-	tg.set_document(doc);
+	tg.set_document(state.doc);
 	tg.index_text(val, 1 /*weight*/, prefix);
     }
 
     if (!store_field.empty()) {
-	Json::FastWriter writer;
-	std::string storeval = writer.write(values);
-	docdata.set(store_field, storeval);
+	state.docdata.set(store_field, json_serialise(values));
     }
 }
 
@@ -286,11 +284,9 @@ CJKIndexer::~CJKIndexer()
 {}
 
 void
-CJKIndexer::index(Xapian::Document & doc,
-		  DocumentData & docdata,
-		  const Json::Value & values,
-		  std::string &,
-		  const CollectionConfig &) const
+CJKIndexer::index(IndexingState & state,
+		  const std::string &,
+		  const Json::Value & values) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
@@ -307,14 +303,12 @@ CJKIndexer::index(Xapian::Document & doc,
 	     token_iter != token_list.end(); ++token_iter) {
 	    std::string term(Xapian::Unicode::tolower(token_iter->first));
 	    if (term.size() < 32) {
-		doc.add_posting(prefix + term, token_iter->second + offset);
+		state.doc.add_posting(prefix + term, token_iter->second + offset);
 	    }
 	}
     }
 
     if (!store_field.empty()) {
-	Json::FastWriter writer;
-	std::string storeval = writer.write(values);
-	docdata.set(store_field, storeval);
+	state.docdata.set(store_field, json_serialise(values));
     }
 }

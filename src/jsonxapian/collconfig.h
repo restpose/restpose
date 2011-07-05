@@ -56,6 +56,9 @@ class CollectionConfig {
     /// The field used to hold type ids.
     std::string type_field;
 
+    /// The field used to hold meta information (fields present, etc).
+    std::string meta_field;
+
     /// Schemas, by type name.
     std::map<std::string, Schema *> types;
 
@@ -261,6 +264,12 @@ class CollectionConfig {
 	const std::string & child_name,
 	const std::string & parent_name,
 	Categories & modified);
+
+    /** Get the fieldname used for storing meta information.
+     */
+    std::string get_meta_field() const {
+	return meta_field;
+    }
 
     /** Categorise a piece of text.
      *
