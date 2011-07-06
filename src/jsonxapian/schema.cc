@@ -1147,7 +1147,8 @@ Schema::process(const Json::Value & value,
 }
 
 Xapian::Query
-Schema::build_query(const Xapian::Database & db,
+Schema::build_query(const CollectionConfig & collconfig,
+		    const Xapian::Database & db,
 		    const Json::Value & jsonquery) const
 {
     if (jsonquery.isNull()) {
@@ -1209,6 +1210,31 @@ Schema::build_query(const Xapian::Database & db,
 	return i->second->query(ftype, queryparams[2]);
     }
 
+    if (jsonquery.isMember("meta")) {
+	if (jsonquery.size() != 1) {
+	    throw InvalidValueError("Meta query must contain exactly one member");
+	}
+	const Json::Value & queryparams = jsonquery["meta"];
+	json_check_array(queryparams, "Meta search parameters");
+	if (queryparams.isNull()) {
+	    throw InvalidValueError("Invalid parameters for meta search - null");
+	}
+	if (queryparams.size() != 2) {
+	    throw InvalidValueError("Invalid parameters for meta search - length != 2");
+	}
+	if (!(queryparams[Json::UInt(0u)].isString())) {
+	    throw InvalidValueError("Invalid type in meta search - not a string");
+	}
+
+	string ftype = queryparams[Json::UInt(0u)].asString();
+	map<string, FieldConfig *>::const_iterator i;
+	i = fields.find(collconfig.get_meta_field());
+	if (i == fields.end()) {
+	    return Xapian::Query::MatchNothing;
+	}
+	return i->second->query(ftype, queryparams[1]);
+    }
+
     if (jsonquery.isMember("filter")) {
 	if ((jsonquery.isMember("query") && jsonquery.size() != 2) ||
 	    (!jsonquery.isMember("query") && jsonquery.size() != 1)) {
@@ -1220,11 +1246,11 @@ Schema::build_query(const Xapian::Database & db,
 	if (primary.isNull()) {
 	    xprimary = Xapian::Query::MatchAll;
 	} else {
-	    xprimary = build_query(db, primary);
+	    xprimary = build_query(collconfig, db, primary);
 	}
 
 	const Json::Value & filter = jsonquery["filter"];
-	Xapian::Query xfilter(build_query(db, filter));
+	Xapian::Query xfilter(build_query(collconfig, db, filter));
 
 	return Xapian::Query(Xapian::Query::OP_FILTER, xprimary, xfilter);
     }
@@ -1240,7 +1266,7 @@ Schema::build_query(const Xapian::Database & db,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(db, *i));
+	    queries.push_back(build_query(collconfig, db, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND,
 			     queries.begin(), queries.end());
@@ -1257,7 +1283,7 @@ Schema::build_query(const Xapian::Database & db,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(db, *i));
+	    queries.push_back(build_query(collconfig, db, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_OR,
 			     queries.begin(), queries.end());
@@ -1274,7 +1300,7 @@ Schema::build_query(const Xapian::Database & db,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(db, *i));
+	    queries.push_back(build_query(collconfig, db, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_XOR,
 			     queries.begin(), queries.end());
@@ -1291,14 +1317,14 @@ Schema::build_query(const Xapian::Database & db,
 	}
 
 	Json::Value::const_iterator i = queryparams.begin();
-	Xapian::Query posquery(build_query(db, *i));
+	Xapian::Query posquery(build_query(collconfig, db, *i));
 	++i;
 
 	vector<Xapian::Query> negqueries;
 	negqueries.reserve(queryparams.size() - 1);
 
 	for (; i != queryparams.end(); ++i) {
-	    negqueries.push_back(build_query(db, *i));
+	    negqueries.push_back(build_query(collconfig, db, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND_NOT,
 			     posquery,
@@ -1317,14 +1343,14 @@ Schema::build_query(const Xapian::Database & db,
 	}
 
 	Json::Value::const_iterator i = queryparams.begin();
-	Xapian::Query mainquery(build_query(db, *i));
+	Xapian::Query mainquery(build_query(collconfig, db, *i));
 	++i;
 
 	vector<Xapian::Query> maybequeries;
 	maybequeries.reserve(queryparams.size() - 1);
 
 	for (; i != queryparams.end(); ++i) {
-	    maybequeries.push_back(build_query(db, *i));
+	    maybequeries.push_back(build_query(collconfig, db, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND_MAYBE,
 			     mainquery,
@@ -1341,7 +1367,7 @@ Schema::build_query(const Xapian::Database & db,
 	if (!queryparams.isMember("query")) {
 	    throw InvalidValueError("Scale query must contain a query member");
 	}
-	Xapian::Query subquery = build_query(db, queryparams["query"]);
+	Xapian::Query subquery = build_query(collconfig, db, queryparams["query"]);
 	return Xapian::Query(Xapian::Query::OP_SCALE_WEIGHT, subquery,
 	    json_get_double_member(queryparams, "factor", 0.0));
     }
@@ -1365,7 +1391,8 @@ Schema::get_fieldlist(Json::Value & result, const Json::Value & search) const
 }
 
 void
-Schema::perform_search(const Xapian::Database & db,
+Schema::perform_search(const CollectionConfig & collconfig,
+		       const Xapian::Database & db,
 		       const Json::Value & search,
 		       Json::Value & results) const
 {
@@ -1373,7 +1400,7 @@ Schema::perform_search(const Xapian::Database & db,
     json_check_object(search, "search");
     bool verbose = json_get_bool(search, "verbose", false);
 
-    Xapian::Query query(build_query(db, search["query"]));
+    Xapian::Query query(build_query(collconfig, db, search["query"]));
 
     Xapian::doccount from, size, checkatleast;
     from = json_get_uint64_member(search, "from", Json::Value::maxUInt, 0);
@@ -1436,7 +1463,8 @@ Schema::perform_search(const Xapian::Database & db,
 }
 
 void
-Schema::perform_search(const Xapian::Database & db,
+Schema::perform_search(const CollectionConfig & collconfig,
+		       const Xapian::Database & db,
 		       const string & search_str,
 		       Json::Value & results) const
 {
@@ -1447,7 +1475,7 @@ Schema::perform_search(const Xapian::Database & db,
 	throw InvalidValueError("Invalid JSON supplied for search: " +
 				reader.getFormatedErrorMessages());
     }
-    perform_search(db, search, results);
+    perform_search(collconfig, db, search, results);
 }
 
 void

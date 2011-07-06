@@ -515,7 +515,8 @@ namespace RestPose {
 	void operator=(const Schema &);
 
 	/// Build a Xapian query from a JSON query structure.
-	Xapian::Query build_query(const Xapian::Database & db,
+	Xapian::Query build_query(const CollectionConfig & collconfig,
+				  const Xapian::Database & db,
 				  const Json::Value & query) const;
 
 	/// Get the list of fields to return, from a search
@@ -581,13 +582,15 @@ namespace RestPose {
 
 	/** Perform a search.
 	 */
-	void perform_search(const Xapian::Database & db,
+	void perform_search(const CollectionConfig & collconfig,
+			    const Xapian::Database & db,
 			    const Json::Value & search,
 			    Json::Value & results) const;
 
 	/** Perform a search, given a JSON encoded search.
 	 */
-	void perform_search(const Xapian::Database & db,
+	void perform_search(const CollectionConfig & collconfig,
+			    const Xapian::Database & db,
 			    const std::string & search_str,
 			    Json::Value & results) const;
 

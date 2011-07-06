@@ -447,7 +447,7 @@ Collection::perform_search(const Json::Value & search,
     if (schema == NULL) {
 	results = Json::objectValue;
     } else {
-	schema->perform_search(get_db(), search, results);
+	schema->perform_search(config, get_db(), search, results);
     }
 }
 
