@@ -81,25 +81,30 @@ Various types of search are possible:
  - "exists": used on the meta field (by default, named `_meta`) to search for
    documents in which a field exists.  The value to search must be an array of
    values, each of which is either a fieldname to search for existence of, or
-   "null" to search for existence of any field.
+   "null" to search for existence of any field.  Note that the ID and type
+   special fields are excluded from the meta field, so it is not possible to
+   search for their existence.
 
  - "nonempty": used on the meta field (by default, named `_meta`) to search for
    documents in which a field exists and has a non-empty value.  The value to
    search must be an array of values, each of which is either a fieldname to
    search for non-empty values in, or "null" to search for non-empty values in
-   any field.
+   any field.  Note that the ID and type special fields are excluded from the
+   meta field, so it is not possible to search for nonempty values in them.
 
  - "empty": used on the meta field (by default, named `_meta`) to search for
    documents in which a field exists and has an empty value.  The value to
    search must be an array of values, each of which is either a fieldname to
    search for empty values in, or "null" to search for empty values in any
-   field.
+   field.  Note that the ID and type special fields are excluded from the meta
+   field, so it is not possible to search for empty values in them.
 
  - "error": used on the meta field (by default, named `_meta`) to search for
    documents in which a field caused an error when processing.  The value to
    search must be an array of values, each of which is either a fieldname to
    search for error values in, or "null" to search for error values in any
-   field.
+   field.  Note that the ID and type special fields are excluded from the meta
+   field, so it is not possible to search for error values in them.
 
 
 Filtering results from another query
