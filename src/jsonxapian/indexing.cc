@@ -29,7 +29,6 @@
 #include <cjk-tokenizer.h>
 #include <cmath>
 #include <cstdlib>
-#include <json/writer.h>
 #include <logger/logger.h>
 #include <map>
 #include "str.h"
@@ -78,6 +77,10 @@ MetaIndexer::index(IndexingState & state,
     bool had_errors(false);
     for (map<string, FieldPresence>::const_iterator i = state.presence.begin();
 	 i != state.presence.end(); ++i) {
+	if (i->first == state.collconfig.get_id_field() ||
+	    i->first == state.collconfig.get_type_field()) {
+	    continue;
+	}
 	const string & fieldname(i->first);
 	state.doc.add_term(prefix + "F" + fieldname, 0);
 	if (i->second.nonempty) {
@@ -131,9 +134,9 @@ ExactStringIndexer::index(IndexingState & state,
 		case MaxLenFieldConfig::TOOLONG_ERROR:
 		    state.append_error(fieldname,
 			"Field value of length " +
-			Json::valueToString(Json::UInt64(val.size())) +
+			str(val.size()) +
 			" exceeds maximum permissible length for this field "
-			"of " + Json::valueToString(Json::UInt64(max_length)));
+			"of " + str(max_length));
 		     continue;
 		case MaxLenFieldConfig::TOOLONG_HASH:
 		    // Note - this isn't UTF-8 aware.
@@ -309,10 +312,9 @@ CategoryIndexer::index(IndexingState & state,
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
 		    state.append_error(fieldname,
-			"Field value of length " +
-			Json::valueToString(Json::UInt64(val.size())) +
+			"Field value of length " + str(val.size()) +
 			" exceeds maximum permissible length for this field "
-			"of " + Json::valueToString(Json::UInt64(max_length)));
+			"of " + str(max_length));
 		     continue;
 		case MaxLenFieldConfig::TOOLONG_HASH:
 		    // Note - this isn't UTF-8 aware.
