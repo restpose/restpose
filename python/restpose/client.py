@@ -29,7 +29,7 @@ Example:
 """
 
 from .resource import RestPoseResource
-from .query import Query, QueryAll, QueryNone, QueryField, \
+from .query import Query, QueryAll, QueryNone, QueryField, QueryMeta, \
                    Search, SearchResults
 from .errors import CheckPointExpiredError
 import re
@@ -115,6 +115,20 @@ class QueryTarget(object):
         """
         return QueryField(fieldname, querytype, value, target=self)
 
+    def query_meta(self, querytype, value):
+        """Create a query based on the meta information about field presence.
+
+        See the documentation of the restpose query types for the possible
+        values of querytype, and the corresponding structure which should be
+        passed in value.
+
+        Usually, rather than calling this method directly, it will be more
+        convenient to call one of the field_*() methods to construct the
+        appropriate query, which use this method internally.
+
+        """
+        return QueryMeta(querytype, value, target=self)
+
     def field_is(self, fieldname, value):
         """Create a query for an exact value in a named field.
 
@@ -169,6 +183,43 @@ class QueryTarget(object):
         if op is not None:
             value['op'] = op
         return self.query_field(fieldname, 'parse', value)
+
+    def field_exists(self, fieldname=None):
+        """Search for documents in which a given field exists.
+
+        If the fieldname supplied is None, searches for documents in which any
+        field exists.
+
+        """
+        return self.query_meta('exists', (fieldname,))
+
+    def field_nonempty(self, fieldname=None):
+        """Search for documents in which a given field has a non-empty value.
+
+        If the fieldname supplied is None, searches for documents in which any
+        field has a non-empty value.
+
+        """
+        return self.query_meta('nonempty', (fieldname,))
+
+    def field_empty(self, fieldname=None):
+        """Search for documents in which a given field has an empty value.
+
+        If the fieldname supplied is None, searches for documents in which any
+        field has an empty value.
+
+        """
+        return self.query_meta('empty', (fieldname,))
+
+    def field_has_error(self, fieldname=None):
+        """Search for documents in which a given field produced errors when
+        parsing.
+
+        If the fieldname supplied is None, searches for documents in which any
+        field produced errors when parsing.
+
+        """
+        return self.query_meta('error', (fieldname,))
 
     def search(self, query):
         """Perform a search.

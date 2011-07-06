@@ -106,6 +106,13 @@ class QueryField(Query):
         super(QueryField, self).__init__(target=target)
         self.query = dict(field=[fieldname, querytype, value])
 
+class QueryMeta(Query):
+    """A query for meta information (about field presence, errors, etc).
+
+    """
+    def __init__(self, querytype, value, target=None):
+        super(QueryMeta, self).__init__(target=target)
+        self.query = dict(meta=[querytype, value])
 
 class QueryAll(Query):
     """A query which matches all documents.

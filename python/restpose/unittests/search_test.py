@@ -35,7 +35,8 @@ class SearchTest(TestCase):
     maxDiff = 10000
     def test_basic_search(self):
         server = Server()
-        doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting" }
+        doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
+                'empty': "" }
         coll = server.collection("test_coll")
         #coll.delete()
         coll.checkpoint().wait()
@@ -52,6 +53,7 @@ class SearchTest(TestCase):
         gotdoc = coll.get_doc("blurb", "1")
         self.assertEqual(gotdoc, dict(data={
                                       'cat': ['greeting'],
+                                      'empty': [''],
                                       'id': ['1'],
                                       'tag': ['A tag'],
                                       'text': ['Hello world'],
@@ -59,6 +61,16 @@ class SearchTest(TestCase):
                                       }, terms={
                                       '\tblurb\t1': {},
                                       '!\tblurb': {},
+                                      '#\tFcat': {},
+                                      '#\tFempty': {},
+                                      '#\tFtag': {},
+                                      '#\tFtext': {},
+                                      '#\tM': {},
+                                      '#\tMempty': {},
+                                      '#\tN': {},
+                                      '#\tNcat': {},
+                                      '#\tNtag': {},
+                                      '#\tNtext': {},
                                       'Zt\thello': {'wdf': 1},
                                       'Zt\tworld': {'wdf': 1},
                                       'c\tCgreeting': {},
@@ -67,10 +79,9 @@ class SearchTest(TestCase):
                                       't\tworld': {'positions': [2], 'wdf': 1},
                                       }))
         q = coll.type("blurb").field_is('tag', 'A tag')
-        q = coll.type("blurb").query_all()
         results = q.search().do()
         self.assertEqual(coll.status.get('doc_count'), 1)
-        self.check_results(results, items=[
+        expected_items = [
             query.SearchResult(rank=0, fields={
                     'cat': ['greeting'],
                     'id': ['1'],
@@ -79,25 +90,99 @@ class SearchTest(TestCase):
                     'type': ['blurb'],
                 }),
             ]
-        )
+        self.check_results(results, items=expected_items)
 
+
+        q = coll.type("blurb").field_exists()
+        results = q.search().do()
+        self.check_results(results, items=expected_items)
+
+        q = coll.type("blurb").field_exists('tag')
+        results = q.search().do()
+        self.check_results(results, items=expected_items)
+
+        q = coll.type("blurb").field_exists('id')
+        # ID field is not stored, so searching for its existence returns
+        # nothing.
+        results = q.search().do()
+        self.check_results(results, items=[])
+
+        q = coll.type("blurb").field_exists('type')
+        # Type field is not stored, so searching for its existence returns
+        # nothing.
+        results = q.search().do()
+        self.check_results(results, items=[])
+
+        q = coll.type("blurb").field_exists('missing')
+        results = q.search().do()
+        self.check_results(results, items=[])
+
+
+        q = coll.type("blurb").field_empty()
+        self.check_results(q.search().do(), items=expected_items)
+
+        q = coll.type("blurb").field_empty('empty')
+        self.check_results(q.search().do(), items=expected_items)
+
+        q = coll.type("blurb").field_empty('text')
+        self.check_results(q.search().do(), items=[])
+
+        q = coll.type("blurb").field_empty('id')
+        self.check_results(q.search().do(), items=[])
+
+        q = coll.type("blurb").field_empty('type')
+        self.check_results(q.search().do(), items=[])
+
+        q = coll.type("blurb").field_empty('missing')
+        self.check_results(q.search().do(), items=[])
+
+
+        q = coll.type("blurb").field_nonempty()
+        self.check_results(q.search().do(), items=expected_items)
+
+        q = coll.type("blurb").field_nonempty('empty')
+        self.check_results(q.search().do(), items=[])
+
+        q = coll.type("blurb").field_nonempty('text')
+        self.check_results(q.search().do(), items=expected_items)
+
+        q = coll.type("blurb").field_nonempty('id')
+        self.check_results(q.search().do(), items=[])
+
+        q = coll.type("blurb").field_nonempty('type')
+        self.check_results(q.search().do(), items=[])
+
+        q = coll.type("blurb").field_nonempty('missing')
+        self.check_results(q.search().do(), items=[])
+
+
+        q = coll.type("blurb").field_has_error()
+        self.check_results(q.search().do(), items=[])
+
+
+        q = coll.type("blurb").query_all()
         s = q.search()
         results = q.search().calc_cooccur('t').do()
         self.assertEqual(coll.status.get('doc_count'), 1)
         self.check_results(results, checkatleast=1,
-                           items=[
-                           query.SearchResult(rank=0, fields={
-                                              'cat': ['greeting'],
-                                              'id': ['1'],
-                                              'tag': ['A tag'],
-                                              'text': ['Hello world'],
-                                              'type': ['blurb'],
-                                              }),
-                           ],
+                           items=expected_items,
                            info=[{
                                'counts': [['hello', 'world', 1]],
                                'docs_seen': 1,
                                'terms_seen': 2,
                                'prefix': 't',
                                'type': 'cooccur'
+                           }])
+
+        s = q.search()
+        results = q.search().calc_occur('t').do()
+        self.assertEqual(coll.status.get('doc_count'), 1)
+        self.check_results(results, checkatleast=1,
+                           items=expected_items,
+                           info=[{
+                               'counts': [['hello', 1], ['world', 1]],
+                               'docs_seen': 1,
+                               'terms_seen': 2,
+                               'prefix': 't',
+                               'type': 'occur'
                            }])
