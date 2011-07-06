@@ -59,16 +59,47 @@ Various types of search are possible:
    which is either a string or and integer (in the range 0..2^64-1), or 
 
  - "range": searches for documents in which a stored value is in a given range.
-   This type is currently available only for "date" field types.
+   This type is currently available only for "date" and "timestamp" field types.
 
- - "text": searches for a piece of text in a text field.  The value to search for may be a single string, or an object holding the following parameters:
-   - "text": <text to search for.  If empty or missing, this query will match no results>
-   - "op": <The operator to use when searching.  One of "or", "and", "phrase", "near".  Default=phrase>
-   - "window": <only relevant if op is "phrase" or "near". window size in words; null=length of text. Integer or null. Default=null>
+ - "text": searches for a piece of text in a text field.  The value to search
+   for may be a single string, or an object holding the following parameters:
+   - "text": <text to search for.  If empty or missing, this query will match
+     no results>
+   - "op": <The operator to use when searching.  One of "or", "and", "phrase",
+     "near".  Default=phrase>
+   - "window": <only relevant if op is "phrase" or "near". window size in
+     words; null=length of text. Integer or null. Default=null>
 
- - "parse": parses a query, and searches for the query in a text field.  The value to search for may be a single string, or an object holding the following parameters:
-   - "text": <text to search for.  If empty or missing, this query will match no results>
-   - "op": <The default operator to use when searching.  One of "or", "and".  Default="and">
+ - "parse": parses a query, and searches for the query in a text field.  The
+   value to search for may be a single string, or an object holding the
+   following parameters:
+   - "text": <text to search for.  If empty or missing, this query will match
+     no results>
+   - "op": <The default operator to use when searching.  One of "or", "and".
+     Default="and">
+
+ - "exists": used on the meta field (by default, named `_meta`) to search for
+   documents in which a field exists.  The value to search must be an array of
+   values, each of which is either a fieldname to search for existence of, or
+   "null" to search for existence of any field.
+
+ - "nonempty": used on the meta field (by default, named `_meta`) to search for
+   documents in which a field exists and has a non-empty value.  The value to
+   search must be an array of values, each of which is either a fieldname to
+   search for non-empty values in, or "null" to search for non-empty values in
+   any field.
+
+ - "empty": used on the meta field (by default, named `_meta`) to search for
+   documents in which a field exists and has an empty value.  The value to
+   search must be an array of values, each of which is either a fieldname to
+   search for empty values in, or "null" to search for empty values in any
+   field.
+
+ - "error": used on the meta field (by default, named `_meta`) to search for
+   documents in which a field caused an error when processing.  The value to
+   search must be an array of values, each of which is either a fieldname to
+   search for error values in, or "null" to search for error values in any
+   field.
 
 
 Filtering results from another query

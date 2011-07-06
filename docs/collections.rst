@@ -191,20 +191,6 @@ Geo fields
 
 .. todo: Design and implement support for geo fields.
 
-ID fields
----------
-
-(`type` = `id`)
-
-ID fields expect a single byte string as input.
-
-There should only be one ID field in a schema.  This field is used to generate
-a unique ID for the documents; if a new document is added with the same ID, the
-old document with that ID will be replaced.
-
-ID fields are very similar to Exact fields - they accept all the same
-parameters, with the exception of the `prefix` parameter.
-
 Stored fields
 -------------
 
@@ -223,6 +209,29 @@ default action for unknown fields being performed on them.
 
 .. todo: check that the behaviour for an ignore field which has a store_field parameter is sensible, and document it.
 
+ID fields
+---------
+
+(`type` = `id`)
+
+ID fields expect a single byte string as input.
+
+There should only be one ID field in a schema.  This field is used to generate
+a unique ID for the documents; if a new document is added with the same ID, the
+old document with that ID will be replaced.
+
+ID fields are very similar to Exact fields - they accept all the same
+parameters, with the exception of the `prefix` parameter.
+
+Meta fields
+-----------
+
+(`type` = `meta`)
+
+Meta fields are a special field type.  A normal field shouldn't be assigned a
+meta field type.  The meta field is used to store information about which
+fields were present in a document, and which fields produced errors when
+processing.  It can then be used to search for these values.
 
 
 .. _slot_numbers:
@@ -288,7 +297,7 @@ Special fields
 ==============
 
 The "`special_fields`" property of a collection defines the field names which
-are used for two special purposes.
+are used for special purposes.
 
 *id_field*
      The field which is used for id lookups.  This should normally be a field
@@ -296,6 +305,12 @@ are used for two special purposes.
      replacing older versions of documents.
 *type_field*
      The field which is used for type lookups.
+*meta_field*
+     The field which is used for storing meta information about which fields
+     are present in documents, and which fields have errors.  This should be a
+     field of type meta.  Incoming documents should not contain entries in the
+     meta field - the entries will be automatically generated based on the
+     result of processing the documents.
 
 ------------
 Categorisers
