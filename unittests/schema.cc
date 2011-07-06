@@ -530,4 +530,3 @@ TEST(SlotNumbers)
     name = string("Long sdjug siduh sidu ysidu ysiduy siduy string");
     CHECK(name.get() >= 0x10000000u && name.get() <= 0xffffffffu);
 }
-
