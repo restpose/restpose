@@ -152,7 +152,16 @@ MetaFieldConfig::query(const std::string & qtype,
     for (Json::Value::const_iterator iter = value.begin();
 	 iter != value.end(); ++iter) {
 	if ((*iter).isNull()) {
-	    terms.push_back(prefix + code);
+	    if (code == 'F') {
+		// We don't store a single term for "any field exists",
+		// because it would match almost every document, and rarely
+		// be useful.  Instead, search for ("a field exists and is
+		// non-empty" OR "a field exists and is empty").
+		terms.push_back(prefix + 'N');
+		terms.push_back(prefix + 'M');
+	    } else {
+		terms.push_back(prefix + code);
+	    }
 	} else if ((*iter).isString()) {
 	    terms.push_back(prefix + code + (*iter).asString());
 	} else {
@@ -1107,9 +1116,8 @@ Schema::process(const Json::Value & value,
 	}
 
 	if (indexer) {
-	    //fprintf(stderr, "field '%s'\n", fieldname.c_str());
 	    if ((*viter).isNull()) {
-		//fprintf(stderr, "null value ignored\n");
+		state.field_empty(fieldname);
 		continue;
 	    }
 	    if ((*viter).isArray()) {
@@ -1128,6 +1136,9 @@ Schema::process(const Json::Value & value,
 	    LOG_INFO(string("New field type: ") + meta_field);
 	    set(meta_field, patterns.get(meta_field, doc_type));
 	    indexer = get_indexer(meta_field);
+	}
+	if (indexer) {
+	    indexer->index(state, meta_field, Json::nullValue);
 	}
     }
 
