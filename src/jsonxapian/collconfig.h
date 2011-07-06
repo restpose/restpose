@@ -169,6 +169,18 @@ class CollectionConfig {
      */
     void from_json(const Json::Value & value);
 
+    /** Get the field name used to store IDs.
+     */
+    std::string get_id_field() const {
+	return id_field;
+    }
+
+    /** Get the field name used to store typess.
+     */
+    std::string get_type_field() const {
+	return type_field;
+    }
+
     /** Get the schema for a given type.
      *
      *  Returns NULL if the type is not known.
