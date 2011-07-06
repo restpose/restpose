@@ -182,22 +182,24 @@ json_get_bool(const Json::Value & value, const char * key, bool def)
 }
 
 std::string
-json_get_idstyle_value(const Json::Value & value, std::string & errors)
+json_get_idstyle_value(const Json::Value & value, std::string & error)
 {
     if (value.isString()) {
 	return value.asString();
+    } else if (value.isNull()) {
+	return std::string();
     }
 
     if (!value.isConvertibleTo(Json::uintValue)) {
-	errors = "Expected value in field to be an integer or a string";
+	error = "Expected value in field to be an integer or a string";
 	return std::string();
     }
     if (value < Json::Value::Int64(0)) {
-	errors = "JSON value for field was negative - wanted unsigned int";
+	error = "JSON value for field was negative - wanted unsigned int";
 	return std::string();
     }
     if (value > Json::Value::maxUInt64) {
-	errors = "JSON value " + value.toStyledString() +
+	error = "JSON value " + value.toStyledString() +
 		" was larger than maximum allowed (" +
 		Json::valueToString(Json::Value::maxUInt64) + ")";
 	return std::string();
