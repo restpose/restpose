@@ -117,7 +117,16 @@ Xapian::Query
 MetaFieldConfig::query(const std::string & qtype,
 		       const Json::Value & value) const
 {
-    json_check_array(value, "field query value");
+    // Ensure we have a JSON array.
+    const Json::Value * value_ptr;
+    Json::Value tmp(Json::arrayValue);
+    if (!value.isArray()) {
+	tmp.append(value);
+	value_ptr = &tmp;
+    } else {
+	value_ptr = &value;
+    }
+
     char code = '\0';
     if (qtype.size() > 1) {
 	switch (qtype[1]) {
@@ -149,8 +158,8 @@ MetaFieldConfig::query(const std::string & qtype,
     }
 
     vector<string> terms;
-    for (Json::Value::const_iterator iter = value.begin();
-	 iter != value.end(); ++iter) {
+    for (Json::Value::const_iterator iter = value_ptr->begin();
+	 iter != value_ptr->end(); ++iter) {
 	if ((*iter).isNull()) {
 	    if (code == 'F') {
 		// We don't store a single term for "any field exists",
@@ -250,14 +259,23 @@ Xapian::Query
 IDFieldConfig::query(const string & qtype,
 		     const Json::Value & value) const
 {
-    json_check_array(value, "field query value");
+    // Ensure we have a JSON array.
+    const Json::Value * value_ptr;
+    Json::Value tmp(Json::arrayValue);
+    if (!value.isArray()) {
+	tmp.append(value);
+	value_ptr = &tmp;
+    } else {
+	value_ptr = &value;
+    }
+
     if (qtype != "is") {
 	throw InvalidValueError("Invalid query type \"" + qtype +
 				"\" for id field");
     }
     vector<string> terms;
-    for (Json::Value::const_iterator iter = value.begin();
-	 iter != value.end(); ++iter) {
+    for (Json::Value::const_iterator iter = value_ptr->begin();
+	 iter != value_ptr->end(); ++iter) {
 	if ((*iter).isString()) {
 	    terms.push_back(prefix + (*iter).asString());
 	} else {
@@ -321,14 +339,23 @@ Xapian::Query
 ExactFieldConfig::query(const string & qtype,
 			const Json::Value & value) const
 {
-    json_check_array(value, "field query value");
+    // Ensure we have a JSON array.
+    const Json::Value * value_ptr;
+    Json::Value tmp(Json::arrayValue);
+    if (!value.isArray()) {
+	tmp.append(value);
+	value_ptr = &tmp;
+    } else {
+	value_ptr = &value;
+    }
+
     if (qtype != "is") {
 	throw InvalidValueError("Invalid query type \"" + qtype +
 				"\" for exact field");
     }
     vector<string> terms;
-    for (Json::Value::const_iterator iter = value.begin();
-	 iter != value.end(); ++iter) {
+    for (Json::Value::const_iterator iter = value_ptr->begin();
+	 iter != value_ptr->end(); ++iter) {
 	if ((*iter).isString()) {
 	    terms.push_back(prefix + (*iter).asString());
 	} else {
@@ -704,27 +731,45 @@ Xapian::Query
 CategoryFieldConfig::query(const string & qtype,
 			   const Json::Value & value) const
 {
-    json_check_array(value, "field query value");
-    string term_prefix;
+    // Ensure we have a JSON array.
+    const Json::Value * value_ptr;
+    Json::Value tmp(Json::arrayValue);
+    if (!value.isArray()) {
+	tmp.append(value);
+	value_ptr = &tmp;
+    } else {
+	value_ptr = &value;
+    }
+
+    vector<string> term_prefixes;
     if (qtype == "is") {
 	// The categories associated with a document are stored with an
 	// additional C prefix.
-	term_prefix = prefix + "C";
-    } else if (qtype == "ancestor_is") {
+	term_prefixes.push_back(prefix + "C");
+    } else if (qtype == "is_descendant") {
 	// The ancestors of categories associated with a document are stored
-	// with an additional C prefix (the category itself is also stored this
-	// way).
-	term_prefix = prefix + "A";
+	// with an additional A prefix (the category itself is not stored with
+	// this prefix).
+	term_prefixes.push_back(prefix + "A");
+    } else if (qtype == "is_or_is_descendant") {
+	// The ancestors of categories associated with a document are stored
+	// with an additional A prefix (the category itself is not stored with
+	// this prefix).
+	term_prefixes.push_back(prefix + "C");
+	term_prefixes.push_back(prefix + "A");
     } else {
 	throw InvalidValueError("Invalid query type \"" + qtype +
 				"\" for category field");
     }
 
     vector<string> terms;
-    for (Json::Value::const_iterator iter = value.begin();
-	 iter != value.end(); ++iter) {
+    for (Json::Value::const_iterator iter = value_ptr->begin();
+	 iter != value_ptr->end(); ++iter) {
 	if ((*iter).isString()) {
-	    terms.push_back(term_prefix + (*iter).asString());
+	    for (vector<string>::const_iterator i = term_prefixes.begin();
+		 i != term_prefixes.end(); ++i) {
+		terms.push_back(*i + (*iter).asString());
+	    }
 	} else {
 	    if (!(*iter).isConvertibleTo(Json::uintValue)) {
 		throw InvalidValueError("Category value must be an integer or a string");
@@ -738,7 +783,10 @@ CategoryFieldConfig::query(const string & qtype,
 					Json::valueToString(Json::Value::maxUInt64) +
 					")");
 	    }
-	    terms.push_back(term_prefix + Json::valueToString((*iter).asUInt64()));
+	    for (vector<string>::const_iterator i = term_prefixes.begin();
+		 i != term_prefixes.end(); ++i) {
+		terms.push_back(*i + Json::valueToString((*iter).asUInt64()));
+	    }
 	}
     }
     return Xapian::Query(Xapian::Query::OP_OR, terms.begin(), terms.end());
