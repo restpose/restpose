@@ -63,7 +63,7 @@ class InfoHandlers {
 		     Xapian::Enquire & enq,
 		     const Xapian::Database * db,
 		     const Schema * schema,
-		     Xapian::doccount & checkatleast);
+		     Xapian::doccount & check_at_least);
 };
 
 }

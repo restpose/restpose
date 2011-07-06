@@ -63,7 +63,7 @@ InfoHandlers::add_handler(const Json::Value & handler,
 			  Xapian::Enquire & enq,
 			  const Xapian::Database * db,
 			  const Schema * schema,
-			  Xapian::doccount & checkatleast)
+			  Xapian::doccount & check_at_least)
 {
     json_check_object(handler, "search info item to gather");
     if (handler.size() != 1) {
@@ -73,11 +73,11 @@ InfoHandlers::add_handler(const Json::Value & handler,
 	handlers.push_back(NULL);
     }
     if (handler.isMember("occur")) {
-	InfoHandler * tmp = new OccurInfoHandler(handler["occur"], enq, db, schema, checkatleast);
+	InfoHandler * tmp = new OccurInfoHandler(handler["occur"], enq, db, schema, check_at_least);
 	handlers.back() = tmp;
     }
     if (handler.isMember("cooccur")) {
-	handlers.back() = new CoOccurInfoHandler(handler["cooccur"], enq, db, schema, checkatleast);
+	handlers.back() = new CoOccurInfoHandler(handler["cooccur"], enq, db, schema, check_at_least);
     }
 #if 0
     if (handler.isMember("facet")) {

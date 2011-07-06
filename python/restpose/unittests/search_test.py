@@ -7,7 +7,7 @@ from unittest import TestCase
 from .. import query, Server, ResourceNotFound
 
 class SearchTest(TestCase):
-    def check_results(self, results, offset=0, size=10, checkatleast=0,
+    def check_results(self, results, offset=0, size=10, check_at_least=0,
                       matches_lower_bound=None,
                       matches_estimated=None,
                       matches_upper_bound=None,
@@ -22,7 +22,7 @@ class SearchTest(TestCase):
 
         self.assertEqual(results.offset, offset)
         self.assertEqual(results.size, size)
-        self.assertEqual(results.checkatleast, checkatleast)
+        self.assertEqual(results.check_at_least, check_at_least)
         self.assertEqual(results.matches_lower_bound, matches_lower_bound)
         self.assertEqual(results.matches_estimated, matches_estimated)
         self.assertEqual(results.matches_upper_bound, matches_upper_bound)
@@ -164,7 +164,7 @@ class SearchTest(TestCase):
         s = q.search()
         results = q.search().calc_cooccur('t').do()
         self.assertEqual(coll.status.get('doc_count'), 1)
-        self.check_results(results, checkatleast=1,
+        self.check_results(results, check_at_least=1,
                            items=expected_items,
                            info=[{
                                'counts': [['hello', 'world', 1]],
@@ -177,7 +177,7 @@ class SearchTest(TestCase):
         s = q.search()
         results = q.search().calc_occur('t').do()
         self.assertEqual(coll.status.get('doc_count'), 1)
-        self.check_results(results, checkatleast=1,
+        self.check_results(results, check_at_least=1,
                            items=expected_items,
                            info=[{
                                'counts': [['hello', 1], ['world', 1]],

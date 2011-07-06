@@ -55,7 +55,7 @@ class OccurInfoHandler : public BaseOccurInfoHandler {
 		     Xapian::Enquire & enq,
 		     const Xapian::Database * db_,
 		     const Schema * schema,
-		     Xapian::doccount & checkatleast);
+		     Xapian::doccount & check_at_least);
 
 };
 
@@ -65,7 +65,7 @@ class CoOccurInfoHandler : public BaseOccurInfoHandler {
 		       Xapian::Enquire & enq,
 		       const Xapian::Database * db_,
 		       const Schema * schema,
-		       Xapian::doccount & checkatleast);
+		       Xapian::doccount & check_at_least);
 };
 
 }

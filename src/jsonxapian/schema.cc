@@ -1402,7 +1402,7 @@ Schema::perform_search(const CollectionConfig & collconfig,
 
     Xapian::Query query(build_query(collconfig, db, search["query"]));
 
-    Xapian::doccount from, size, checkatleast;
+    Xapian::doccount from, size, check_at_least;
     from = json_get_uint64_member(search, "from", Json::Value::maxUInt, 0);
 
     if (search["size"] == -1) {
@@ -1411,11 +1411,11 @@ Schema::perform_search(const CollectionConfig & collconfig,
 	size = json_get_uint64_member(search, "size", Json::Value::maxUInt, 10);
     }
 
-    if (search["checkatleast"] == -1) {
-	checkatleast = db.get_doccount();
+    if (search["check_at_least"] == -1) {
+	check_at_least = db.get_doccount();
     } else {
-	checkatleast = json_get_uint64_member(search, "checkatleast",
-					      Json::Value::maxUInt, 0);
+	check_at_least = json_get_uint64_member(search, "check_at_least",
+						Json::Value::maxUInt, 0);
     }
 
     Xapian::Enquire enq(db);
@@ -1428,11 +1428,11 @@ Schema::perform_search(const CollectionConfig & collconfig,
 	json_check_array(info, "list of info items to gather");
 	for (Json::Value::const_iterator i = info.begin();
 	     i != info.end(); ++i) {
-	    info_handlers.add_handler(*i, enq, &db, this, checkatleast);
+	    info_handlers.add_handler(*i, enq, &db, this, check_at_least);
 	}
     }
 
-    Xapian::MSet mset(enq.get_mset(from, size, checkatleast));
+    Xapian::MSet mset(enq.get_mset(from, size, check_at_least));
 
     // Get the list of fields to return.
     Json::Value fieldlistval;
@@ -1442,7 +1442,7 @@ Schema::perform_search(const CollectionConfig & collconfig,
     info_handlers.write_results(results, mset);
     results["from"] = from;
     results["size"] = size;
-    results["checkatleast"] = checkatleast;
+    results["check_at_least"] = check_at_least;
     results["matches_lower_bound"] = mset.get_matches_lower_bound();
     results["matches_estimated"] = mset.get_matches_estimated();
     results["matches_upper_bound"] = mset.get_matches_upper_bound();

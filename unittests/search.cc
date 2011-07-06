@@ -79,7 +79,7 @@ TEST(SearchIntegerExactFields)
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[\"31\"]]}}";
 	s.perform_search(config, db, search_str, search_results);
-	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size\":10}",
+	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size\":10}",
 		    json_serialise(search_results));
     }
 
@@ -88,7 +88,7 @@ TEST(SearchIntegerExactFields)
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[\"32\"]]}}";
 	s.perform_search(config, db, search_str, search_results);
-	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
+	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
 		    json_serialise(search_results));
     }
 
@@ -97,7 +97,7 @@ TEST(SearchIntegerExactFields)
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[32]]}}";
 	s.perform_search(config, db, search_str, search_results);
-	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
+	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
 		    json_serialise(search_results));
     }
 
@@ -106,7 +106,7 @@ TEST(SearchIntegerExactFields)
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[18446744073709551615]]}}";
 	s.perform_search(config, db, search_str, search_results);
-	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[{\"intid\":[31]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
+	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[{\"intid\":[31]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
 		    json_serialise(search_results));
     }
 
@@ -115,7 +115,7 @@ TEST(SearchIntegerExactFields)
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"intid\",\"is\",[\"18446744073709551615\"]]}}";
 	s.perform_search(config, db, search_str, search_results);
-	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
+	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size\":10}",
 		    json_serialise(search_results));
     }
 
@@ -124,7 +124,7 @@ TEST(SearchIntegerExactFields)
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"intid\",\"is\",[\"18446744073709551614\"]]}}";
 	s.perform_search(config, db, search_str, search_results);
-	CHECK_EQUAL("{\"checkatleast\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size\":10}",
+	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size\":10}",
 		    json_serialise(search_results));
     }
 }

@@ -53,7 +53,7 @@ OccurInfoHandler::OccurInfoHandler(const Json::Value & params,
 				   Xapian::Enquire & enq,
 				   const Xapian::Database * db_,
 				   const Schema *,
-				   Xapian::doccount & checkatleast)
+				   Xapian::doccount & check_at_least)
 	: BaseOccurInfoHandler(db_)
 {
     string prefix = json_get_string_member(params, "prefix", "");
@@ -75,8 +75,8 @@ OccurInfoHandler::OccurInfoHandler(const Json::Value & params,
 	}
     }
 
-    if (checkatleast < doc_limit) {
-	checkatleast = doc_limit;
+    if (check_at_least < doc_limit) {
+	check_at_least = doc_limit;
     }
     enq.add_matchspy(spy);
 }
@@ -85,7 +85,7 @@ CoOccurInfoHandler::CoOccurInfoHandler(const Json::Value & params,
 				       Xapian::Enquire & enq,
 				       const Xapian::Database * db_,
 				       const Schema *,
-				       Xapian::doccount & checkatleast)
+				       Xapian::doccount & check_at_least)
 	: BaseOccurInfoHandler(db_)
 {
     string prefix = json_get_string_member(params, "prefix", "");
@@ -108,8 +108,8 @@ CoOccurInfoHandler::CoOccurInfoHandler(const Json::Value & params,
     }
 
 
-    if (checkatleast < doc_limit) {
-	checkatleast = doc_limit;
+    if (check_at_least < doc_limit) {
+	check_at_least = doc_limit;
     }
     enq.add_matchspy(spy);
 }

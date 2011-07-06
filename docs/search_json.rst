@@ -12,7 +12,7 @@ SEARCH =
     "query": QUERY,
     "from": <offset of first document to return.  Integer.  0 based.  Default=0>,
     "size": <maximum number of documents to return.  -1=return all matches.  Integer.  Default=10>,
-    "checkatleast": <minimum number of documents to examine before early termination optimisations are allowed.  -1=check all matches.  Integer.  Default=0>,
+    "check_at_least": <minimum number of documents to examine before early termination optimisations are allowed.  -1=check all matches.  Integer.  Default=0>,
     "info": [ INFO ],
     "display": <list of fields to return>
 }

@@ -22,7 +22,7 @@ class QueryTest(TestCase):
 	results = q.search().do()
 	self.assertEqual(results.offset, 0)
 	self.assertEqual(results.size, 0)
-	self.assertEqual(results.checkatleast, 0)
+	self.assertEqual(results.check_at_least, 0)
 	self.assertEqual(results.matches_lower_bound, 0)
 	self.assertEqual(results.matches_estimated, 0)
 	self.assertEqual(results.matches_upper_bound, 0)
@@ -32,7 +32,7 @@ class QueryTest(TestCase):
 	self.assertEqual(target.last.body,
 			 {'from': 0,
 			  'size': 10,
-			  'checkatleast': 0,
+			  'check_at_least': 0,
 			  'query': {'field': ['fieldname', 'is', '10']},
 			 })
 
@@ -41,7 +41,7 @@ class QueryTest(TestCase):
 	self.assertEqual(target.last.body,
 			 {'from': 0,
 			  'size': 10,
-			  'checkatleast': 0,
+			  'check_at_least': 0,
 			  'query': {'scale': {'factor': 3.14,
 			    'query': {'field': ['fieldname', 'is', '10']}}},
 			 })

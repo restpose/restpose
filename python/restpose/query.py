@@ -249,13 +249,13 @@ class Search(object):
 
     """
     def __init__(self, target=None, query=None,
-                 offset=0, size=10, checkatleast=0,
+                 offset=0, size=10, check_at_least=0,
                  info=None, display=None):
         self.target = target
         self.body = { 'query': query_struct(query),
                       'from': offset,
                       'size': size,
-                      'checkatleast': checkatleast,
+                      'check_at_least': check_at_least,
                     }
         if info:
             self.body['info'] = info
@@ -347,9 +347,9 @@ class SearchResults(object):
         return self._raw.get('size', 0)
 
     @property
-    def checkatleast(self):
-        """The requested checkatleast value."""
-        return self._raw.get('checkatleast', 0)
+    def check_at_least(self):
+        """The requested check_at_least value."""
+        return self._raw.get('check_at_least', 0)
 
     @property
     def matches_lower_bound(self):
@@ -385,12 +385,12 @@ class SearchResults(object):
         return len(self.items)
 
     def __str__(self):
-        result = u'SearchResults(offset=%d, size=%d, checkatleast=%d, ' \
+        result = u'SearchResults(offset=%d, size=%d, check_at_least=%d, ' \
                  u'matches_lower_bound=%d, ' \
                  u'matches_estimated=%d, ' \
                  u'matches_upper_bound=%d, ' \
                  u'items=[%s]' % (
-            self.offset, self.size, self.checkatleast,
+            self.offset, self.size, self.check_at_least,
             self.matches_lower_bound,
             self.matches_estimated,
             self.matches_upper_bound,
