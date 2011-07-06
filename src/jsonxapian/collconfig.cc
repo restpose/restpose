@@ -124,6 +124,7 @@ CollectionConfig::set_default_schema()
 "    [ \"cat\", { \"type\": \"cat\", \"prefix\": \"c\", \"store_field\": \"cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
 "    [ \"id\", { \"type\": \"id\", \"store_field\": \"id\" } ],"
 "    [ \"type\", { \"type\": \"exact\", \"prefix\": \"!\", \"store_field\": \"type\" } ],"
+"    [ \"_meta\", { \"type\": \"meta\", \"prefix\": \"#\", \"slot\": 0 } ],"
 "    [ \"*\", { \"type\": \"text\", \"prefix\": \"t\", \"store_field\": \"*\" } ]"
 "  ],"
 "  \"fields\": {"

@@ -31,6 +31,7 @@
 #include "jsonxapian/collection.h"
 #include "jsonxapian/collection_pool.h"
 #include "jsonxapian/doctojson.h"
+#include "jsonxapian/indexing.h"
 #include "jsonxapian/pipe.h"
 #include "server/task_manager.h"
 #include "utils.h"
@@ -54,6 +55,7 @@ using namespace RestPose;
     "[\"cat\",{\"max_length\":32,\"prefix\":\"c\",\"store_field\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
     "[\"id\",{\"store_field\":\"id\",\"type\":\"id\"}]," \
     "[\"type\",{\"prefix\":\"!\",\"store_field\":\"type\",\"type\":\"exact\"}]," \
+    "[\"_meta\",{\"prefix\":\"#\",\"slot\":0,\"type\":\"meta\"}]," \
     "[\"*\",{\"prefix\":\"t\",\"store_field\":\"*\",\"type\":\"text\"}]" \
   "]" \
 "}"
@@ -419,8 +421,6 @@ TEST(CollectionCategory)
 {
     TempDir path("/tmp/jsonxapian");
     CollectionPool pool(path.get());
-    TaskManager * taskman = new TaskManager(pool);
-    taskman->start();
     Json::Value tmp;
 
     Collection * c = pool.get_writable("default");
@@ -514,5 +514,80 @@ TEST(CollectionCategory)
 	c->get_document("default", "1", tmp2);
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAgrand\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
 		    json_serialise(tmp2));
+    }
+}
+
+/// Test storing of meta info
+TEST(MetaInfoSimple)
+{
+    CollectionConfig c("testcoll");
+    Json::Value tmp;
+    c.set_default();
+
+    // A doc with a single valid field value.
+    Json::Value doc(Json::objectValue);
+    doc["foo"] = "hello";
+    std::string idterm;
+    IndexingErrors errors;
+    Xapian::Document xdoc = c.process_doc(doc, "default", "0", idterm,
+					  errors);
+    CHECK_EQUAL("\tdefault\t0", idterm);
+    CHECK_EQUAL(0u, errors.errors.size());
+    CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"],"
+		"\"id\":[\"0\"],"
+		"\"type\":[\"default\"]},"
+		"\"terms\":{\"\\tdefault\\t0\":{},"
+		"\"!\\tdefault\":{},"
+		"\"#\\tFfoo\":{},"
+		"\"#\\tN\":{},"
+		"\"#\\tNfoo\":{},"
+		"\"t\\thello\":{\"positions\":[1],\"wdf\":1}}}",
+		json_serialise(doc_to_json(xdoc, tmp)));
+}
+
+/// Test storing of meta info for missing fields
+TEST(MetaInfoMissing)
+{
+    CollectionConfig c("testcoll");
+    Json::Value tmp;
+    c.set_default();
+
+    // A doc with empty field values.
+    {
+	Json::Value doc(Json::objectValue);
+	Json::Value emptyval(Json::arrayValue);
+	emptyval.append(Json::nullValue);
+	doc["foo_text"] = emptyval;
+	doc["foo_time"] = emptyval;
+	doc["foo_tag"] = emptyval;
+	doc["foo_url"] = emptyval;
+	doc["foo_cat"] = emptyval;
+	std::string idterm;
+	IndexingErrors errors;
+	Xapian::Document xdoc = c.process_doc(doc, "default", "0", idterm,
+					      errors);
+	CHECK_EQUAL("\tdefault\t0", idterm);
+	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL("{\"data\":{\"foo_cat\":[null],"
+		               "\"foo_tag\":[null],"
+		               "\"foo_text\":[null],"
+		               "\"foo_time\":[null],"
+		               "\"foo_url\":[null],"
+		               "\"id\":[\"0\"],"
+			       "\"type\":[\"default\"]},"
+		     "\"terms\":{\"\\tdefault\\t0\":{},"
+		                "\"!\\tdefault\":{},"
+		                "\"#\\tFfoo_cat\":{},"
+		                "\"#\\tFfoo_tag\":{},"
+		                "\"#\\tFfoo_text\":{},"
+		                "\"#\\tFfoo_time\":{},"
+		                "\"#\\tFfoo_url\":{},"
+		                "\"#\\tM\":{},"
+		                "\"#\\tMfoo_cat\":{},"
+		                "\"#\\tMfoo_tag\":{},"
+		                "\"#\\tMfoo_text\":{},"
+		                "\"#\\tMfoo_time\":{},"
+		                "\"#\\tMfoo_url\":{}}}",
+		    json_serialise(doc_to_json(xdoc, tmp)));
     }
 }
