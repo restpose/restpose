@@ -119,7 +119,13 @@ ExactStringIndexer::index(IndexingState & state,
 	std::string val = json_get_idstyle_value(*i, error);
 	if (!error.empty()) {
 	    state.append_error(fieldname, error);
+	    continue;
 	}
+	if (val.empty()) {
+	    state.field_empty(fieldname);
+	    continue;
+	}
+	state.field_nonempty(fieldname);
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
@@ -155,9 +161,17 @@ StoredIndexer::~StoredIndexer()
 
 void
 StoredIndexer::index(IndexingState & state,
-		     const std::string &,
+		     const std::string & fieldname,
 		     const Json::Value & values) const
 {
+    for (Json::Value::const_iterator i = values.begin();
+	 i != values.end(); ++i) {
+	if ((*i).empty() || ((*i).isString() && (*i).asString().empty())) {
+	    state.field_empty(fieldname);
+	} else {
+	    state.field_nonempty(fieldname);
+	}
+    }
     state.docdata.set(store_field, json_serialise(values));
 }
 
@@ -171,7 +185,10 @@ TimeStampIndexer::index(IndexingState & state,
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
-	if ((*i).isConvertibleTo(Json::realValue)) {
+	if ((*i).isNull()) {
+	    state.field_empty(fieldname);
+	} else if ((*i).isConvertibleTo(Json::realValue)) {
+	    state.field_nonempty(fieldname);
 	    state.doc.add_value(slot,
 				Xapian::sortable_serialise((*i).asDouble()));
 	} else {
@@ -199,7 +216,10 @@ DateIndexer::index(IndexingState & state,
 	std::string parsed = parse_date(*i, error);
 	if (!error.empty()) {
 	    state.append_error(fieldname, error);
+	} else if (parsed.empty()) {
+	    state.field_empty(fieldname);
 	} else {
+	    state.field_nonempty(fieldname);
 	    state.doc.add_value(slot, parsed);
 	}
     }
@@ -212,11 +232,19 @@ DateIndexer::index(IndexingState & state,
 std::string
 DateIndexer::parse_date(const Json::Value & value, std::string & error)
 {
+    if (value.isNull()) {
+	return std::string();
+    }
+
     if (!value.isString()) {
 	error = "Non-string value supplied to date field.";
 	return std::string();
     }
     std::string value_str(value.asString());
+
+    if (value_str.empty()) {
+	return std::string();
+    }
 
     // FIXME - extremely lax parsing now follows.  Should report parse
     // errors.  Parses only the format year-month-day
@@ -270,7 +298,13 @@ CategoryIndexer::index(IndexingState & state,
 	std::string val = json_get_idstyle_value(*i, error);
 	if (!error.empty()) {
 	    state.append_error(fieldname, error);
+	    continue;
 	}
+	if (val.empty()) {
+	    state.field_empty(fieldname);
+	    continue;
+	}
+	state.field_nonempty(fieldname);
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
@@ -314,13 +348,25 @@ TermGeneratorIndexer::~TermGeneratorIndexer()
 
 void
 TermGeneratorIndexer::index(IndexingState & state,
-			    const std::string &,
+			    const std::string & fieldname,
 			    const Json::Value & values) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
-	json_check_string(*i, "Text field value");
+	if ((*i).isNull()) {
+	    state.field_empty(fieldname);
+	    continue;
+	} else if (!(*i).isString()) {
+	    state.append_error(fieldname,
+			       "Field value for text field must be a string");
+	    continue;
+	}
 	std::string val = (*i).asString();
+	if (val.empty()) {
+	    state.field_empty(fieldname);
+	    continue;
+	}
+	state.field_nonempty(fieldname);
 
 	Xapian::TermGenerator tg;
 	tg.set_stemmer(Xapian::Stem(stem_lang));
@@ -338,13 +384,25 @@ CJKIndexer::~CJKIndexer()
 
 void
 CJKIndexer::index(IndexingState & state,
-		  const std::string &,
+		  const std::string & fieldname,
 		  const Json::Value & values) const
 {
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
-	json_check_string(*i, "Text field value");
+	if ((*i).isNull()) {
+	    state.field_empty(fieldname);
+	    continue;
+	} else if (!(*i).isString()) {
+	    state.append_error(fieldname,
+			       "Field value for text field must be a string");
+	    continue;
+	}
 	std::string val = (*i).asString();
+	if (val.empty()) {
+	    state.field_empty(fieldname);
+	    continue;
+	}
+	state.field_nonempty(fieldname);
 
 	// index the text
 	cjk::tokenizer tknzr;
