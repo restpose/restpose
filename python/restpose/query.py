@@ -142,6 +142,13 @@ class QueryAnd(Query):
 
     """
     def __init__(self, queries, target=None):
+        if target is None:
+            # Try getting a target from the queries
+            queries = tuple(queries)
+            for query in queries:
+                if query.target is not None:
+                    target = query.target
+                    break
         super(QueryAnd, self).__init__(target=target)
         self.query = {"and": list(query_struct(query) for query in queries)}
 
@@ -153,6 +160,13 @@ class QueryOr(Query):
 
     """
     def __init__(self, queries, target=None):
+        if target is None:
+            # Try getting a target from the queries
+            queries = tuple(queries)
+            for query in queries:
+                if query.target is not None:
+                    target = query.target
+                    break
         super(QueryOr, self).__init__(target=target)
         self.query = {"or": list(query_struct(query) for query in queries)}
 
@@ -165,6 +179,13 @@ class QueryXor(Query):
 
     """
     def __init__(self, queries, target=None):
+        if target is None:
+            # Try getting a target from the queries
+            queries = tuple(queries)
+            for query in queries:
+                if query.target is not None:
+                    target = query.target
+                    break
         super(QueryXor, self).__init__(target=target)
         self.query = {"xor": list(query_struct(query) for query in queries)}
 
@@ -177,6 +198,13 @@ class QueryNot(Query):
 
     """
     def __init__(self, queries, target=None):
+        if target is None:
+            # Try getting a target from the queries
+            queries = tuple(queries)
+            for query in queries:
+                if query.target is not None:
+                    target = query.target
+                    break
         super(QueryNot, self).__init__(target=target)
         self.query = {"not": list(query_struct(query) for query in queries)}
 
@@ -189,6 +217,13 @@ class QueryAndMaybe(Query):
 
     """
     def __init__(self, queries, target=None):
+        if target is None:
+            # Try getting a target from the queries
+            queries = tuple(queries)
+            for query in queries:
+                if query.target is not None:
+                    target = query.target
+                    break
         super(QueryAndMaybe, self).__init__(target=target)
         self.query = {"and_maybe": list(query_struct(query)
                                         for query in queries)}
@@ -203,6 +238,8 @@ class QueryMultWeight(Query):
         """Build a query in which the weights are multiplied by a factor.
 
         """
+        if target is None:
+            target = query.target
         super(QueryMultWeight, self).__init__(target=target)
         self.query = dict(scale=dict(query=query_struct(query), factor=factor))
 
