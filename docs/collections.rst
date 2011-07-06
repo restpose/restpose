@@ -158,6 +158,22 @@ can be one of:
 
  - `truncate`: Truncate the field value to the `max_length` value.
 
+Category fields
+---------------
+
+(`type` = `cat`)
+
+Category fields are somewhat similar to exact fields, but in addition a
+hierarchy of field values can be defined.  Searches can then be used to find
+all documents in which a value in a document is an ancestor of the search
+value.
+
+Each field value may be given one or more parents.  It is also possible for a
+parent to have multiple child values.  It is an error to attempt to set up
+loops in the inheritance graph, however.
+
+See the `Category Hierarchies`_ section for more details.
+
 Timestamp fields
 ----------------
 
@@ -317,6 +333,7 @@ Categorisers
 ------------
 
 .. todo: document categorisers
+
 
 --------------------
 Category Hierarchies

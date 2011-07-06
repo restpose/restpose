@@ -7,15 +7,16 @@ of the set of matching documents to return, which fields to return in the
 matching documents, and which additional information about the matching
 documents to calculate and return.
 
-SEARCH = 
-{
-    "query": QUERY,
-    "from": <offset of first document to return.  Integer.  0 based.  Default=0>,
-    "size": <maximum number of documents to return.  -1=return all matches.  Integer.  Default=10>,
-    "check_at_least": <minimum number of documents to examine before early termination optimisations are allowed.  -1=check all matches.  Integer.  Default=0>,
-    "info": [ INFO ],
-    "display": <list of fields to return>
-}
+::
+
+    SEARCH = {
+        "query": QUERY,
+        "from": <offset of first document to return.  Integer.  0 based.  Default=0>,
+        "size": <maximum number of documents to return.  -1=return all matches.  Integer.  Default=10>,
+        "check_at_least": <minimum number of documents to examine before early termination optimisations are allowed.  -1=check all matches.  Integer.  Default=0>,
+        "info": [ INFO ],
+        "display": <list of fields to return>
+    }
 
 Basic queries
 =============
@@ -28,53 +29,76 @@ slotting into a standard query structure, and occasionally have other uses.  In
 many situations, these queries will be optimised away when performing the
 search.
 
-A query which matches all documents:
+A query which matches all documents::
 
-QUERY = {
-    "matchall": true
-}
+    QUERY = {
+        "matchall": true
+    }
 
-A query which matches no documents:
+A query which matches no documents::
 
-QUERY = {
-    "matchnothing": true
-}
+    QUERY = {
+        "matchnothing": true
+    }
 
 A search for a value in a particular field
 ------------------------------------------
 
-QUERY = {
-    "field": [
-        <fieldname>,
-        <type of search to do>,
-        <value to search for>
-    ]
-}
+::
+
+    QUERY = {
+        "field": [
+            <fieldname>,
+            <type of search to do>,
+            <value to search for>
+        ]
+    }
 
 Various types of search are possible:
 
  - "is": searches for documents in which a value stored in the field is equal
-   to the value to search for.  This type is available for "exact" and "id"
-   field types.  The value to search for must be an array of values, each of
-   which is either a string or and integer (in the range 0..2^64-1), or 
+   to the value to search for.  This type is available for "exact", "id" and
+   "category" field types.  The value to search for must be an array of values,
+   each of which is either a string or an integer (in the range 0..2^64-1).
+
+ - "is_descendant": searches for documents in which a value stored in the field
+   is a descendant of a value specified in the search.  This type is available
+   for "category" field types.  The value to search for must be an array of
+   values, each of which is either a string or an integer (in the range
+   0..2^64-1).
+
+ - "is_or_is_descendant": searches for documents in which a value stored in the
+   field is a value specified in the search, or is a descendant of a value
+   specified in the search.  This type is available for "category" field types.
+   The value to search for must be an array of values, each of which is either
+   a string or an integer (in the range 0..2^64-1).
+
+   This is produces an equivalent query to combining an "is" search with an
+   "is_descendant" search using the "or" operator (though this version may be
+   slightly faster to parse).
 
  - "range": searches for documents in which a stored value is in a given range.
    This type is currently available only for "date" and "timestamp" field types.
 
  - "text": searches for a piece of text in a text field.  The value to search
    for may be a single string, or an object holding the following parameters:
+
    - "text": <text to search for.  If empty or missing, this query will match
      no results>
+
    - "op": <The operator to use when searching.  One of "or", "and", "phrase",
      "near".  Default=phrase>
+
    - "window": <only relevant if op is "phrase" or "near". window size in
      words; null=length of text. Integer or null. Default=null>
 
  - "parse": parses a query, and searches for the query in a text field.  The
    value to search for may be a single string, or an object holding the
    following parameters:
+
    - "text": <text to search for.  If empty or missing, this query will match
      no results>
+
    - "op": <The default operator to use when searching.  One of "or", "and".
      Default="and">
 
@@ -113,34 +137,38 @@ Filtering results from another query
 The results from the primary query are returned, filtered so that only those
 results which also match the filter are returned.
 
-QUERY = {
-    "query": QUERY, <optional - defaults to matchall>
-    "filter": QUERY
-}
+::
+
+    QUERY = {
+        "query": QUERY, <optional - defaults to matchall>
+        "filter": QUERY
+    }
 
 
 Combining Queries
 =================
 
-QUERY = {
-    "and": [QUERY, ...]
-}
+::
 
-QUERY = {
-    "or": [QUERY, ...]
-}
+    QUERY = {
+        "and": [QUERY, ...]
+    }
 
-QUERY = {
-    "xor": [QUERY, ...]
-}
+    QUERY = {
+        "or": [QUERY, ...]
+    }
 
-QUERY = {
-    "not": [QUERY, ...]
-}
+    QUERY = {
+        "xor": [QUERY, ...]
+    }
 
-QUERY = {
-    "and_maybe": [QUERY, ...]
-}
+    QUERY = {
+        "not": [QUERY, ...]
+    }
+
+    QUERY = {
+        "and_maybe": [QUERY, ...]
+    }
 
 Scale the weights returned by a query.
 ======================================
@@ -148,12 +176,14 @@ Scale the weights returned by a query.
 Weights of a query, at any point in the tree, can be scaled by multiplying them
 by a constant factor.
 
-QUERY = {
-    "scale": {
-         "query": QUERY,
-         "factor": <multiplier to apply to the weight.  Double, >= 0. Required.>
+::
+
+    QUERY = {
+        "scale": {
+             "query": QUERY,
+             "factor": <multiplier to apply to the weight.  Double, >= 0. Required.>
+        }
     }
-}
 
 Getting additional information
 ==============================
@@ -168,15 +198,17 @@ cooccurrence.  The count entries are of the form: [suffix1, suffix2,
 co-occurrence count] or [suffix1, suffix2, co-occurrence count, termfreq of
 suffix1, termfreq of suffix2] if get_termfreqs was true.
 
-INFO = {
-    "cooccur": {
-        "prefix": <prefix of terms to check cooccurrence for>,
-        "doc_limit": <number of matching documents to stop checking after.  null=unlimited.  Integer or null.  Default=null>
-        "result_limit": <number of term pairs to return results for.  null=unlimited.  Integer or null. Default=null.>
-	"get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
-	"stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
+::
+
+    INFO = {
+        "cooccur": {
+            "prefix": <prefix of terms to check cooccurrence for>,
+            "doc_limit": <number of matching documents to stop checking after.  null=unlimited.  Integer or null.  Default=null>
+            "result_limit": <number of term pairs to return results for.  null=unlimited.  Integer or null. Default=null.>
+	    "get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
+	    "stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
+        }
     }
-}
 
 Getting term occurrence counts for words in matching documents
 --------------------------------------------------------------
@@ -187,12 +219,14 @@ Returns counts for each term seen, in decreasing order of occurrence.  The
 count entries are of the form: [suffix, occurrence count] or [suffix,
 occurrence count, termfreq] if get_termfreqs was true.
 
-INFO = {
-    "occur": {
-        "prefix": <prefix of terms to check occurrence for>,
-        "doc_limit": <number of matching documents to stop checking after.  null=unlimited.  Integer or null.  Default=null>
-        "result_limit": <number of terms to return results for.  null=unlimited.  Integer or null. Default=null.>
-	"get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
-	"stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
+::
+
+    INFO = {
+        "occur": {
+            "prefix": <prefix of terms to check occurrence for>,
+            "doc_limit": <number of matching documents to stop checking after.  null=unlimited.  Integer or null.  Default=null>
+            "result_limit": <number of terms to return results for.  null=unlimited.  Integer or null. Default=null.>
+	    "get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
+	    "stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
+        }
     }
-}
