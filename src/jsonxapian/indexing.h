@@ -290,7 +290,7 @@ namespace RestPose {
      *
      *  The category and all the parents of the category are stored in terms,
      *  allowing quick searches for all documents in a category, or in a
-     *  descendent of a category.
+     *  descendant of a category.
      */
     class CategoryIndexer : public FieldIndexer {
 	std::string prefix;
