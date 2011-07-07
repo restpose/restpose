@@ -455,4 +455,4 @@ class CheckPoint(object):
             # FIXME - sleep a bit.  Currently the server doesn't long-poll for
             # the checkpoint, so we need to sleep to avoid using lots of CPU.
             import time
-            time.sleep(0.1)
+            time.sleep(1)
