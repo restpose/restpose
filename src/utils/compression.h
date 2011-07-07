@@ -25,6 +25,20 @@
 #ifndef RESTPOSE_INCLUDED_COMPRESSION_H
 #define RESTPOSE_INCLUDED_COMPRESSION_H
 
+/* CLean up defines to allow zlib to work */
+#ifndef _LARGEFILE64_SOURCE
+#define _LARGEFILE64_SOURCE 0
+#endif
+#ifndef _LFS64_LARGEFILE
+#define _LFS64_LARGEFILE 0
+#endif
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 0
+#endif
+#ifndef off64_t
+#define off64_t int64_t
+#endif
+
 #include <string>
 #include <zlib.h>
 
