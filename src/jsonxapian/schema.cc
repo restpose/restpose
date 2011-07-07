@@ -1450,6 +1450,20 @@ Schema::perform_search(const CollectionConfig & collconfig,
 
     Xapian::Query query(build_query(collconfig, db, search["query"]));
 
+    // Filter to return only documents of this type.
+    {
+	map<string, FieldConfig *>::const_iterator i;
+	i = fields.find(collconfig.get_type_field());
+	if (i == fields.end()) {
+	    // Should only happen if no documents have been added yet with this
+	    // type, so don't do any work.
+	    query = Xapian::Query::MatchNothing;
+	} else {
+	    Xapian::Query type_query(i->second->query("is", doc_type));
+	    query = Xapian::Query(Xapian::Query::OP_FILTER, query, type_query);
+	}
+    }
+
     Xapian::doccount from, size, check_at_least;
     from = json_get_uint64_member(search, "from", Json::Value::maxUInt, 0);
 
