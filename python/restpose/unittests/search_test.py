@@ -84,6 +84,7 @@ class SearchTest(TestCase):
         expected_items = [
             query.SearchResult(rank=0, fields={
                     'cat': ['greeting'],
+                    'empty': [''],
                     'id': ['1'],
                     'tag': ['A tag'],
                     'text': ['Hello world'],
