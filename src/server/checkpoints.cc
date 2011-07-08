@@ -201,6 +201,10 @@ CheckPointManager::~CheckPointManager()
 	 i = recent_errors.begin(); i != recent_errors.end(); ++i) {
 	delete i->second;
     }
+    for (map<string, CheckPoints *>::iterator
+	 i = checkpoints.begin(); i != checkpoints.end(); ++i) {
+	delete i->second;
+    }
 }
 
 void
