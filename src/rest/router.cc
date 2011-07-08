@@ -213,7 +213,7 @@ Router::set_default(HandlerFactory * handler)
 Handler *
 Router::route(ConnectionInfo & conn) const
 {
-    LOG_INFO(string("Routing: ") + conn.method_str() + " " + conn.url);
+    LOG_DEBUG(string("Routing: ") + conn.method_str() + " " + conn.url);
     auto_ptr<Handler> handler(route_find(conn));
     if (handler.get() != NULL) {
 	handler->set_context(taskman, server);
