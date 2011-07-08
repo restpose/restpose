@@ -42,12 +42,13 @@ class SearchTest(TestCase):
         coll.checkpoint().wait()
         #self.assertEqual(coll.status.get('doc_count'), 0)
 
+        msg = None
         try:
             coll.get_doc("blurb", "2")
-            self.fail()
         except ResourceNotFound, e:
-            if e.msg != 'No collection of name "test_coll" exists':
-                self.assertEqual(e.msg, 'No document found of type "blurb" and id "2"')
+            msg = e.msg
+        self.assertTrue(e.msg == 'No collection of name "test_coll" exists' or
+                        e.msg, 'No document found of type "blurb" and id "2"')
         coll.add_doc(doc, type="blurb", docid="1")
         coll.checkpoint().wait()
         gotdoc = coll.get_doc("blurb", "1")
