@@ -107,7 +107,7 @@ PerformSearchTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
     collection->perform_search(search, doc_type, result);
-    LOG_INFO("searched collection '" + collection->get_name() + "'");
+    LOG_DEBUG("searched collection '" + collection->get_name() + "'");
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
@@ -117,8 +117,7 @@ GetDocumentTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
     collection->get_document(doc_type, doc_id, result);
-    LOG_INFO("GetDocument '" + doc_id + "' from '" + collection->get_name() + "'");
-    LOG_INFO(json_serialise(result));
+    LOG_DEBUG("GetDocument '" + doc_id + "' from '" + collection->get_name() + "'");
     if (result.isNull()) {
 	result = Json::objectValue;
 	result["err"] = "No document found of type \"" + doc_type +
@@ -159,7 +158,7 @@ void
 ProcessorPipeDocumentTask::perform(const string & coll_name,
 				   TaskManager * taskman)
 {
-    LOG_INFO("PipeDocument to '" + target_pipe + "' in '" + coll_name + "'");
+    LOG_DEBUG("PipeDocument to '" + target_pipe + "' in '" + coll_name + "'");
     auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
 				      .get(coll_name));
     config->send_to_pipe(taskman, target_pipe, doc);
@@ -169,7 +168,7 @@ void
 ProcessorProcessDocumentTask::perform(const string & coll_name,
 				      TaskManager * taskman)
 {
-    LOG_INFO("ProcessDocument type '" + doc_type + "' in '" + coll_name + "'");
+    LOG_DEBUG("ProcessDocument type '" + doc_type + "' in '" + coll_name + "'");
     auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
 				      .get(coll_name));
     string idterm;
@@ -208,7 +207,7 @@ void
 IndexerConfigChangedTask::perform(RestPose::Collection & collection,
 				  TaskManager *)
 {
-    LOG_INFO("Updating configuration for collection " + collection.get_name());
+    LOG_DEBUG("Updating configuration for collection " + collection.get_name());
     collection.from_json(new_config);
 }
 
@@ -222,8 +221,8 @@ void
 IndexerUpdateDocumentTask::perform(RestPose::Collection & collection,
 				   TaskManager *)
 {
-    LOG_INFO("UpdateDocument idterm '" + idterm + "' in '" +
-	     collection.get_name() + "'");
+    LOG_DEBUG("UpdateDocument idterm '" + idterm + "' in '" +
+	      collection.get_name() + "'");
     collection.raw_update_doc(doc, idterm);
 }
 
@@ -237,7 +236,8 @@ void
 IndexerDeleteDocumentTask::perform(RestPose::Collection & collection,
 				   TaskManager *)
 {
-    LOG_INFO("DeleteDocument idterm '" + idterm + "' in '" + collection.get_name() + "'");
+    LOG_DEBUG("DeleteDocument idterm '" + idterm + "' in '" +
+	      collection.get_name() + "'");
     collection.raw_delete_doc(idterm);
 }
 

@@ -38,8 +38,10 @@ using namespace std;
 TEST(SearchIntegerExactFields)
 {
     CollectionConfig config("test"); // dummy config, used for testing.
-    Schema s("");
+    config.set_default();
+    Schema s("testtype");
     s.set("id", new IDFieldConfig(""));
+    s.set("type", new ExactFieldConfig("type", 30, ExactFieldConfig::TOOLONG_ERROR, "", 0));
     s.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
 
     Xapian::WritableDatabase db(Xapian::InMemory::open());
@@ -48,13 +50,16 @@ TEST(SearchIntegerExactFields)
     {
 	Json::Reader reader;
 	Json::Value value;
-	CHECK(reader.parse("{\"id\": 32, \"intid\": 18446744073709551615}", value, false)); // 2**64-1
+	CHECK(reader.parse("{\"id\": 32, \"intid\": 18446744073709551615, \"type\": \"testtype\"}", value, false)); // 2**64-1
 	string idterm;
 	IndexingErrors errors;
 	Xapian::Document doc(s.process(value, config, idterm, errors));
 	CHECK_EQUAL(0u, errors.errors.size());
 	Json::Value tmp;
-	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"\\t\\t32\":{},\"intid\\t18446744073709551615\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},"
+		     "\"terms\":{\"\\t\\t32\":{},"
+		                "\"intid\\t18446744073709551615\":{},"
+				"\"type\\ttesttype\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(idterm, "\t\t32");
 	db.add_document(doc);
@@ -62,13 +67,16 @@ TEST(SearchIntegerExactFields)
     {
 	Json::Reader reader;
 	Json::Value value;
-	CHECK(reader.parse("{\"id\": 18446744073709551615, \"intid\": 31}", value, false)); // 2**64-1
+	CHECK(reader.parse("{\"id\": 18446744073709551615, \"intid\": 31, \"type\": \"testtype\"}", value, false)); // 2**64-1
 	string idterm;
 	IndexingErrors errors;
 	Xapian::Document doc(s.process(value, config, idterm, errors));
 	CHECK_EQUAL(0u, errors.errors.size());
 	Json::Value tmp;
-	CHECK_EQUAL("{\"data\":{\"intid\":[31]},\"terms\":{\"\\t\\t18446744073709551615\":{},\"intid\\t31\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[31]},"
+		     "\"terms\":{\"\\t\\t18446744073709551615\":{},"
+				"\"intid\\t31\":{},"
+				"\"type\\ttesttype\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(idterm, "\t\t18446744073709551615");
 	db.add_document(doc);

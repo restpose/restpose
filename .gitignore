@@ -116,3 +116,5 @@ libs/libtextcat/src/createfp
 libs/libtextcat/src/testtextcat
 /rspdbs
 stamp-h1
+/python/.coverage
+/python/cover

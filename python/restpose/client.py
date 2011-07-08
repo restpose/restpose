@@ -13,7 +13,7 @@ Example:
     >>> status = server.status()
     >>> doc = { 'text': 'Hello world', 'tag': 'A tag' }
     >>> coll = server.collection("my_coll")
-    >>> coll.add_doc(doc, type="blurb", docid="1")
+    >>> coll.add_doc(doc, type="blurb", id="1")
     >>> checkpt = coll.checkpoint().wait()
     >>> checkpt.total_errors, checkpt.errors, checkpt.reached, checkpt.expired
     (0, [], True, False)
@@ -32,16 +32,6 @@ from .resource import RestPoseResource
 from .query import Query, QueryAll, QueryNone, QueryField, QueryMeta, \
                    Search, SearchResults
 from .errors import CheckPointExpiredError
-import re
-
-coll_name_re = re.compile('^[a-z0-9_-]+$')
-doc_type_re = re.compile('^[a-z0-9_-]+$')
-
-def check_coll_name(coll_name):
-    if coll_name_re.match(coll_name) is None:
-        raise ValueError("Invalid character in collection name: names may "
-                         "contain only lowercase letters, numbers, "
-                         "underscore and hyphen.")
 
 class Server(object):
     """Representation of a RestPose server.
@@ -237,9 +227,9 @@ class QueryTarget(object):
 
 
 class Document(object):
-    def __init__(self, doctype_obj, docid):
+    def __init__(self, doctype_obj, id):
         self._resource = doctype_obj._resource
-        self._path = doctype_obj._basepath + '/id/' + docid
+        self._path = doctype_obj._basepath + '/id/' + id
         self._fields = None
         self._terms = None
         self._values = None
@@ -273,35 +263,30 @@ class Document(object):
 
 class DocumentType(QueryTarget):
     def __init__(self, collection, doc_type):
-        if doc_type_re.match(doc_type) is None:
-            raise ValueError("Invalid character in type name: names may "
-                             "contain only lowercase letters, numbers, "
-                             "underscore and hyphen.")
         self._basepath = collection._basepath + '/type/' + doc_type
         self._resource = collection._resource
 
-    def add_doc(self, doc, docid=None):
+    def add_doc(self, doc, id=None):
         """Add a document to the collection.
 
         """
         path = self._basepath
         use_put = True
-        if docid is None:
+        if id is None:
             use_put = False
         else:
-            path += '/id/%s' % docid
+            path += '/id/%s' % id
         if use_put:
             result = self._resource.put(path, payload=doc).json
         else:
             result = self._resource.post(path, payload=doc).json
 
-    def get_doc(self, docid):
-        return Document(self, docid)
+    def get_doc(self, id):
+        return Document(self, id)
 
 
 class Collection(QueryTarget):
     def __init__(self, server, coll_name):
-        check_coll_name(coll_name)
         self._basepath = '/coll/' + coll_name
         self._resource = server._resource
 
@@ -315,7 +300,7 @@ class Collection(QueryTarget):
         """
         return self._resource.get(self._basepath).json
 
-    def add_doc(self, doc, type=None, docid=None):
+    def add_doc(self, doc, type=None, id=None):
         """Add a document to the collection.
 
         """
@@ -327,21 +312,21 @@ class Collection(QueryTarget):
         else:
             path += '/type/%s' % type
 
-        if docid is None:
+        if id is None:
             use_put = False
         else:
-            path += '/id/%s' % docid
+            path += '/id/%s' % id
 
         if use_put:
             self._resource.put(path, payload=doc).json
         else:
             self._resource.post(path, payload=doc).json
 
-    def get_doc(self, type, docid):
+    def get_doc(self, type, id):
         """Get a document from the collection.
 
         """
-        path = '%s/type/%s/id/%s' % (self._basepath, type, docid)
+        path = '%s/type/%s/id/%s' % (self._basepath, type, id)
         return self._resource.get(path).json
 
     def checkpoint(self):
@@ -400,7 +385,7 @@ class CheckPoint(object):
     @property
     def reached(self):
         """Return true if the checkpoint has been reached.
-        
+
         Contacts the server to check the current state.
 
         """
@@ -443,8 +428,9 @@ class CheckPoint(object):
         reached.
 
         If the checkpoint expires (before or during the call), a
-        CheckPointExpiredError will be raised..
-        
+        CheckPointExpiredError will be raised.  Otherwise, this will return the
+        checkpoint, so that further methods can be chained on it.
+
         """
         while True:
             self._refresh()
@@ -455,4 +441,5 @@ class CheckPoint(object):
             # FIXME - sleep a bit.  Currently the server doesn't long-poll for
             # the checkpoint, so we need to sleep to avoid using lots of CPU.
             import time
-            time.sleep(0.1)
+            time.sleep(1)
+        return self

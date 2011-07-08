@@ -144,13 +144,16 @@ void
 CheckPoints::publish_checkpoint(const string & checkid)
 {
     CheckPoint * & cp = points[checkid];
-    if (cp != NULL) {
-	// cp would not be null if the uuid generated wasn't unique.
-	// Incredibly unlikely if uuid generator is working, but let's be
-	// paranoid anyway.
-	delete cp;
+    if (cp == NULL) {
+	// cp being non-NULL happens if the checkpoint has already been
+	// reached (so was created by set_reached()).
+	//
+	// It could also theoretically happen if the uuid generated wasn't
+	// unique, but we'll ignore this possibility since it's very unlikely,
+	// and would simply result in the checkpoint being marked as reached
+	// early (for one of the two checkpoints sharing the id).
+	cp = new CheckPoint;
     }
-    cp = new CheckPoint;
 }
 
 Json::Value &
@@ -196,6 +199,10 @@ CheckPointManager::~CheckPointManager()
 {
     for (map<string, IndexingErrorLog *>::iterator
 	 i = recent_errors.begin(); i != recent_errors.end(); ++i) {
+	delete i->second;
+    }
+    for (map<string, CheckPoints *>::iterator
+	 i = checkpoints.begin(); i != checkpoints.end(); ++i) {
 	delete i->second;
     }
 }
