@@ -18,6 +18,7 @@ config.sub
 configure
 cjktest
 depcomp
+/docs/_build
 install-sh
 jsonxapian*.tar.gz
 lang_samples/
