@@ -6,6 +6,8 @@ noinst_HEADERS += \
  src/utils/jsonutils.h \
  src/utils/queueing.h \
  src/utils/rsperrors.h \
+ src/utils/safe_inttypes.h \
+ src/utils/safe_zlib.h \
  src/utils/stringutils.h \
  src/utils/threading.h \
  src/utils/threadsafequeue.h \

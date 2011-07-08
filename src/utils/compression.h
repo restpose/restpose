@@ -25,8 +25,8 @@
 #ifndef RESTPOSE_INCLUDED_COMPRESSION_H
 #define RESTPOSE_INCLUDED_COMPRESSION_H
 
+#include "safe_zlib.h"
 #include <string>
-#include <zlib.h>
 
 class ZlibInflater {
     z_stream * stream;
