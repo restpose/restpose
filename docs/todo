@@ -10,9 +10,9 @@ logger mutex, then does the write, blocking all other threads.  Instead, log
 messages should be added to a queue, and a logger thread should write them to
 disk, syslog, or whatever the appropriate target is.)
 
-Collection names should only be allowed to contain [a-z0-9_-].  Validation
-should be performed in handlers, but also lower level (so that pipes, etc,
-can't become security risks).
+Collection names should not be allowed to contain ":/\." characters.
+Validation should be performed in handlers to return clear error messages, but
+also needed in pipes.
 
 Before an initial release
 -------------------------

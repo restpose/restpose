@@ -316,13 +316,13 @@ class Search(object):
         return self.target.search(self)
 
 class SearchResult(object):
-    def __init__(self, rank, fields):
+    def __init__(self, rank, data):
         self.rank = rank
-        self.fields = fields
+        self.data = data
 
     def __str__(self):
-        return 'SearchResult(rank=%d, fields=%s)' % (
-            self.rank, self.fields,
+        return 'SearchResult(rank=%d, data=%s)' % (
+            self.rank, self.data,
         )
 
 class InfoItem(object):
@@ -370,7 +370,7 @@ class SearchResults(object):
     def items(self):
         """The matching result items."""
         if self._items is None:
-            self._items = [SearchResult(rank, fields) for (rank, fields) in
+            self._items = [SearchResult(rank, data) for (rank, data) in
                 enumerate(self._raw.get('items', []), self.offset)]
         return self._items
 

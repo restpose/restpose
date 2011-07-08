@@ -25,7 +25,7 @@ class IndexTest(TestCase):
         coll.add_doc(doc, type="blurb", id="1")
         self.wait(coll)
         coll.get_doc("blurb", "1")
-        self.assertEqual(coll.get_doc("blurb", "1").get('data'),
+        self.assertEqual(coll.get_doc("blurb", "1").data,
                          dict(
                               cat = ['greeting'],
                               empty = [''],
@@ -56,7 +56,7 @@ class IndexTest(TestCase):
         coll.add_doc(doc, type="blurb", id="1")
         self.wait(coll)
         coll.get_doc("blurb", "1")
-        self.assertEqual(coll.get_doc("blurb", "1").get('data'),
+        self.assertEqual(coll.get_doc("blurb", "1").data,
                          dict(
                               cat = ['greeting'],
                               empty = [''],
