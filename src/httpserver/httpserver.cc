@@ -29,11 +29,13 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include "logger/logger.h"
 #include <microhttpd.h>
 #include "omassert.h"
 #include "rest/handler.h"
 #include "rest/router.h"
 #include "server/ignore_sigpipe.h"
+#include "str.h"
 #include <strings.h>
 #include <sys/types.h>
 #include <sys/select.h>
@@ -196,6 +198,7 @@ ConnectionInfo::respond()
     if (!response_ptr) {
 	throw RestPose::HTTPServerError("No response to send");
     }
+    LOG_INFO(string(url) + " " + string(method_str()) + " " + str(response.get_status_code()));
 
     if (MHD_queue_response(connection, response.get_status_code(),
 			   response_ptr) != MHD_YES) {
