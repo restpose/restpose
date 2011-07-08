@@ -5,6 +5,35 @@
 
 from unittest import TestCase
 from .. import query, Server
+from ..resource import RestPoseResource
+
+class LogResource(RestPoseResource):
+    """A simple resource which logs requests.
+
+    This could be tidied up and made into a useful debugging tool in future,
+    but for now it's just used to test supplying a custom resource instance to
+    the Server() class.
+
+    """
+    def __init__(self, *args, **kwargs):
+        super(LogResource, self).__init__(*args, **kwargs)
+        self._log = []
+
+    def request(self, method, path=None, *args, **kwargs):
+        try:
+            res = super(LogResource, self).request(method, path=path,
+                                                   *args, **kwargs)
+        except Exception, e:
+            self._log.append("%s: %s -> %s" % (method, path, e))
+            raise
+        self._log.append("%s: %s -> %d" % (method, path, int(res.status[:3])))
+        return res
+
+    def clone(self):
+        res = super(LogResource, self).clone()
+        res._log = self._log
+        return res
+
 
 class SearchTest(TestCase):
     maxDiff = 10000
@@ -200,3 +229,23 @@ class SearchTest(TestCase):
     def test_raw_query(self):
         results = self.coll.type("blurb").search(dict(query=dict(matchall=True)))
         self.check_results(results, items=self.expected_items_single)
+
+
+    def test_resource_log_search(self):
+        "Test runnning a search, using a special resource to log requests."
+        # The URI is required, but will be replaced by that passed to Server()
+        logres = LogResource(uri='http://127.0.0.1:7777/')
+
+        coll = Server(resource_instance=logres).collection("test_coll")
+        doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
+                'empty': "" }
+        coll.add_doc(doc, type="blurb", id="1")
+        coll.checkpoint().wait()
+        self.assertTrue(len(logres._log) >= 3)
+        self.assertEqual(logres._log[0],
+                         'PUT: /coll/test_coll/type/blurb/id/1 -> 202')
+        self.assertEqual(logres._log[1],
+                         'POST: /coll/test_coll/checkpoint -> 201')
+        self.assertEqual(logres._log[2][:32],
+                         'GET: /coll/test_coll/checkpoint/')
+        self.assertEqual(logres._log[2][-6:], '-> 200')
