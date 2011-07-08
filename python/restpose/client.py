@@ -21,9 +21,9 @@ Example:
     >>> results = query.search().do()
     >>> results.matches_estimated
     1
-    >>> results.items[0].fields['id']
+    >>> results.items[0].data['id']
     ['1']
-    >>> results.items[0].fields['type']
+    >>> results.items[0].data['type']
     ['blurb']
 
 """
@@ -227,26 +227,32 @@ class QueryTarget(object):
 
 
 class Document(object):
-    def __init__(self, doctype_obj, id):
-        self._resource = doctype_obj._resource
-        self._path = doctype_obj._basepath + '/id/' + id
-        self._fields = None
+    def __init__(self, collection, type, id):
+        if collection is None:
+            # type should be a DocumentType object.
+            self._resource = type._resource
+            self._path = type._basepath + '/id/' + id
+        else:
+            # type should be a string.
+            self._resource = collection._resource
+            self._path = collection._basepath + '/type/' + type + '/id/' + id
+        self._data = None
         self._terms = None
         self._values = None
         self._fetched = False
 
     def _fetch(self):
         val = self._resource.get(self._path).json
-        self._fields = val.get('fields')
-        self._terms = val.get('terms')
-        self._values = val.get('values')
+        self._data = val.get('data', {})
+        self._terms = val.get('terms', {})
+        self._values = val.get('values', {})
         self._fetched = True
 
     @property
-    def fields(self):
+    def data(self):
         if not self._fetched:
             self._fetch()
-        return self._fields
+        return self._data
 
     @property
     def terms(self):
@@ -262,8 +268,8 @@ class Document(object):
 
 
 class DocumentType(QueryTarget):
-    def __init__(self, collection, doc_type):
-        self._basepath = collection._basepath + '/type/' + doc_type
+    def __init__(self, collection, type):
+        self._basepath = collection._basepath + '/type/' + type
         self._resource = collection._resource
 
     def add_doc(self, doc, id=None):
@@ -282,7 +288,7 @@ class DocumentType(QueryTarget):
             result = self._resource.post(path, payload=doc).json
 
     def get_doc(self, id):
-        return Document(self, id)
+        return Document(None, self, id)
 
 
 class Collection(QueryTarget):
@@ -290,8 +296,8 @@ class Collection(QueryTarget):
         self._basepath = '/coll/' + coll_name
         self._resource = server._resource
 
-    def type(self, doc_type):
-        return DocumentType(self, doc_type)
+    def type(self, type):
+        return DocumentType(self, type)
 
     @property
     def status(self):
@@ -326,8 +332,7 @@ class Collection(QueryTarget):
         """Get a document from the collection.
 
         """
-        path = '%s/type/%s/id/%s' % (self._basepath, type, id)
-        return self._resource.get(path).json
+        return Document(self, type, id)
 
     def checkpoint(self):
         """Set a checkpoint on the collection.

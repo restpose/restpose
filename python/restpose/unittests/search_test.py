@@ -11,7 +11,7 @@ class SearchTest(TestCase):
 
     # Expected items for tests which return a single result
     expected_items_single = [
-        query.SearchResult(rank=0, fields={
+        query.SearchResult(rank=0, data={
                 'cat': ['greeting'],
                 'empty': [''],
                 'id': ['1'],
@@ -43,7 +43,7 @@ class SearchTest(TestCase):
         self.assertEqual(len(results.items), len(items))
         for i in xrange(len(items)):
             self.assertEqual(results.items[i].rank, items[i].rank)
-            self.assertEqual(results.items[i].fields, items[i].fields)
+            self.assertEqual(results.items[i].data, items[i].data)
         self.assertEqual(results.info, info)
 
     @classmethod
@@ -64,14 +64,15 @@ class SearchTest(TestCase):
         """
         self.assertEqual(self.coll.status.get('doc_count'), 1)
         gotdoc = self.coll.get_doc("blurb", "1")
-        self.assertEqual(gotdoc, dict(data={
+        self.assertEqual(gotdoc.data, {
                                       'cat': ['greeting'],
                                       'empty': [''],
                                       'id': ['1'],
                                       'tag': ['A tag'],
                                       'text': ['Hello world'],
                                       'type': ['blurb'],
-                                      }, terms={
+                                      })
+        self.assertEqual(gotdoc.terms, {
                                       '\tblurb\t1': {},
                                       '!\tblurb': {},
                                       '#\tFcat': {},
@@ -90,7 +91,8 @@ class SearchTest(TestCase):
                                       'g\tA tag': {},
                                       't\thello': {'positions': [1], 'wdf': 1},
                                       't\tworld': {'positions': [2], 'wdf': 1},
-                                      }))
+                                      })
+        self.assertEqual(gotdoc.values, {})
 
     def test_field_is(self):
         q = self.coll.type("blurb").field_is('tag', 'A tag')
