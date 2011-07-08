@@ -23,7 +23,7 @@ setup(name="Restpose",
         'Operating System :: Unix',
       ],
       install_requires=[
-        'restkit',
+        'restkit>=3.2.3',
       ],
       setup_requires=[
         'nose>=0.11',
