@@ -32,16 +32,6 @@ from .resource import RestPoseResource
 from .query import Query, QueryAll, QueryNone, QueryField, QueryMeta, \
                    Search, SearchResults
 from .errors import CheckPointExpiredError
-import re
-
-coll_name_re = re.compile('^[a-z0-9_-]+$')
-doc_type_re = re.compile('^[a-z0-9_-]+$')
-
-def check_coll_name(coll_name):
-    if coll_name_re.match(coll_name) is None:
-        raise ValueError("Invalid character in collection name: names may "
-                         "contain only lowercase letters, numbers, "
-                         "underscore and hyphen.")
 
 class Server(object):
     """Representation of a RestPose server.
@@ -273,10 +263,6 @@ class Document(object):
 
 class DocumentType(QueryTarget):
     def __init__(self, collection, doc_type):
-        if doc_type_re.match(doc_type) is None:
-            raise ValueError("Invalid character in type name: names may "
-                             "contain only lowercase letters, numbers, "
-                             "underscore and hyphen.")
         self._basepath = collection._basepath + '/type/' + doc_type
         self._resource = collection._resource
 
@@ -301,7 +287,6 @@ class DocumentType(QueryTarget):
 
 class Collection(QueryTarget):
     def __init__(self, server, coll_name):
-        check_coll_name(coll_name)
         self._basepath = '/coll/' + coll_name
         self._resource = server._resource
 
