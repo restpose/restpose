@@ -16,19 +16,19 @@ setup(name="Restpose",
       license='MIT',
       url='https://github.com/rboulton/restpose',
       classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2.7',
         'Operating System :: Unix',
-        ],
+      ],
       install_requires=[
         'restkit',
-        ],
+      ],
       setup_requires=[
         'nose>=0.11',
-        ],
+      ],
       tests_require=[
         'coverage',
-        ],
+      ],
 )
