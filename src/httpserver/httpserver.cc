@@ -198,7 +198,8 @@ ConnectionInfo::respond()
     if (!response_ptr) {
 	throw RestPose::HTTPServerError("No response to send");
     }
-    LOG_INFO(string(url) + " " + string(method_str()) + " " + str(response.get_status_code()));
+    LOG_INFO(string(url) + " " + string(method_str()) + " " +
+	     str(response.get_status_code()));
 
     if (MHD_queue_response(connection, response.get_status_code(),
 			   response_ptr) != MHD_YES) {
