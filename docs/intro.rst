@@ -1,6 +1,8 @@
 Overview
 ========
 
+Warning: this document is entirely out of date.
+
 Compilation instructions on Fedora 8
 ------------------------------------
 
