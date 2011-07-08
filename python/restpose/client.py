@@ -239,30 +239,29 @@ class Document(object):
         self._data = None
         self._terms = None
         self._values = None
-        self._fetched = False
+        self._raw = None
 
     def _fetch(self):
-        val = self._resource.get(self._path).json
-        self._data = val.get('data', {})
-        self._terms = val.get('terms', {})
-        self._values = val.get('values', {})
-        self._fetched = True
+        self._raw = self._resource.get(self._path).json
+        self._data = self._raw.get('data', {})
+        self._terms = self._raw.get('terms', {})
+        self._values = self._raw.get('values', {})
 
     @property
     def data(self):
-        if not self._fetched:
+        if self._raw is None:
             self._fetch()
         return self._data
 
     @property
     def terms(self):
-        if not self._fetched:
+        if self._raw is None:
             self._fetch()
         return self._terms
 
     @property
     def values(self):
-        if not self._fetched:
+        if self._raw is None:
             self._fetch()
         return self._values
 
