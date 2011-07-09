@@ -55,7 +55,6 @@ class IndexTest(TestCase):
                 'empty': "" }
         coll.add_doc(doc, type="blurb", id="1")
         self.wait(coll)
-        coll.get_doc("blurb", "1")
         self.assertEqual(coll.get_doc("blurb", "1").data,
                          dict(
                               cat = ['greeting'],
@@ -66,12 +65,11 @@ class IndexTest(TestCase):
                               type = ['blurb'],
                              ))
 
-        return # delete not yet implemented!
         coll.delete_doc(type="blurb", id="1")
         self.wait(coll)
         msg = None
         try:
-            coll.get_doc("blurb", "1")
+            coll.get_doc("blurb", "1").data
         except ResourceNotFound, e:
             msg = e.msg
-        self.assertEqual(msg, 'No collection of name "test_coll" exists')
+        self.assertEqual(msg, 'No document found of type "blurb" and id "1"')
