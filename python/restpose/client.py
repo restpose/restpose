@@ -327,6 +327,13 @@ class Collection(QueryTarget):
         else:
             self._resource.post(path, payload=doc).json
 
+    def delete_doc(self, type, id):
+        """Delete a document from the collection.
+
+        """
+        path = '%s/type/%s/id/%s' % (self._basepath, type, id)
+        return self._resource.delete(path).json
+
     def get_doc(self, type, id):
         """Get a document from the collection.
 
