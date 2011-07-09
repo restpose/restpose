@@ -192,13 +192,16 @@ class IndexerUpdateDocumentTask : public IndexingTask {
 };
 
 /// Delete a document.
-class IndexerDeleteDocumentTask : public IndexingTask {
+class DeleteDocumentTask : public IndexingTask {
     /// The unique ID term for the document.
-    std::string idterm;
+    std::string doc_type;
+    std::string doc_id;
 
   public:
-    IndexerDeleteDocumentTask(const std::string & idterm_)
-	    : idterm(idterm_)
+    DeleteDocumentTask(const std::string & doc_type_,
+		       const std::string & doc_id_)
+	    : doc_type(doc_type_),
+	      doc_id(doc_id_)
     {}
 
     /// Perform the indexing task, given a collection (open for writing).

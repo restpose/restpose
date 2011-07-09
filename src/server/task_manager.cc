@@ -213,16 +213,6 @@ TaskManager::queue_index_document(const string & collection,
 			  allow_throttle);
 }
 
-Queue::QueueState
-TaskManager::queue_delete_document(const string & collection,
-				   const string & idterm,
-				   bool allow_throttle)
-{
-    return queue_indexing(collection,
-			  new IndexerDeleteDocumentTask(idterm),
-			  allow_throttle);
-}
-
 void
 TaskManager::start()
 {

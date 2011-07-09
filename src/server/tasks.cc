@@ -233,16 +233,17 @@ IndexerUpdateDocumentTask::clone() const
 }
 
 void
-IndexerDeleteDocumentTask::perform(RestPose::Collection & collection,
-				   TaskManager *)
+DeleteDocumentTask::perform(RestPose::Collection & collection,
+			    TaskManager *)
 {
-    LOG_DEBUG("DeleteDocument idterm '" + idterm + "' in '" +
-	      collection.get_name() + "'");
-    collection.raw_delete_doc(idterm);
+    LOG_INFO("DeleteDocument type='" + doc_type +
+	     "' id='" + doc_id +
+	     "' in '" + collection.get_name() + "'");
+    collection.raw_delete_doc("\t" + doc_type + "\t" + doc_id);
 }
 
 IndexingTask *
-IndexerDeleteDocumentTask::clone() const
+DeleteDocumentTask::clone() const
 {
-    return new IndexerDeleteDocumentTask(idterm);
+    return new DeleteDocumentTask(doc_type, doc_id);
 }

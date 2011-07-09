@@ -115,6 +115,26 @@ IndexDocumentHandler::enqueue(ConnectionInfo &,
 }
 
 Handler *
+DeleteDocumentHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
+{
+    LOG_INFO("DeleteDocumentHandler called");
+    string coll_name = path_params[0];
+    string doc_type = path_params[1];
+    string doc_id = path_params[2];
+    return new DeleteDocumentHandler(coll_name, doc_type, doc_id);
+}
+
+Queue::QueueState
+DeleteDocumentHandler::enqueue(ConnectionInfo &,
+			       const Json::Value &)
+{
+    return taskman->queue_processing(coll_name,
+	new DelayedIndexingTask(new DeleteDocumentTask(doc_type, doc_id)),
+	false);
+}
+
+Handler *
 CollListHandlerFactory::create(const std::vector<std::string> &) const
 {
     return new CollListHandler;

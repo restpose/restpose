@@ -50,7 +50,7 @@ setup_routes(Router & router)
 
     // Documents
     router.add("/coll/?/type/?/id/?", HTTP_PUT, new IndexDocumentHandlerFactory);
-    //router.add("/coll/?/type/?/id/?", HTTP_DELETE, new DeleteDocumentHandlerFactory);
+    router.add("/coll/?/type/?/id/?", HTTP_DELETE, new DeleteDocumentHandlerFactory);
     router.add("/coll/?/type/?/id/?", HTTP_GETHEAD, new GetDocumentHandlerFactory);
 
     // Search

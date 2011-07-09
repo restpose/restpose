@@ -125,6 +125,8 @@ class DelayedIndexingTask : public ProcessingTask {
 	    : ProcessingTask(false), task(task_)
     {}
 
+    ~DelayedIndexingTask();
+
     void perform(const std::string & coll_name,
 		 TaskManager * taskman);
 };

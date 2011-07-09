@@ -14,6 +14,7 @@ noinst_HEADERS += \
  src/server/thread_pool.h
 
 libserver_a_SOURCES = \
+ src/server/basetasks.cc \
  src/server/checkpoints.cc \
  src/server/ignore_sigpipe.cc \
  src/server/result_handle.cc \

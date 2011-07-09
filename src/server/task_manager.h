@@ -196,12 +196,6 @@ class TaskManager : public SubServer {
 					   const std::string & idterm,
 					   bool allow_throttle);
 
-    /** Queue deletion of a document.
-     */
-    Queue::QueueState queue_delete_document(const std::string & collection,
-					    const std::string & idterm,
-					    bool allow_throttle);
-
     /** Initialise the task manager server.
      */
     void start();
