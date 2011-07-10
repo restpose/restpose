@@ -51,4 +51,27 @@ class CollInfoTask : public ReadonlyCollTask {
     void perform(RestPose::Collection * collection);
 };
 
+class CollGetConfigTask : public ReadonlyCollTask {
+  public:
+    CollGetConfigTask(const RestPose::ResultHandle & resulthandle_,
+		      const std::string & coll_name_)
+	    : ReadonlyCollTask(resulthandle_, coll_name_)
+    {}
+
+    void perform(RestPose::Collection * collection);
+};
+
+class CollSetConfigTask : public IndexingTask {
+    Json::Value config;
+  public:
+    CollSetConfigTask(const Json::Value & config_)
+	    : IndexingTask(),
+	      config(config_)
+    {}
+
+    void perform(RestPose::Collection & collection,
+		 TaskManager * taskman);
+    IndexingTask * clone() const;
+};
+
 #endif /* RESTPOSE_INCLUDED_COLL_TASKS_H */

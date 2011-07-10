@@ -52,14 +52,28 @@ CollInfoTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
     result["doc_count"] = Json::UInt64(collection->doc_count());
-    Json::Value tmp;
-    collection->to_json(tmp);
-    result["default_type"] = tmp["default_type"];
-    result["special_fields"] = tmp["special_fields"];
-    result["types"] = tmp["types"];
-    result["pipes"] = tmp["pipes"];
-    result["categorisers"] = tmp["categorisers"];
-
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
+}
+
+void
+CollGetConfigTask::perform(RestPose::Collection * collection)
+{
+    Json::Value result;
+    collection->to_json(result);
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
+}
+
+void
+CollSetConfigTask::perform(RestPose::Collection & collection,
+			   TaskManager *)
+{
+    collection.from_json(config);
+}
+
+IndexingTask *
+CollSetConfigTask::clone() const
+{
+    return new CollSetConfigTask(config);
 }

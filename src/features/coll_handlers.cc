@@ -65,16 +65,37 @@ CollInfoHandler::enqueue(ConnectionInfo &,
 
 
 Handler *
-CollCreateHandlerFactory::create(
+CollGetConfigHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
-    return new CollCreateHandler(coll_name);
+    return new CollGetConfigHandler(coll_name);
 }
 
 Queue::QueueState
-CollCreateHandler::enqueue(ConnectionInfo &,
-			   const Json::Value &)
+CollGetConfigHandler::enqueue(ConnectionInfo &,
+			      const Json::Value &)
 {
-    return Queue::FULL; // FIXME
+    return taskman->queue_readonly("info",
+	new CollGetConfigTask(resulthandle, coll_name));
+}
+
+
+Handler *
+CollSetConfigHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
+{
+    string coll_name = path_params[0];
+    return new CollSetConfigHandler(coll_name);
+}
+
+Queue::QueueState
+CollSetConfigHandler::enqueue(ConnectionInfo &,
+			      const Json::Value & body)
+{
+    return taskman->queue_processing(coll_name,
+	new DelayedIndexingTask(
+	    new CollSetConfigTask(body)),
+	false);
+
 }

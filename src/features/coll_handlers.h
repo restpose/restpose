@@ -53,15 +53,32 @@ class CollInfoHandler : public QueuedHandler {
 };
 
 
-class CollCreateHandlerFactory : public HandlerFactory {
+class CollGetConfigHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
 };
 
-class CollCreateHandler : public NoWaitQueuedHandler {
+class CollGetConfigHandler : public QueuedHandler {
     std::string coll_name;
   public:
-    CollCreateHandler(const std::string & coll_name_)
+    CollGetConfigHandler(const std::string & coll_name_)
+	    : coll_name(coll_name_)
+    {}
+
+    Queue::QueueState enqueue(ConnectionInfo & conn,
+			      const Json::Value & body);
+};
+
+
+class CollSetConfigHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
+class CollSetConfigHandler : public NoWaitQueuedHandler {
+    std::string coll_name;
+  public:
+    CollSetConfigHandler(const std::string & coll_name_)
 	    : coll_name(coll_name_)
     {}
 

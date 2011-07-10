@@ -43,8 +43,9 @@ setup_routes(Router & router)
     // Collections
     router.add("/coll", HTTP_GETHEAD, new CollListHandlerFactory);
     router.add("/coll/?", HTTP_GETHEAD, new CollInfoHandlerFactory);
-    router.add("/coll/?", HTTP_PUT, new CollCreateHandlerFactory);
     //router.add("/coll/?", HTTP_DELETE, new CollDeleteHandlerFactory);
+    router.add("/coll/?/config", HTTP_GETHEAD, new CollGetConfigHandlerFactory);
+    router.add("/coll/?/config", HTTP_PUT, new CollSetConfigHandlerFactory);
 
     // Checkpoints
     router.add("/coll/?/checkpoint", HTTP_GETHEAD, new CollGetCheckpointsHandlerFactory);
