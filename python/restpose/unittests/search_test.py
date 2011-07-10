@@ -197,6 +197,13 @@ class SearchTest(TestCase):
         q = self.coll.type("blurb").field_has_error()
         self.check_results(q.search().do(), items=[])
 
+    def test_query_all(self):
+        q = self.coll.type("blurb").query_all()
+        self.check_results(q.search().do(), items=self.expected_items_single)
+
+    def test_query_none(self):
+        q = self.coll.type("blurb").query_none()
+        self.check_results(q.search().do(), items=[])
 
     def test_calc_cooccur(self):
         q = self.coll.type("blurb").query_all()

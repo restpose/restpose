@@ -131,7 +131,7 @@ class QueryNone(Query):
     query = {"matchnothing": True}
 
     def __init__(self, target=None):
-        super(QueryNone, self).__init__(targettarget)
+        super(QueryNone, self).__init__(target=target)
 QueryNothing = QueryNone
 
 
