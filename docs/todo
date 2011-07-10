@@ -10,7 +10,7 @@ logger mutex, then does the write, blocking all other threads.  Instead, log
 messages should be added to a queue, and a logger thread should write them to
 disk, syslog, or whatever the appropriate target is.)
 
-Collection names should not be allowed to contain ":/\." characters.
+Collection names should not be allowed to contain ":/\." or tab characters.
 Validation should be performed in handlers to return clear error messages, but
 also needed in pipes.
 
