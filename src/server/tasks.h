@@ -48,28 +48,6 @@ class StaticFileTask : public ReadonlyTask {
     void perform(RestPose::Collection * collection);
 };
 
-class CollListTask : public ReadonlyTask {
-    CollectionPool & collections;
-  public:
-    CollListTask(const RestPose::ResultHandle & resulthandle_,
-		 CollectionPool & collections_)
-	    : ReadonlyTask(resulthandle_),
-	      collections(collections_)
-    {}
-
-    void perform(RestPose::Collection * collection);
-};
-
-class CollInfoTask : public ReadonlyCollTask {
-  public:
-    CollInfoTask(const RestPose::ResultHandle & resulthandle_,
-		 const std::string & coll_name_)
-	    : ReadonlyCollTask(resulthandle_, coll_name_)
-    {}
-
-    void perform(RestPose::Collection * collection);
-};
-
 class PerformSearchTask : public ReadonlyCollTask {
     Json::Value search;
     std::string doc_type;

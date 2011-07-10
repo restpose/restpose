@@ -70,37 +70,6 @@ StaticFileTask::perform(RestPose::Collection *)
     resulthandle.set_ready();
 }
 
-void
-CollListTask::perform(RestPose::Collection *)
-{
-    vector<string> collnames;
-    collections.get_names(collnames);
-    Json::Value result(Json::objectValue);
-    for (vector<string>::const_iterator
-	 i = collnames.begin(); i != collnames.end(); ++i) {
-	result[*i] = Json::objectValue;
-    }
-
-    resulthandle.response().set(result, 200);
-    resulthandle.set_ready();
-}
-
-void
-CollInfoTask::perform(RestPose::Collection * collection)
-{
-    Json::Value result(Json::objectValue);
-    result["doc_count"] = Json::UInt64(collection->doc_count());
-    Json::Value tmp;
-    collection->to_json(tmp);
-    result["default_type"] = tmp["default_type"];
-    result["special_fields"] = tmp["special_fields"];
-    result["types"] = tmp["types"];
-    result["pipes"] = tmp["pipes"];
-    result["categorisers"] = tmp["categorisers"];
-
-    resulthandle.response().set(result, 200);
-    resulthandle.set_ready();
-}
 
 void
 PerformSearchTask::perform(RestPose::Collection * collection)

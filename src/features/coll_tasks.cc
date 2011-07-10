@@ -1,5 +1,5 @@
-/** @file coll_handlers.cc
- * @brief Handlers related to collections.
+/** @file coll_tasks.cc
+ * @brief Tasks related to collections.
  */
 /* Copyright (c) 2011 Richard Boulton
  *
@@ -23,58 +23,43 @@
  */
 
 #include <config.h>
-#include "features/coll_handlers.h"
-
 #include "features/coll_tasks.h"
-#include "server/task_manager.h"
+
+#include "httpserver/response.h"
+#include "jsonxapian/collection_pool.h"
+#include <string>
+#include <vector>
 
 using namespace std;
-using namespace RestPose;
 
-
-Handler *
-CollListHandlerFactory::create(const std::vector<std::string> &) const
+void
+CollListTask::perform(RestPose::Collection *)
 {
-    return new CollListHandler;
+    vector<string> collnames;
+    collections.get_names(collnames);
+    Json::Value result(Json::objectValue);
+    for (vector<string>::const_iterator
+	 i = collnames.begin(); i != collnames.end(); ++i) {
+	result[*i] = Json::objectValue;
+    }
+
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
 }
 
-Queue::QueueState
-CollListHandler::enqueue(ConnectionInfo &,
-			 const Json::Value &)
+void
+CollInfoTask::perform(RestPose::Collection * collection)
 {
-    return taskman->queue_readonly("info",
-	new CollListTask(resulthandle, taskman->get_collections()));
-}
+    Json::Value result(Json::objectValue);
+    result["doc_count"] = Json::UInt64(collection->doc_count());
+    Json::Value tmp;
+    collection->to_json(tmp);
+    result["default_type"] = tmp["default_type"];
+    result["special_fields"] = tmp["special_fields"];
+    result["types"] = tmp["types"];
+    result["pipes"] = tmp["pipes"];
+    result["categorisers"] = tmp["categorisers"];
 
-
-Handler *
-CollInfoHandlerFactory::create(
-	const std::vector<std::string> & path_params) const
-{
-    string coll_name = path_params[0];
-    return new CollInfoHandler(coll_name);
-}
-
-Queue::QueueState
-CollInfoHandler::enqueue(ConnectionInfo &,
-			 const Json::Value &)
-{
-    return taskman->queue_readonly("info",
-	new CollInfoTask(resulthandle, coll_name));
-}
-
-
-Handler *
-CollCreateHandlerFactory::create(
-	const std::vector<std::string> & path_params) const
-{
-    string coll_name = path_params[0];
-    return new CollCreateHandler(coll_name);
-}
-
-Queue::QueueState
-CollCreateHandler::enqueue(ConnectionInfo &,
-			   const Json::Value &)
-{
-    return Queue::FULL; // FIXME
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
 }
