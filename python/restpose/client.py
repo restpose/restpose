@@ -31,7 +31,7 @@ Example:
 from .resource import RestPoseResource
 from .query import Query, QueryAll, QueryNone, QueryField, QueryMeta, \
                    Search, SearchResults
-from .errors import CheckPointExpiredError
+from .errors import RestPoseError, CheckPointExpiredError
 
 class Server(object):
     """Representation of a RestPose server.
@@ -282,9 +282,12 @@ class DocumentType(QueryTarget):
         else:
             path += '/id/%s' % id
         if use_put:
-            result = self._resource.put(path, payload=doc).json
+            resp = self._resource.put(path, payload=doc).json
         else:
-            result = self._resource.post(path, payload=doc).json
+            resp = self._resource.post(path, payload=doc).json
+        if resp.status_int != 202:
+            raise RestPoseError("Unexpected return status from add_doc: %d" %
+                                resp.status_int)
 
     def get_doc(self, id):
         return Document(None, self, id)
@@ -300,10 +303,24 @@ class Collection(QueryTarget):
 
     @property
     def status(self):
-        """Get the status of the collection.
+        """The status of the collection.
 
         """
         return self._resource.get(self._basepath).json
+
+    @property
+    def config(self):
+        """The configuration of the collection.
+
+        """
+        return self._resource.get(self._basepath + '/config').json
+
+    @config.setter
+    def config(self, value):
+        resp = self._resource.put(self._basepath + '/config', payload=value)
+        if resp.status_int != 202:
+            raise RestPoseError("Unexpected return status from config: %d" %
+                                resp.status_int)
 
     def add_doc(self, doc, type=None, id=None):
         """Add a document to the collection.
@@ -323,9 +340,13 @@ class Collection(QueryTarget):
             path += '/id/%s' % id
 
         if use_put:
-            self._resource.put(path, payload=doc).json
+            resp = self._resource.put(path, payload=doc)
         else:
-            self._resource.post(path, payload=doc).json
+            resp = self._resource.post(path, payload=doc)
+        if resp.status_int != 202:
+            raise RestPoseError("Unexpected return status from add_doc: %d" %
+                                resp.status_int)
+
 
     def delete_doc(self, type, id):
         """Delete a document from the collection.
