@@ -6,6 +6,8 @@
 from unittest import TestCase
 from .. import query, Server
 from ..resource import RestPoseResource
+from .. import ResourceNotFound
+from restkit import ResourceError
 
 class LogResource(RestPoseResource):
     """A simple resource which logs requests.
@@ -17,21 +19,21 @@ class LogResource(RestPoseResource):
     """
     def __init__(self, *args, **kwargs):
         super(LogResource, self).__init__(*args, **kwargs)
-        self._log = []
+        self.log = []
 
     def request(self, method, path=None, *args, **kwargs):
         try:
             res = super(LogResource, self).request(method, path=path,
                                                    *args, **kwargs)
-        except Exception, e:
-            self._log.append("%s: %s -> %s" % (method, path, e))
+        except ResourceError, e:
+            self.log.append("%s: %s -> %d %s" % (method, path, e.status_int, e))
             raise
-        self._log.append("%s: %s -> %d" % (method, path, int(res.status[:3])))
+        self.log.append("%s: %s -> %d" % (method, path, int(res.status[:3])))
         return res
 
     def clone(self):
         res = super(LogResource, self).clone()
-        res._log = self._log
+        res.log = self.log
         return res
 
 
@@ -241,11 +243,18 @@ class SearchTest(TestCase):
                 'empty': "" }
         coll.add_doc(doc, type="blurb", id="1")
         coll.checkpoint().wait()
-        self.assertTrue(len(logres._log) >= 3)
-        self.assertEqual(logres._log[0],
+        self.assertTrue(len(logres.log) >= 3)
+        self.assertEqual(logres.log[0],
                          'PUT: /coll/test_coll/type/blurb/id/1 -> 202')
-        self.assertEqual(logres._log[1],
+        self.assertEqual(logres.log[1],
                          'POST: /coll/test_coll/checkpoint -> 201')
-        self.assertEqual(logres._log[2][:32],
+        self.assertEqual(logres.log[2][:32],
                          'GET: /coll/test_coll/checkpoint/')
-        self.assertEqual(logres._log[2][-6:], '-> 200')
+        self.assertEqual(logres.log[2][-6:], '-> 200')
+
+        logres.log[:] = []
+        doc = coll.type('blurb').get_doc('2')
+        self.assertRaises(ResourceNotFound, getattr, doc, 'data')
+        self.assertEqual(logres.log,
+                         ['GET: /coll/test_coll/type/blurb/id/2 -> ' +
+                          '404 No document found of type "blurb" and id "2"'])
