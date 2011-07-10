@@ -5,6 +5,7 @@
 
 from unittest import TestCase
 from .. import query
+import operator
 
 class DummyTarget(object):
     """A stub target that just remembers the query structure last passed to it.
@@ -36,12 +37,109 @@ class QueryTest(TestCase):
 			  'query': {'field': ['fieldname', 'is', '10']},
 			 })
 
-	q = q * 3.14;
-	q.search().do()
+	qm = q * 3.14
+	qm.search().do()
 	self.assertEqual(target.last.body,
 			 {'from': 0,
 			  'size': 10,
 			  'check_at_least': 0,
 			  'query': {'scale': {'factor': 3.14,
+			    'query': {'field': ['fieldname', 'is', '10']}}},
+			 })
+
+        q2 = query.QueryField("fieldname", "is", "11", target)
+        q1 = qm | q2
+	q1.search().do()
+	self.assertEqual(target.last.body,
+			 {'from': 0,
+			  'size': 10,
+			  'check_at_least': 0,
+			  'query': {'or': [
+                            {'scale': {'factor': 3.14,
+			      'query': {'field': ['fieldname', 'is', '10']}
+                            }},
+                            {'field': ['fieldname', 'is', '11']}
+                          ]}
+			 })
+
+        q1 = qm & q2
+	q1.search().do()
+	self.assertEqual(target.last.body,
+			 {'from': 0,
+			  'size': 10,
+			  'check_at_least': 0,
+			  'query': {'and': [
+                            {'scale': {'factor': 3.14,
+			      'query': {'field': ['fieldname', 'is', '10']}
+                            }},
+                            {'field': ['fieldname', 'is', '11']}
+                          ]}
+			 })
+
+        q1 = qm ^ q2
+	q1.search().do()
+	self.assertEqual(target.last.body,
+			 {'from': 0,
+			  'size': 10,
+			  'check_at_least': 0,
+			  'query': {'xor': [
+                            {'scale': {'factor': 3.14,
+			      'query': {'field': ['fieldname', 'is', '10']}
+                            }},
+                            {'field': ['fieldname', 'is', '11']}
+                          ]}
+			 })
+
+        q1 = qm - q2
+	q1.search().do()
+	self.assertEqual(target.last.body,
+			 {'from': 0,
+			  'size': 10,
+			  'check_at_least': 0,
+			  'query': {'not': [
+                            {'scale': {'factor': 3.14,
+			      'query': {'field': ['fieldname', 'is', '10']}
+                            }},
+                            {'field': ['fieldname', 'is', '11']}
+                          ]}
+			 })
+
+	qm = 2 * q
+	qm.search().do()
+	self.assertEqual(target.last.body,
+			 {'from': 0,
+			  'size': 10,
+			  'check_at_least': 0,
+			  'query': {'scale': {'factor': 2,
+			    'query': {'field': ['fieldname', 'is', '10']}}},
+			 })
+
+	qm = q / 2
+	qm.search().do()
+	self.assertEqual(target.last.body,
+			 {'from': 0,
+			  'size': 10,
+			  'check_at_least': 0,
+			  'query': {'scale': {'factor': 0.5,
+			    'query': {'field': ['fieldname', 'is', '10']}}},
+			 })
+
+	qm = operator.div(q, 2)
+	qm.search().do()
+	self.assertEqual(target.last.body,
+			 {'from': 0,
+			  'size': 10,
+			  'check_at_least': 0,
+			  'query': {'scale': {'factor': 0.5,
+			    'query': {'field': ['fieldname', 'is', '10']}}},
+			 })
+
+	qm = operator.truediv(q, 2)
+	qm.search().do()
+	self.assertEqual(target.last.body,
+			 {'from': 0,
+			  'size': 10,
+			  'check_at_least': 0,
+			  'query': {'scale': {'factor': 0.5,
 			    'query': {'field': ['fieldname', 'is', '10']}}},
 			 })
