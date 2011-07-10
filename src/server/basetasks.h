@@ -117,6 +117,9 @@ class IndexingTask : public Task {
  *
  *  This is used to place it on the processing queue, to allow processing tasks
  *  which have to happen before / after it to be sequenced correctly.
+ *
+ *  Note that allow_parallel is always set to false for this, to ensure
+ *  ordering is preserved while on the processing queue.
  */
 class DelayedIndexingTask : public ProcessingTask {
     IndexingTask * task;
