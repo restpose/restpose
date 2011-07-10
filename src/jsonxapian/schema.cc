@@ -1158,7 +1158,7 @@ Schema::process(const Json::Value & value,
 
 	const FieldIndexer * indexer = get_indexer(fieldname);
 	if (!indexer) {
-	    LOG_INFO(string("New field type: ") + fieldname);
+	    LOG_DEBUG(string("New field type: ") + fieldname);
 	    set(fieldname, patterns.get(fieldname, doc_type));
 	    indexer = get_indexer(fieldname);
 	}
@@ -1181,7 +1181,7 @@ Schema::process(const Json::Value & value,
     if (!meta_field.empty()) {
 	const FieldIndexer * indexer = get_indexer(meta_field);
 	if (!indexer) {
-	    LOG_INFO(string("New field type: ") + meta_field);
+	    LOG_DEBUG(string("New field type: ") + meta_field);
 	    set(meta_field, patterns.get(meta_field, doc_type));
 	    indexer = get_indexer(meta_field);
 	}
