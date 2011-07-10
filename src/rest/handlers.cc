@@ -80,21 +80,6 @@ ServerStatusHandler::enqueue(ConnectionInfo &,
 }
 
 Handler *
-CollCreateHandlerFactory::create(
-	const std::vector<std::string> & path_params) const
-{
-    string coll_name = path_params[0];
-    return new CollCreateHandler(coll_name);
-}
-
-Queue::QueueState
-CollCreateHandler::enqueue(ConnectionInfo &,
-			   const Json::Value &)
-{
-    return Queue::FULL; // FIXME
-}
-
-Handler *
 IndexDocumentHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
@@ -134,35 +119,6 @@ DeleteDocumentHandler::enqueue(ConnectionInfo &,
 	false);
 }
 
-Handler *
-CollListHandlerFactory::create(const std::vector<std::string> &) const
-{
-    return new CollListHandler;
-}
-
-Queue::QueueState
-CollListHandler::enqueue(ConnectionInfo &,
-			 const Json::Value &)
-{
-    return taskman->queue_readonly("info",
-	new CollListTask(resulthandle, taskman->get_collections()));
-}
-
-Handler *
-CollInfoHandlerFactory::create(
-	const std::vector<std::string> & path_params) const
-{
-    string coll_name = path_params[0];
-    return new CollInfoHandler(coll_name);
-}
-
-Queue::QueueState
-CollInfoHandler::enqueue(ConnectionInfo &,
-			 const Json::Value &)
-{
-    return taskman->queue_readonly("info",
-	new CollInfoTask(resulthandle, coll_name));
-}
 
 Handler *
 SearchHandlerFactory::create(const std::vector<std::string> & path_params) const

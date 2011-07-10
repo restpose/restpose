@@ -60,23 +60,6 @@ class ServerStatusHandler : public QueuedHandler {
 };
 
 
-class CollCreateHandlerFactory : public HandlerFactory {
-  public:
-    Handler * create(const std::vector<std::string> & path_params) const;
-};
-
-class CollCreateHandler : public NoWaitQueuedHandler {
-    std::string coll_name;
-  public:
-    CollCreateHandler(const std::string & coll_name_)
-	    : coll_name(coll_name_)
-    {}
-
-    Queue::QueueState enqueue(ConnectionInfo & conn,
-			      const Json::Value & body);
-};
-
-
 class IndexDocumentHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
@@ -116,35 +99,6 @@ class DeleteDocumentHandler : public NoWaitQueuedHandler {
 	    : coll_name(coll_name_),
 	      doc_type(doc_type_),
 	      doc_id(doc_id_)
-    {}
-
-    Queue::QueueState enqueue(ConnectionInfo & conn,
-			      const Json::Value & body);
-};
-
-
-class CollListHandlerFactory : public HandlerFactory {
-  public:
-    Handler * create(const std::vector<std::string> &) const;
-};
-
-class CollListHandler : public QueuedHandler {
-  public:
-    Queue::QueueState enqueue(ConnectionInfo & conn,
-			      const Json::Value &);
-};
-
-
-class CollInfoHandlerFactory : public HandlerFactory {
-  public:
-    Handler * create(const std::vector<std::string> & path_params) const;
-};
-
-class CollInfoHandler : public QueuedHandler {
-    std::string coll_name;
-  public:
-    CollInfoHandler(const std::string & coll_name_)
-	    : coll_name(coll_name_)
     {}
 
     Queue::QueueState enqueue(ConnectionInfo & conn,

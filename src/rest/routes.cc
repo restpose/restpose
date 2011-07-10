@@ -26,6 +26,7 @@
 #include "rest/routes.h"
 
 #include "features/checkpoint_handlers.h"
+#include "features/coll_handlers.h"
 #include "httpserver/httpserver.h"
 #include "rest/handlers.h"
 #include "rest/router.h"
@@ -38,9 +39,12 @@ setup_routes(Router & router)
     router.add("/", HTTP_GETHEAD, new RootHandlerFactory);
     router.add("/static/*", HTTP_GETHEAD, new FileHandlerFactory);
     router.add("/status", HTTP_GETHEAD, new ServerStatusHandlerFactory);
+
+    // Collections
     router.add("/coll", HTTP_GETHEAD, new CollListHandlerFactory);
     router.add("/coll/?", HTTP_GETHEAD, new CollInfoHandlerFactory);
     router.add("/coll/?", HTTP_PUT, new CollCreateHandlerFactory);
+    //router.add("/coll/?", HTTP_DELETE, new CollDeleteHandlerFactory);
 
     // Checkpoints
     router.add("/coll/?/checkpoint", HTTP_GETHEAD, new CollGetCheckpointsHandlerFactory);
