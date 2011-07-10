@@ -453,4 +453,3 @@ class CheckPoint(object):
             # the checkpoint, so we need to sleep to avoid using lots of CPU.
             import time
             time.sleep(1)
-        return self
