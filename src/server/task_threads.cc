@@ -221,6 +221,8 @@ SearchThread::run()
 		    pool.release(tmp);
 		    collection = pool.get_readonly(*coll_name_ptr);
 		    coll_name = *coll_name_ptr;
+		} else {
+		    collection->open_readonly();
 		}
 	    }
 
