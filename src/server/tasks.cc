@@ -267,7 +267,7 @@ DeleteCollectionTask::perform_task(RestPose::Collection * & collection,
 	collection = NULL;
 	taskman->get_collections().release(tmp);
     }
-    //taskman.get_collections().del(coll_name);
+    taskman->get_collections().del(coll_name);
 }
 
 void

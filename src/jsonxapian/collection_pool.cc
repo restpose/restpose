@@ -28,6 +28,7 @@
 #include <memory>
 #include "omassert.h"
 #include "safeerrno.h"
+#include "utils/rmdir.h"
 #include "utils/rsperrors.h"
 #include "utils/stringutils.h"
 #include "utils.h"
@@ -82,6 +83,33 @@ CollectionPool::exists(const string & collection)
 	return true;
     }
     return false;
+}
+
+void
+CollectionPool::del(const std::string & coll_name)
+{
+    ContextLocker lock(mutex);
+
+    map<string, vector<Collection *> >::iterator
+	    i = readonly.find(coll_name);
+    if (i != readonly.end()) {
+	for (vector<Collection *>::iterator k = i->second.begin();
+	     k != i->second.end(); ++k) {
+	    delete *k;
+	    *k = NULL;
+	}
+    }
+
+    map<string, Collection *>::iterator j = writable.find(coll_name);
+    if (j != writable.end()) {
+	delete j->second;
+	writable.erase(j);
+    }
+
+    string topdir = datadir + coll_name;
+    if (dir_exists(topdir)) {
+	rmdir_recursive(topdir);
+    }
 }
 
 Collection *

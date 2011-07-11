@@ -75,6 +75,14 @@ class CollectionPool {
      */
     bool exists(const std::string & collection);
 
+    /** Delete the named collection.
+     *
+     *  Any writable handles should be released back to the pool before this call is made.
+     *
+     *  Searches in progress may be interrupted by this call.
+     */
+    void del(const std::string & coll_name);
+
     /** Get a pointer to a collection, opened for reading, by collection name.
      *
      *  The returned pointer will never be NULL, and ownership of the pointer
