@@ -49,7 +49,8 @@ CollCreateCheckpointHandler::create_checkpoint(TaskManager * taskman,
 {
     checkid = taskman->get_checkpoints().alloc_checkpoint(coll_name);
     Queue::QueueState state = taskman->queue_processing(coll_name,
-	new ProcessorCheckpointTask(checkid, do_commit),
+	new DelayedIndexingTask(
+	    new IndexingCheckpointTask(checkid, do_commit)),
 	allow_throttle);
     if (state != Queue::CLOSED && state != Queue::FULL) {
 	taskman->get_checkpoints().publish_checkpoint(coll_name, checkid);

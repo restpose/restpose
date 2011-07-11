@@ -31,15 +31,6 @@
 using namespace std;
 
 void
-ProcessorCheckpointTask::perform(const string & coll_name,
-				 TaskManager * taskman)
-{
-    taskman->queue_indexing_from_processing(coll_name,
-	new IndexingCheckpointTask(checkid, do_commit));
-
-}
-
-void
 IndexingCheckpointTask::perform_task(RestPose::Collection & collection,
 				     TaskManager *)
 {

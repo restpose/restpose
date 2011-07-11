@@ -27,26 +27,6 @@
 #include "server/basetasks.h"
 #include <string>
 
-/// A checkpoint on the processing queue.
-class ProcessorCheckpointTask : public ProcessingTask {
-    std::string checkid;
-
-    /** Whether to cause an immediate commit once all the tasks before the
-     *  checkpoint have been performed. */
-    bool do_commit;
-
-  public:
-    ProcessorCheckpointTask(const std::string & checkid_,
-			    bool do_commit_=true)
-	    : ProcessingTask(false),
-	      checkid(checkid_),
-	      do_commit(do_commit_)
-    {}
-
-    void perform(const std::string & coll_name,
-		 TaskManager * taskman);
-};
-
 /// A checkpoint on the indexing queue.
 class IndexingCheckpointTask : public IndexingTask {
     std::string checkid;
