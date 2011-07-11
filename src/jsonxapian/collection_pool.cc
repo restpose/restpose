@@ -96,8 +96,8 @@ CollectionPool::del(const std::string & coll_name)
 	for (vector<Collection *>::iterator k = i->second.begin();
 	     k != i->second.end(); ++k) {
 	    delete *k;
-	    *k = NULL;
 	}
+	readonly.erase(i);
     }
 
     map<string, Collection *>::iterator j = writable.find(coll_name);
@@ -124,7 +124,6 @@ CollectionPool::get_readonly(const string & collection)
 		new Collection(collection, datadir + collection));
     } else {
 	result = auto_ptr<Collection>(i->second.back());
-	i->second.back() = NULL;
 	i->second.pop_back();
     }
     result->open_readonly();
