@@ -28,8 +28,10 @@
 #include "httpserver/response.h"
 #include "server/task_manager.h"
 
+using namespace std;
+
 void
-ProcessorCheckpointTask::perform(const std::string & coll_name,
+ProcessorCheckpointTask::perform(const string & coll_name,
 				 TaskManager * taskman)
 {
     taskman->queue_indexing_from_processing(coll_name,
@@ -38,17 +40,35 @@ ProcessorCheckpointTask::perform(const std::string & coll_name,
 }
 
 void
-IndexingCheckpointTask::perform(RestPose::Collection & collection,
-				TaskManager * taskman)
+IndexingCheckpointTask::perform_task(RestPose::Collection & collection,
+				     TaskManager *)
 {
     if (do_commit) {
-	LOG_INFO("Checkpoint '" + checkid + "' reached in '" + collection.get_name() + "' - committing");
+	LOG_INFO("Checkpoint '" + checkid + "' reached in '" +
+		 collection.get_name() + "' - committing");
 	collection.commit();
     } else {
-	LOG_INFO("Checkpoint '" + checkid + "' reached in '" + collection.get_name() + "'");
+	LOG_INFO("Checkpoint '" + checkid + "' reached in '" +
+		 collection.get_name() + "'");
     }
+}
+
+void
+IndexingCheckpointTask::post_perform(RestPose::Collection & collection,
+				     TaskManager * taskman)
+{
     taskman->get_checkpoints().set_reached(collection.get_name(), checkid);
 }
+
+void
+IndexingCheckpointTask::info(string & description, string & doc_type,
+			     string & doc_id) const
+{
+    description = "Performing checkpoint";
+    doc_type.resize(0);
+    doc_id.resize(0);
+}
+
 
 IndexingTask *
 IndexingCheckpointTask::clone() const

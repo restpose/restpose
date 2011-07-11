@@ -28,6 +28,46 @@
 #include "server/task_manager.h"
 
 using namespace RestPose;
+using namespace std;
+
+void
+IndexingTask::perform(RestPose::Collection & collection,
+		      TaskManager * taskman)
+{
+    try {
+	perform_task(collection, taskman);
+    } catch(const RestPose::Error & e) {
+	string description, doc_type, doc_id;
+	info(description, doc_type, doc_id);
+	LOG_ERROR(description + " on collection '" + collection.get_name() +
+		  "' failed", e);
+	taskman->get_checkpoints().append_error(collection.get_name(),
+	    description + " failed with " + e.what(), doc_type, doc_id);
+    } catch(const Xapian::Error & e) {
+	string description, doc_type, doc_id;
+	info(description, doc_type, doc_id);
+	LOG_ERROR(description + " on collection '" + collection.get_name() +
+		  "' failed", e);
+	taskman->get_checkpoints().append_error(collection.get_name(),
+	    description + " failed with " + e.get_description(),
+	    doc_type, doc_id);
+    } catch(const std::bad_alloc & e) {
+	string description, doc_type, doc_id;
+	info(description, doc_type, doc_id);
+	LOG_ERROR(description + " on collection '" + collection.get_name() +
+		  "' failed", e);
+	taskman->get_checkpoints().append_error(collection.get_name(),
+	    description + " failed with out of memory", doc_type, doc_id);
+    }
+    post_perform(collection, taskman);
+}
+
+void
+IndexingTask::post_perform(RestPose::Collection &,
+			   TaskManager *)
+{
+}
+
 
 DelayedIndexingTask::~DelayedIndexingTask()
 {

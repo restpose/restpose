@@ -173,11 +173,21 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
 }
 
 void
-IndexerConfigChangedTask::perform(RestPose::Collection & collection,
-				  TaskManager *)
+IndexerConfigChangedTask::perform_task(RestPose::Collection & collection,
+				       TaskManager *)
 {
     LOG_DEBUG("Updating configuration for collection " + collection.get_name());
     collection.from_json(new_config);
+}
+
+void
+IndexerConfigChangedTask::info(string & description,
+			       string & doc_type,
+			       string & doc_id) const
+{
+    description = "Updating configuration";
+    doc_type.resize(0);
+    doc_id.resize(0);
 }
 
 IndexingTask *
@@ -187,12 +197,29 @@ IndexerConfigChangedTask::clone() const
 }
 
 void
-IndexerUpdateDocumentTask::perform(RestPose::Collection & collection,
-				   TaskManager *)
+IndexerUpdateDocumentTask::perform_task(RestPose::Collection & collection,
+					TaskManager *)
 {
     LOG_DEBUG("UpdateDocument idterm '" + idterm + "' in '" +
 	      collection.get_name() + "'");
     collection.raw_update_doc(doc, idterm);
+}
+
+void
+IndexerUpdateDocumentTask::info(string & description,
+				string & doc_type_ret,
+				string & doc_id_ret) const
+{
+    description = "Updating document";
+    string::size_type tab2 = idterm.find('\t', 1);
+    if (tab2 == string::npos) {
+	// Shouldn't happen, but we need to return something if it does.
+	doc_id_ret = idterm.substr(1);
+	doc_type_ret.resize(0);
+	return;
+    }
+    doc_type_ret = idterm.substr(1, tab2 - 1);
+    doc_id_ret = idterm.substr(tab2 + 1);
 }
 
 IndexingTask *
@@ -202,13 +229,23 @@ IndexerUpdateDocumentTask::clone() const
 }
 
 void
-DeleteDocumentTask::perform(RestPose::Collection & collection,
-			    TaskManager *)
+DeleteDocumentTask::perform_task(RestPose::Collection & collection,
+				 TaskManager *)
 {
     LOG_INFO("DeleteDocument type='" + doc_type +
 	     "' id='" + doc_id +
 	     "' in '" + collection.get_name() + "'");
     collection.raw_delete_doc("\t" + doc_type + "\t" + doc_id);
+}
+
+void
+DeleteDocumentTask::info(string & description,
+			 string & doc_type_ret,
+			 string & doc_id_ret) const
+{
+    description = "Delete document";
+    doc_type_ret = doc_type;
+    doc_id_ret = doc_id;
 }
 
 IndexingTask *

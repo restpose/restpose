@@ -108,8 +108,38 @@ class ProcessingTask : public Task {
 class IndexingTask : public Task {
   public:
     IndexingTask() : Task(false) {}
-    virtual void perform(RestPose::Collection & collection,
-			 TaskManager * taskman) = 0;
+
+    void perform(RestPose::Collection & collection,
+		 TaskManager * taskman);
+
+    /** Perform the task.
+     *
+     *  May raise exceptions to report failure - these will be caught, logged
+     *  and reported appropriately.
+     */
+    virtual void perform_task(RestPose::Collection & collection,
+			      TaskManager * taskman) = 0;
+
+    /** Get a description of the task, and the document type and id it's
+     *  operating on (return blank for the type and/or id if they're not
+     *  applicable for this task).
+     */
+    virtual void info(std::string & description,
+		      std::string & doc_type,
+		      std::string & doc_id) const = 0;
+
+    /** Perform cleanup actions after the main body of performing the task.
+     *
+     *  Should not raise exceptions.
+     *
+     *  Default implementation does nothing.
+     */
+    virtual void post_perform(RestPose::Collection & collection,
+			      TaskManager * taskman);
+
+    /** Clone this task.  Not frequently called - used when queue is full, and
+     *  the task needs to be re-queued.
+     */
     virtual IndexingTask * clone() const = 0;
 };
 

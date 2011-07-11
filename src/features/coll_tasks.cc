@@ -27,6 +27,8 @@
 
 #include "httpserver/response.h"
 #include "jsonxapian/collection_pool.h"
+#include "logger/logger.h"
+#include "server/task_manager.h"
 #include <string>
 #include <vector>
 
@@ -66,10 +68,19 @@ CollGetConfigTask::perform(RestPose::Collection * collection)
 }
 
 void
-CollSetConfigTask::perform(RestPose::Collection & collection,
-			   TaskManager *)
+CollSetConfigTask::perform_task(RestPose::Collection & collection,
+				TaskManager *)
 {
     collection.from_json(config);
+}
+
+void
+CollSetConfigTask::info(string & description, string & doc_type,
+			string & doc_id) const
+{
+    description = "Setting collection config";
+    doc_type.resize(0);
+    doc_id.resize(0);
 }
 
 IndexingTask *

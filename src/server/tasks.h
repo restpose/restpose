@@ -141,8 +141,11 @@ class IndexerConfigChangedTask : public IndexingTask {
 	    : new_config(new_config_)
     {}
 
-    void perform(RestPose::Collection & collection,
-		 TaskManager * taskman);
+    void perform_task(RestPose::Collection & collection,
+		      TaskManager * taskman);
+    void info(std::string & description,
+	      std::string & doc_type,
+	      std::string & doc_id) const;
 
     IndexingTask * clone() const;
 };
@@ -162,8 +165,12 @@ class IndexerUpdateDocumentTask : public IndexingTask {
     {}
 
     /// Perform the indexing task, given a collection (open for writing).
-    void perform(RestPose::Collection & collection,
-		 TaskManager * taskman);
+    void perform_task(RestPose::Collection & collection,
+		      TaskManager * taskman);
+
+    void info(std::string & description,
+	      std::string & doc_type,
+	      std::string & doc_id) const;
 
     /// Clone the task.
     IndexingTask * clone() const;
@@ -183,8 +190,12 @@ class DeleteDocumentTask : public IndexingTask {
     {}
 
     /// Perform the indexing task, given a collection (open for writing).
-    void perform(RestPose::Collection & collection,
+    void perform_task(RestPose::Collection & collection,
 		 TaskManager * taskman);
+
+    void info(std::string & description,
+	      std::string & doc_type,
+	      std::string & doc_id) const;
 
     /// Clone the task.
     IndexingTask * clone() const;
