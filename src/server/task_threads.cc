@@ -150,10 +150,6 @@ IndexingThread::run()
 	    }
 
 	    collection->commit();
-	    Collection * tmp = collection;
-	    collection = NULL;
-	    pool.release(tmp);
-	    queuegroup.unassign_handler(coll_name);
 
 	} catch(const RestPose::Error & e) {
 	    LOG_ERROR("Indexing failed with", e);
@@ -164,6 +160,14 @@ IndexingThread::run()
 	} catch(const std::bad_alloc & e) {
 	    LOG_ERROR("Indexing failed with", e);
 	}
+
+	Collection * tmp = collection;
+	collection = NULL;
+	pool.release(tmp);
+	queuegroup.completed(last_coll_name, task);
+	delete task;
+	task = NULL;
+	queuegroup.unassign_handler(coll_name);
     }
 }
 
