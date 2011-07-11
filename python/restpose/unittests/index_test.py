@@ -8,10 +8,12 @@ from .. import Server, ResourceNotFound
 
 class IndexTest(TestCase):
 
-    def wait(self, coll):
+    def wait(self, coll, errors=None):
         chk = coll.checkpoint().wait()
-        self.assertEqual(chk.errors, [])
-        self.assertEqual(chk.total_errors, 0)
+        if errors is None:
+            errors = []
+        self.assertEqual(chk.errors, errors)
+        self.assertEqual(chk.total_errors, len(errors))
         self.assertTrue(chk.reached)
         self.assertFalse(chk.expired)
 
@@ -51,6 +53,7 @@ class IndexTest(TestCase):
 
         """
         coll = Server().collection("test_coll")
+        #coll.delete()
         doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
                 'empty': "" }
         coll.add_doc(doc, type="blurb", id="1")
@@ -73,3 +76,21 @@ class IndexTest(TestCase):
         except ResourceNotFound, e:
             msg = e.msg
         self.assertEqual(msg, 'No document found of type "blurb" and id "1"')
+
+    def test_custom_config(self):
+        coll = Server().collection("test_coll")
+        #coll.delete()
+        coll.config = {'types': {'foo': {
+            'alpha': {'type': 'text'}
+        }}}
+        self.wait(coll, [{'msg': 'Setting collection config failed with ' +
+                  'RestPose::InvalidValueError: Member format was missing'}])
+        coll.config = {'format': 3,
+            'types': {'foo': {
+                'alpha': {'type': 'text'}
+            }}
+        }
+        self.wait(coll, [])
+        config = coll.config
+        self.assertEqual(config['format'], 3)
+        #self.assertEqual(config['types'].keys(), ['foo'])
