@@ -228,6 +228,7 @@ IndexerUpdateDocumentTask::clone() const
     return new IndexerUpdateDocumentTask(idterm, doc);
 }
 
+
 void
 DeleteDocumentTask::perform_task(RestPose::Collection & collection,
 				 TaskManager *)
@@ -252,4 +253,32 @@ IndexingTask *
 DeleteDocumentTask::clone() const
 {
     return new DeleteDocumentTask(doc_type, doc_id);
+}
+
+
+void
+DeleteCollectionTask::perform_task(RestPose::Collection & collection,
+				   TaskManager * taskman)
+{
+    LOG_INFO("Delete collection '" + collection.get_name() + "'");
+    string coll_name = collection.get_name();
+    (void)taskman;
+    //taskman.get_collections().release(collection);
+    //taskman.get_collections().del(coll_name);
+}
+
+void
+DeleteCollectionTask::info(string & description,
+			 string & doc_type_ret,
+			 string & doc_id_ret) const
+{
+    description = "Delete collection";
+    doc_type_ret.resize(0);
+    doc_id_ret.resize(0);
+}
+
+IndexingTask *
+DeleteCollectionTask::clone() const
+{
+    return new DeleteCollectionTask;
 }

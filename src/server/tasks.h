@@ -201,4 +201,19 @@ class DeleteDocumentTask : public IndexingTask {
     IndexingTask * clone() const;
 };
 
+/// Delete a collection.
+class DeleteCollectionTask : public IndexingTask {
+  public:
+    /// Perform the indexing task, given a collection (open for writing).
+    void perform_task(RestPose::Collection & collection,
+		      TaskManager * taskman);
+
+    void info(std::string & description,
+	      std::string & doc_type,
+	      std::string & doc_id) const;
+
+    /// Clone the task.
+    IndexingTask * clone() const;
+};
+
 #endif /* RESTPOSE_INCLUDED_TASKS_H */
