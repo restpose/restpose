@@ -342,9 +342,9 @@ class SearchResults(object):
         return self._raw.get('from', 0)
 
     @property
-    def size(self):
+    def size_requested(self):
         """The requested size."""
-        return self._raw.get('size', 0)
+        return self._raw.get('size_requested', 0)
 
     @property
     def check_at_least(self):
@@ -385,12 +385,13 @@ class SearchResults(object):
         return len(self.items)
 
     def __str__(self):
-        result = u'SearchResults(offset=%d, size=%d, check_at_least=%d, ' \
+        result = u'SearchResults(offset=%d, size_requested=%d, ' \
+                 u'check_at_least=%d, ' \
                  u'matches_lower_bound=%d, ' \
                  u'matches_estimated=%d, ' \
                  u'matches_upper_bound=%d, ' \
                  u'items=[%s]' % (
-            self.offset, self.size, self.check_at_least,
+            self.offset, self.size_requested, self.check_at_least,
             self.matches_lower_bound,
             self.matches_estimated,
             self.matches_upper_bound,
