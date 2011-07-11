@@ -42,13 +42,13 @@ rmdir_recursive(const string & dirname)
 	string path = dirname + "/" + iter.leafname();
 	if (iter.get_type() == iter.DIRECTORY) {
 	    rmdir_recursive(path);
-	    if (rmdir(path.c_str())) {
-		throw SysError("rmdir(\"" + path + "\") failed", errno);
-	    }
 	} else {
 	    if (unlink(path.c_str())) {
 		throw SysError("unlink(\"" + path + "\") failed", errno);
 	    }
 	}
+    }
+    if (rmdir(dirname.c_str())) {
+	throw SysError("rmdir(\"" + dirname + "\") failed", errno);
     }
 }
