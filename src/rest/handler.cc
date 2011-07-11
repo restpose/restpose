@@ -29,6 +29,7 @@
 #include "logger/logger.h"
 #include <microhttpd.h>
 #include "server/task_manager.h"
+#include "str.h"
 #include "utils/jsonutils.h"
 
 using namespace std;
@@ -69,8 +70,8 @@ QueuedHandler::handle(ConnectionInfo & conn)
 {
     LOG_DEBUG("QueuedHandler: firstcall=" + str(conn.first_call) +
 	      ", queued=" + str(queued) +
-	      ", data=\"" + conn.upload_data +
-	      "\", size=" + *(conn.upload_data_size) + "\n");
+	      ", data=\"" + (conn.upload_data ? conn.upload_data : "NULL") +
+	      "\", size=" + (conn.upload_data_size ? str(*(conn.upload_data_size)) : string("NULL")));
     if (conn.first_call) {
 	resulthandle.set_nudge(taskman->get_nudge_fd(), 'H');
 	return;
@@ -140,9 +141,8 @@ void
 NoWaitQueuedHandler::handle(ConnectionInfo & conn)
 {
     LOG_DEBUG("NoWaitQueuedHandler: firstcall=" + str(conn.first_call) +
-	      ", queued=" + str(queued) +
-	      ", data=\"" + conn.upload_data +
-	      "\", size=" + *(conn.upload_data_size) + "\n");
+	      ", data=\"" + (conn.upload_data ? conn.upload_data : "NULL") +
+	      "\", size=" + (conn.upload_data_size ? str(*(conn.upload_data_size)) : string("NULL")))
     if (conn.first_call) {
 	return;
     }
