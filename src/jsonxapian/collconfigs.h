@@ -68,6 +68,16 @@ class CollectionConfigs {
      */
     void set(const std::string & coll_name,
 	     CollectionConfig * config);
+
+    /** Reset the stored configuration for a given collection.
+     *
+     *  This sets the stored configuration to the default configuration.  This
+     *  is used when the collection is deleted, to ensure that if a new
+     *  processing task enters the queue before the collection has been
+     *  deleted from disk, the old configuration isn't read from the old
+     *  collection.
+     */
+    void reset(const std::string & coll_name);
 };
 
 }

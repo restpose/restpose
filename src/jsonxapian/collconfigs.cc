@@ -82,3 +82,20 @@ CollectionConfigs::set(const std::string & coll_name,
 	i->second = config_ptr.release();
     }
 }
+
+void
+CollectionConfigs::reset(const std::string & coll_name)
+{
+    ContextLocker lock(mutex);
+    map<string, CollectionConfig *>::iterator i = configs.find(coll_name);
+    if (i == configs.end()) {
+	pair<map<string, CollectionConfig *>::iterator, bool> ret;
+	ret = configs.insert(pair<string, CollectionConfig *>(coll_name, NULL));
+	ret.first->second = new CollectionConfig(coll_name);
+	ret.first->second->set_default();
+    } else {
+	delete i->second;
+	i->second = new CollectionConfig(coll_name);
+	i->second->set_default();
+    }
+}
