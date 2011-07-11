@@ -1,55 +1,50 @@
 TODO
 ====
 
-Update index.rst - wildly out of date (talks about jxd and jx.py)
-
-Test passing double values (both positive and negative) to timestamp fields.
-
-Make logging do writes asynchronously.  (Currently, a log call acquires the
-logger mutex, then does the write, blocking all other threads.  Instead, log
-messages should be added to a queue, and a logger thread should write them to
-disk, syslog, or whatever the appropriate target is.)
-
-Collection names should not be allowed to contain ":/\." or tab characters.
-Validation should be performed in handlers to return clear error messages, but
-also needed in pipes.
-
-Python client has problems with expired checkpoints.  Inconsistent, untested code.
-
 Before an initial release
 -------------------------
 
- - Documentation.
+ - Update index.rst - wildly out of date (talks about jxd and jx.py)
+
+ - Test passing double values (both positive and negative) to timestamp fields.
+
+ - Python client has problems with expired checkpoints.  Inconsistent, untested code.
+
+ - Collection names should not be allowed to contain ":/\." or tab characters.
+   Validation should be performed in handlers to return clear error messages,
+   but also needed in pipes.
+
+ - Make logging do writes asynchronously.  (Currently, a log call acquires the
+   logger mutex, then does the write, blocking all other threads.  Instead, log
+   messages should be added to a queue, and a logger thread should write them
+   to disk, syslog, or whatever the appropriate target is.)
+
+ - General documentation review and tidyup.
 
  - Update libs/README
 
- - Fix inconsistent namespacing used in code (RestPose is used in some places,
-   but not others, for no particular reason).
-
- - Document -> JSON formatting should have two flavours: a "raw" mode, which
-   doesn't unpack the document data, and a higher level mode which unpacks the
-   document data, and also splits terms into prefix and value stored.
-
  - Rename "prefix" to something less implementation-specific?  "group"?  Define
    group shortnames somewhere special?
- - Complain if undefined groups are used?
-
- - Position data for multiple text fields should not overlap - and there should
-   be a setting to define the spacing.
 
  - If the client doesn't send a Host header, we need to synthesise one so that
    Location headers in responses are valid.
-
- - Needs to be possible to long-poll for checkpoints when waiting for them to
-   be reached.  Probably with a timeout, defaulting to 30 seconds.
 
 
 Future
 ------
 
+ - Needs to be possible to long-poll for checkpoints when waiting for them to
+   be reached.  Probably with a timeout, defaulting to 30 seconds.
+
+ - Fix inconsistent namespacing used in code (RestPose is used in some places,
+   but not others, for no particular reason).
+
  - Deleting a collection should wait for all readers on that collection to
    finish, to avoid problems on windows (and to handle deletes more
    gracefully).
+
+ - Position data for multiple text fields should not overlap - and there should
+   be a setting to define the spacing.
 
  - Add geospatial index support.
 
@@ -60,3 +55,11 @@ Future
  - Add collapse support.
 
  - Add ability to set weighting scheme / parameters.
+
+To think about
+--------------
+
+ - Document -> JSON formatting should have two flavours: a "raw" mode, which
+   doesn't unpack the document data, and a higher level mode which unpacks the
+   document data, and also splits terms into prefix and value stored.
+
