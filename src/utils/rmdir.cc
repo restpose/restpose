@@ -24,9 +24,13 @@
 
 #include <config.h>
 #include "utils/rmdir.h"
-#include "diritor.h"
-#include "safeunistd.h"
 
+#include "diritor.h"
+#include "safeerrno.h"
+#include "safeunistd.h"
+#include "utils/rsperrors.h"
+
+using namespace RestPose;
 using namespace std;
 
 void
@@ -38,9 +42,13 @@ rmdir_recursive(const string & dirname)
 	string path = dirname + "/" + iter.leafname();
 	if (iter.get_type() == iter.DIRECTORY) {
 	    rmdir_recursive(path);
-	    rmdir(path.c_str());
+	    if (rmdir(path.c_str())) {
+		throw SysError("rmdir(\"" + path + "\") failed", errno);
+	    }
 	} else {
-	    unlink(path.c_str());
+	    if (unlink(path.c_str())) {
+		throw SysError("unlink(\"" + path + "\") failed", errno);
+	    }
 	}
     }
 }
