@@ -14,6 +14,8 @@ Collection names should not be allowed to contain ":/\." or tab characters.
 Validation should be performed in handlers to return clear error messages, but
 also needed in pipes.
 
+Python client has problems with expired checkpoints.  Inconsistent, untested code.
+
 Before an initial release
 -------------------------
 
