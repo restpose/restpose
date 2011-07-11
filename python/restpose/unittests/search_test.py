@@ -52,7 +52,7 @@ class SearchTest(TestCase):
             }),
         ]
 
-    def check_results(self, results, offset=0, size=10, check_at_least=0,
+    def check_results(self, results, offset=0, size_requested=10, check_at_least=0,
                       matches_lower_bound=None,
                       matches_estimated=None,
                       matches_upper_bound=None,
@@ -66,7 +66,7 @@ class SearchTest(TestCase):
             matches_upper_bound = len(items)
 
         self.assertEqual(results.offset, offset)
-        self.assertEqual(results.size, size)
+        self.assertEqual(results.size_requested, size_requested)
         self.assertEqual(results.check_at_least, check_at_least)
         self.assertEqual(results.matches_lower_bound, matches_lower_bound)
         self.assertEqual(results.matches_estimated, matches_estimated)

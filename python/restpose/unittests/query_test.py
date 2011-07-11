@@ -22,7 +22,7 @@ class QueryTest(TestCase):
 
 	results = q.search().do()
 	self.assertEqual(results.offset, 0)
-	self.assertEqual(results.size, 0)
+	self.assertEqual(results.size_requested, 0)
 	self.assertEqual(results.check_at_least, 0)
 	self.assertEqual(results.matches_lower_bound, 0)
 	self.assertEqual(results.matches_estimated, 0)
