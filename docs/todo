@@ -12,7 +12,7 @@ Before an initial release
 
  - Collection names should not be allowed to contain ":/\." or tab characters.
    Validation should be performed in handlers to return clear error messages,
-   but also needed in pipes.
+   and also in CollectionPool to ensure internal calls obey the restrictions too.
 
  - Make logging do writes asynchronously.  (Currently, a log call acquires the
    logger mutex, then does the write, blocking all other threads.  Instead, log
