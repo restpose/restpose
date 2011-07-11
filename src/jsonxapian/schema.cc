@@ -1503,7 +1503,7 @@ Schema::perform_search(const CollectionConfig & collconfig,
     // Write the results
     info_handlers.write_results(results, mset);
     results["from"] = from;
-    results["size"] = size;
+    results["size_requested"] = size;
     results["check_at_least"] = check_at_least;
     results["matches_lower_bound"] = mset.get_matches_lower_bound();
     results["matches_estimated"] = mset.get_matches_estimated();
