@@ -42,3 +42,21 @@ Before an initial release
 
  - Needs to be possible to long-poll for checkpoints when waiting for them to
    be reached.  Probably with a timeout, defaulting to 30 seconds.
+
+
+Future
+------
+
+ - Deleting a collection should wait for all readers on that collection to
+   finish, to avoid problems on windows (and to handle deletes more
+   gracefully).
+
+ - Add geospatial index support.
+
+ - Add faceting support.
+
+ - Add sort_by support.
+
+ - Add collapse support.
+
+ - Add ability to set weighting scheme / parameters.
