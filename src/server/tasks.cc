@@ -257,6 +257,15 @@ DeleteDocumentTask::clone() const
 
 
 void
+DeleteCollectionProcessingTask::perform(const std::string & coll_name,
+					TaskManager * taskman)
+{
+    taskman->get_collconfigs().reset(coll_name);
+    taskman->queue_indexing_from_processing(coll_name,
+	new DeleteCollectionTask);
+}
+
+void
 DeleteCollectionTask::perform_task(RestPose::Collection * & collection,
 				   TaskManager * taskman)
 {

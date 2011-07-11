@@ -121,6 +121,24 @@ DeleteDocumentHandler::enqueue(ConnectionInfo &,
 
 
 Handler *
+CollDeleteHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
+{
+    LOG_INFO("CollDeleteHandler called");
+    string coll_name = path_params[0];
+    return new CollDeleteHandler(coll_name);
+}
+
+Queue::QueueState
+CollDeleteHandler::enqueue(ConnectionInfo &, const Json::Value &)
+{
+    return taskman->queue_processing(coll_name,
+	new DeleteCollectionProcessingTask,
+	false);
+}
+
+
+Handler *
 SearchHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];

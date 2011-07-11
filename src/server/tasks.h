@@ -201,6 +201,14 @@ class DeleteDocumentTask : public IndexingTask {
     IndexingTask * clone() const;
 };
 
+
+/// Delete a collection task for processing queue.
+class DeleteCollectionProcessingTask : public ProcessingTask {
+  public:
+    void perform(const std::string & coll_name,
+		 TaskManager * taskman);
+};
+
 /// Delete a collection.
 class DeleteCollectionTask : public IndexingTask {
   public:

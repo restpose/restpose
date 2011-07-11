@@ -106,6 +106,23 @@ class DeleteDocumentHandler : public NoWaitQueuedHandler {
 };
 
 
+class CollDeleteHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
+class CollDeleteHandler : public NoWaitQueuedHandler {
+    std::string coll_name;
+  public:
+    CollDeleteHandler(const std::string & coll_name_)
+	    : coll_name(coll_name_)
+    {}
+
+    Queue::QueueState enqueue(ConnectionInfo & conn,
+			      const Json::Value & body);
+};
+
+
 class SearchHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
