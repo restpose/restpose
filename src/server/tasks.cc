@@ -173,10 +173,14 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
 }
 
 void
-IndexerConfigChangedTask::perform_task(RestPose::Collection * & collection,
-				       TaskManager *)
+IndexerConfigChangedTask::perform_task(const string & coll_name,
+				       RestPose::Collection * & collection,
+				       TaskManager * taskman)
 {
-    LOG_DEBUG("Updating configuration for collection " + collection->get_name());
+    LOG_DEBUG("Updating configuration for collection " + coll_name);
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
     collection->from_json(new_config);
 }
 
@@ -197,11 +201,14 @@ IndexerConfigChangedTask::clone() const
 }
 
 void
-IndexerUpdateDocumentTask::perform_task(RestPose::Collection * & collection,
-					TaskManager *)
+IndexerUpdateDocumentTask::perform_task(const string & coll_name,
+					RestPose::Collection * & collection,
+					TaskManager * taskman)
 {
-    LOG_DEBUG("UpdateDocument idterm '" + idterm + "' in '" +
-	      collection->get_name() + "'");
+    LOG_DEBUG("UpdateDocument idterm '" + idterm + "' in '" + coll_name + "'");
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
     collection->raw_update_doc(doc, idterm);
 }
 
@@ -230,12 +237,16 @@ IndexerUpdateDocumentTask::clone() const
 
 
 void
-DeleteDocumentTask::perform_task(RestPose::Collection * & collection,
-				 TaskManager *)
+DeleteDocumentTask::perform_task(const string & coll_name,
+				 RestPose::Collection * & collection,
+				 TaskManager * taskman)
 {
     LOG_INFO("DeleteDocument type='" + doc_type +
 	     "' id='" + doc_id +
-	     "' in '" + collection->get_name() + "'");
+	     "' in '" + coll_name + "'");
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
     collection->raw_delete_doc("\t" + doc_type + "\t" + doc_id);
 }
 
@@ -266,12 +277,12 @@ DeleteCollectionProcessingTask::perform(const std::string & coll_name,
 }
 
 void
-DeleteCollectionTask::perform_task(RestPose::Collection * & collection,
+DeleteCollectionTask::perform_task(const string & coll_name,
+				   RestPose::Collection * & collection,
 				   TaskManager * taskman)
 {
-    string coll_name = collection->get_name();
     LOG_INFO("Delete collection '" + coll_name + "'");
-    {
+    if (collection != NULL) {
 	RestPose::Collection * tmp = collection;
 	collection = NULL;
 	taskman->get_collections().release(tmp);

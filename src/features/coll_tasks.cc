@@ -68,9 +68,13 @@ CollGetConfigTask::perform(RestPose::Collection * collection)
 }
 
 void
-CollSetConfigTask::perform_task(RestPose::Collection * & collection,
-				TaskManager *)
+CollSetConfigTask::perform_task(const string & coll_name,
+				RestPose::Collection * & collection,
+				TaskManager * taskman)
 {
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
     collection->from_json(config);
 }
 

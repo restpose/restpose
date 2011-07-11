@@ -39,7 +39,8 @@ class IndexingCheckpointTask : public IndexingTask {
 	      do_commit(do_commit_)
     {}
 
-    void perform_task(RestPose::Collection * & collection,
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
 		      TaskManager * taskman);
 
     void info(std::string & description,

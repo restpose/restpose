@@ -125,9 +125,8 @@ IndexingThread::run()
 		// Only happens when queuegroup is closed, so just finish running.
 		return;
 	    }
-	    collection = pool.get_writable(coll_name);
 
-	    while (collection != NULL) {
+	    while (true) {
 		bool is_finished;
 
 		Task * newtask = queuegroup.pop_from(coll_name,
@@ -146,7 +145,7 @@ IndexingThread::run()
 		    break;
 		}
 		IndexingTask * colltask = static_cast<IndexingTask *>(task);
-		colltask->perform(collection, taskman);
+		colltask->perform(coll_name, collection, taskman);
 	    }
 
 	    if (collection != NULL) {

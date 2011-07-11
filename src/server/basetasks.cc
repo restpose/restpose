@@ -32,12 +32,12 @@ using namespace RestPose;
 using namespace std;
 
 void
-IndexingTask::perform(RestPose::Collection * & collection,
+IndexingTask::perform(const string & coll_name,
+		      RestPose::Collection * & collection,
 		      TaskManager * taskman)
 {
-    string coll_name(collection->get_name());
     try {
-	perform_task(collection, taskman);
+	perform_task(coll_name, collection, taskman);
     } catch(const RestPose::Error & e) {
 	string description, doc_type, doc_id;
 	info(description, doc_type, doc_id);

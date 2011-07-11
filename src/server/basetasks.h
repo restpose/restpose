@@ -109,7 +109,8 @@ class IndexingTask : public Task {
   public:
     IndexingTask() : Task(false) {}
 
-    void perform(RestPose::Collection * & collection,
+    void perform(const std::string & coll_name,
+		 RestPose::Collection * & collection,
 		 TaskManager * taskman);
 
     /** Perform the task.
@@ -117,7 +118,8 @@ class IndexingTask : public Task {
      *  May raise exceptions to report failure - these will be caught, logged
      *  and reported appropriately.
      */
-    virtual void perform_task(RestPose::Collection * & collection,
+    virtual void perform_task(const std::string & coll_name,
+			      RestPose::Collection * & collection,
 			      TaskManager * taskman) = 0;
 
     /** Get a description of the task, and the document type and id it's

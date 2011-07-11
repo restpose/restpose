@@ -31,16 +31,20 @@
 using namespace std;
 
 void
-IndexingCheckpointTask::perform_task(RestPose::Collection * & collection,
-				     TaskManager *)
+IndexingCheckpointTask::perform_task(const string & coll_name,
+				     RestPose::Collection * & collection,
+				     TaskManager * taskman)
 {
     if (do_commit) {
 	LOG_INFO("Checkpoint '" + checkid + "' reached in '" +
-		 collection->get_name() + "' - committing");
+		 coll_name + "' - committing");
+	if (collection == NULL) {
+	    collection = taskman->get_collections().get_writable(coll_name);
+	}
 	collection->commit();
     } else {
 	LOG_INFO("Checkpoint '" + checkid + "' reached in '" +
-		 collection->get_name() + "'");
+		 coll_name + "'");
     }
 }
 

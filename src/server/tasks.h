@@ -141,7 +141,8 @@ class IndexerConfigChangedTask : public IndexingTask {
 	    : new_config(new_config_)
     {}
 
-    void perform_task(RestPose::Collection * & collection,
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
 		      TaskManager * taskman);
     void info(std::string & description,
 	      std::string & doc_type,
@@ -165,7 +166,8 @@ class IndexerUpdateDocumentTask : public IndexingTask {
     {}
 
     /// Perform the indexing task, given a collection (open for writing).
-    void perform_task(RestPose::Collection * & collection,
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
 		      TaskManager * taskman);
 
     void info(std::string & description,
@@ -190,7 +192,8 @@ class DeleteDocumentTask : public IndexingTask {
     {}
 
     /// Perform the indexing task, given a collection (open for writing).
-    void perform_task(RestPose::Collection * & collection,
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
 		      TaskManager * taskman);
 
     void info(std::string & description,
@@ -205,6 +208,7 @@ class DeleteDocumentTask : public IndexingTask {
 /// Delete a collection task for processing queue.
 class DeleteCollectionProcessingTask : public ProcessingTask {
   public:
+    DeleteCollectionProcessingTask() : ProcessingTask(false) {}
     void perform(const std::string & coll_name,
 		 TaskManager * taskman);
 };
@@ -213,7 +217,8 @@ class DeleteCollectionProcessingTask : public ProcessingTask {
 class DeleteCollectionTask : public IndexingTask {
   public:
     /// Perform the indexing task, given a collection (open for writing).
-    void perform_task(RestPose::Collection * & collection,
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
 		      TaskManager * taskman);
 
     void info(std::string & description,
