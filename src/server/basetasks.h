@@ -109,7 +109,7 @@ class IndexingTask : public Task {
   public:
     IndexingTask() : Task(false) {}
 
-    void perform(RestPose::Collection & collection,
+    void perform(RestPose::Collection * & collection,
 		 TaskManager * taskman);
 
     /** Perform the task.
@@ -117,7 +117,7 @@ class IndexingTask : public Task {
      *  May raise exceptions to report failure - these will be caught, logged
      *  and reported appropriately.
      */
-    virtual void perform_task(RestPose::Collection & collection,
+    virtual void perform_task(RestPose::Collection * & collection,
 			      TaskManager * taskman) = 0;
 
     /** Get a description of the task, and the document type and id it's
@@ -134,7 +134,7 @@ class IndexingTask : public Task {
      *
      *  Default implementation does nothing.
      */
-    virtual void post_perform(RestPose::Collection & collection,
+    virtual void post_perform(RestPose::Collection * collection,
 			      TaskManager * taskman);
 
     /** Clone this task.  Not frequently called - used when queue is full, and

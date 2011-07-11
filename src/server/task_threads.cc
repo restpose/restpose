@@ -127,7 +127,7 @@ IndexingThread::run()
 	    }
 	    collection = pool.get_writable(coll_name);
 
-	    while (true) {
+	    while (collection != NULL) {
 		bool is_finished;
 
 		Task * newtask = queuegroup.pop_from(coll_name,
@@ -146,10 +146,12 @@ IndexingThread::run()
 		    break;
 		}
 		IndexingTask * colltask = static_cast<IndexingTask *>(task);
-		colltask->perform(*collection, taskman);
+		colltask->perform(collection, taskman);
 	    }
 
-	    collection->commit();
+	    if (collection != NULL) {
+		collection->commit();
+	    }
 
 	} catch(const RestPose::Error & e) {
 	    LOG_ERROR("Indexing failed with", e);
@@ -161,9 +163,11 @@ IndexingThread::run()
 	    LOG_ERROR("Indexing failed with", e);
 	}
 
-	Collection * tmp = collection;
-	collection = NULL;
-	pool.release(tmp);
+	if (collection != NULL) {
+	    Collection * tmp = collection;
+	    collection = NULL;
+	    pool.release(tmp);
+	}
 	queuegroup.completed(last_coll_name, task);
 	delete task;
 	task = NULL;

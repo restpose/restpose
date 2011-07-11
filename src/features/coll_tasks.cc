@@ -68,10 +68,10 @@ CollGetConfigTask::perform(RestPose::Collection * collection)
 }
 
 void
-CollSetConfigTask::perform_task(RestPose::Collection & collection,
+CollSetConfigTask::perform_task(RestPose::Collection * & collection,
 				TaskManager *)
 {
-    collection.from_json(config);
+    collection->from_json(config);
 }
 
 void

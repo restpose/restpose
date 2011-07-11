@@ -31,24 +31,24 @@
 using namespace std;
 
 void
-IndexingCheckpointTask::perform_task(RestPose::Collection & collection,
+IndexingCheckpointTask::perform_task(RestPose::Collection * & collection,
 				     TaskManager *)
 {
     if (do_commit) {
 	LOG_INFO("Checkpoint '" + checkid + "' reached in '" +
-		 collection.get_name() + "' - committing");
-	collection.commit();
+		 collection->get_name() + "' - committing");
+	collection->commit();
     } else {
 	LOG_INFO("Checkpoint '" + checkid + "' reached in '" +
-		 collection.get_name() + "'");
+		 collection->get_name() + "'");
     }
 }
 
 void
-IndexingCheckpointTask::post_perform(RestPose::Collection & collection,
+IndexingCheckpointTask::post_perform(RestPose::Collection * collection,
 				     TaskManager * taskman)
 {
-    taskman->get_checkpoints().set_reached(collection.get_name(), checkid);
+    taskman->get_checkpoints().set_reached(collection->get_name(), checkid);
 }
 
 void

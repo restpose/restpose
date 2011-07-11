@@ -69,7 +69,7 @@ class CollSetConfigTask : public IndexingTask {
 	      config(config_)
     {}
 
-    void perform_task(RestPose::Collection & collection,
+    void perform_task(RestPose::Collection * & collection,
 		      TaskManager * taskman);
 
     void info(std::string & description,

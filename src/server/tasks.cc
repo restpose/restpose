@@ -173,11 +173,11 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
 }
 
 void
-IndexerConfigChangedTask::perform_task(RestPose::Collection & collection,
+IndexerConfigChangedTask::perform_task(RestPose::Collection * & collection,
 				       TaskManager *)
 {
-    LOG_DEBUG("Updating configuration for collection " + collection.get_name());
-    collection.from_json(new_config);
+    LOG_DEBUG("Updating configuration for collection " + collection->get_name());
+    collection->from_json(new_config);
 }
 
 void
@@ -197,12 +197,12 @@ IndexerConfigChangedTask::clone() const
 }
 
 void
-IndexerUpdateDocumentTask::perform_task(RestPose::Collection & collection,
+IndexerUpdateDocumentTask::perform_task(RestPose::Collection * & collection,
 					TaskManager *)
 {
     LOG_DEBUG("UpdateDocument idterm '" + idterm + "' in '" +
-	      collection.get_name() + "'");
-    collection.raw_update_doc(doc, idterm);
+	      collection->get_name() + "'");
+    collection->raw_update_doc(doc, idterm);
 }
 
 void
@@ -230,13 +230,13 @@ IndexerUpdateDocumentTask::clone() const
 
 
 void
-DeleteDocumentTask::perform_task(RestPose::Collection & collection,
+DeleteDocumentTask::perform_task(RestPose::Collection * & collection,
 				 TaskManager *)
 {
     LOG_INFO("DeleteDocument type='" + doc_type +
 	     "' id='" + doc_id +
-	     "' in '" + collection.get_name() + "'");
-    collection.raw_delete_doc("\t" + doc_type + "\t" + doc_id);
+	     "' in '" + collection->get_name() + "'");
+    collection->raw_delete_doc("\t" + doc_type + "\t" + doc_id);
 }
 
 void
@@ -257,13 +257,16 @@ DeleteDocumentTask::clone() const
 
 
 void
-DeleteCollectionTask::perform_task(RestPose::Collection & collection,
+DeleteCollectionTask::perform_task(RestPose::Collection * & collection,
 				   TaskManager * taskman)
 {
-    LOG_INFO("Delete collection '" + collection.get_name() + "'");
-    string coll_name = collection.get_name();
-    (void)taskman;
-    //taskman.get_collections().release(collection);
+    string coll_name = collection->get_name();
+    LOG_INFO("Delete collection '" + coll_name + "'");
+    {
+	RestPose::Collection * tmp = collection;
+	collection = NULL;
+	taskman->get_collections().release(tmp);
+    }
     //taskman.get_collections().del(coll_name);
 }
 
