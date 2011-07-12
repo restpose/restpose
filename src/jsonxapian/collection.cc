@@ -445,7 +445,8 @@ Collection::perform_search(const Json::Value & search,
     }
     const Schema * schema = config.get_schema(doc_type);
     if (schema == NULL) {
-	results = Json::objectValue;
+	Schema tmp(doc_type);
+	tmp.perform_search(config, get_db(), search, results);
     } else {
 	schema->perform_search(config, get_db(), search, results);
     }

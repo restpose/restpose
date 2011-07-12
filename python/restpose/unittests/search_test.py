@@ -266,3 +266,31 @@ class SearchTest(RestPoseTestCase):
         self.assertEqual(logres.log,
                          ['GET: /coll/test_coll/type/blurb/id/2 -> ' +
                           '404 No document found of type "blurb" and id "2"'])
+
+    def test_search_on_unknown_type(self):
+        """Test that a search on an unknown document type returns exactly the
+        same results as a search on a known document type.
+
+        """
+        coll = Server().collection("test_coll")
+        coll.add_doc({}, type="empty_type", id="1")
+        coll.delete_doc(type="empty_type", id="1")
+        self.wait(coll)
+        empty_query = coll.type("empty_type").query_all()
+        missing_query = coll.type("missing_type").query_all()
+
+        self.assertEqual(empty_query
+                         .search(offset=7, size=11, check_at_least=3)
+                         .do()._raw,
+                         missing_query
+                         .search(offset=7, size=11, check_at_least=3)
+                         .do()._raw)
+
+        self.assertEqual(empty_query
+                         .search(offset=7, size=11, check_at_least=3)
+                         .calc_cooccur('t')
+                         .do()._raw,
+                         missing_query
+                         .search(offset=7, size=11, check_at_least=3)
+                         .calc_cooccur('t')
+                         .do()._raw)
