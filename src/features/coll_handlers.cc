@@ -80,7 +80,6 @@ CollGetConfigHandler::enqueue(ConnectionInfo &,
 	new CollGetConfigTask(resulthandle, coll_name));
 }
 
-
 Handler *
 CollSetConfigHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
@@ -94,8 +93,6 @@ CollSetConfigHandler::enqueue(ConnectionInfo &,
 			      const Json::Value & body)
 {
     return taskman->queue_processing(coll_name,
-	new DelayedIndexingTask(
-	    new CollSetConfigTask(body)),
+	new ProcessingCollSetConfigTask(body),
 	false);
-
 }

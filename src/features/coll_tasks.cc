@@ -27,12 +27,15 @@
 
 #include "httpserver/response.h"
 #include "jsonxapian/collection_pool.h"
+#include "jsonxapian/collconfigs.h"
 #include "logger/logger.h"
+#include <memory>
 #include "server/task_manager.h"
 #include <string>
 #include <vector>
 
 using namespace std;
+using namespace RestPose;
 
 void
 CollListTask::perform(RestPose::Collection *)
@@ -66,6 +69,28 @@ CollGetConfigTask::perform(RestPose::Collection * collection)
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
+
+
+void
+ProcessingCollSetConfigTask::perform(const std::string & coll_name,
+				     TaskManager * taskman)
+{
+    auto_ptr<CollectionConfig> collconfig(new CollectionConfig(coll_name));
+    try {
+	collconfig->from_json(config);
+    } catch (InvalidValueError & e) {
+	string msg("Setting collection config failed with ");
+	msg += e.what();
+	LOG_ERROR(msg);
+	taskman->get_checkpoints().append_error(coll_name, msg,
+						string(), string());
+	return;
+    }
+    taskman->get_collconfigs().set(coll_name, collconfig.release());
+    taskman->queue_indexing_from_processing(coll_name,
+					    new CollSetConfigTask(config));
+}
+
 
 void
 CollSetConfigTask::perform_task(const string & coll_name,

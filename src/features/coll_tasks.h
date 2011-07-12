@@ -61,6 +61,18 @@ class CollGetConfigTask : public ReadonlyCollTask {
     void perform(RestPose::Collection * collection);
 };
 
+
+class ProcessingCollSetConfigTask : public ProcessingTask {
+    Json::Value config;
+  public:
+    ProcessingCollSetConfigTask(const Json::Value & config_)
+	    : ProcessingTask(false),
+	      config(config_)
+    {}
+    void perform(const std::string & coll_name,
+		 TaskManager * taskman);
+};
+
 class CollSetConfigTask : public IndexingTask {
     Json::Value config;
   public:
