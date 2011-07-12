@@ -1,10 +1,6 @@
 TODO
 ====
 
-Look for a "commit=0" parameter on making a checkpoint, and set do_commit to 0
-if it's appropriate.  Use this in the python test for deleting a collection, to
-wait for the collection deletion to complete without creating a new collection.
-
 Before an initial release
 -------------------------
 
@@ -18,7 +14,7 @@ Before an initial release
 
  - Test passing double values (both positive and negative) to timestamp fields.
 
- - Python client has problems with expired checkpoints.  Inconsistent, untested code.
+ - Python client could do with testing for expired checkpoints.
 
  - Collection names should not be allowed to contain ":/\." or tab characters.
    Validation should be performed in handlers to return clear error messages,
@@ -32,6 +28,8 @@ Before an initial release
  - General documentation review and tidyup.
 
  - Update libs/README
+
+ - Update README
 
  - Rename "prefix" to something less implementation-specific?  "group"?  Define
    group shortnames somewhere special?
