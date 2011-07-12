@@ -372,7 +372,7 @@ class Collection(QueryTarget):
         """
         return Document(self, doc_type, doc_id)
 
-    def checkpoint(self):
+    def checkpoint(self, commit=True):
         """Set a checkpoint on the collection.
 
         This creates a resource on the server which can be queried to detect
@@ -382,8 +382,14 @@ class Collection(QueryTarget):
         before indexing reaches the checkpoint.
 
         """
-        return CheckPoint(self,
-            self._resource.post(self._basepath + "/checkpoint").json)
+        path = self._basepath + "/checkpoint"
+        params_dict = {}
+        if commit:
+            params_dict['commit'] = '1'
+        else:
+            params_dict['commit'] = '0'
+        return CheckPoint(self, self._resource.post(path,
+                            params_dict=params_dict).json)
 
     def delete(self):
         """Delete the entire collection.
