@@ -31,14 +31,17 @@ class IndexTest(RestPoseTestCase):
         self.assertTrue('test_coll' in Server().collections)
 
         coll.delete()
-        self.wait(coll)
-        #self.assertTrue('test_coll' not in Server().collections) # FIXME - disabled currently, because waiting for the checkpoint re-creates the collection.  See docs/todo for a plan to resolve this.
+
+        # Need to set commit=False, or the checkpoint re-creates the
+        # collection.
+        self.wait(coll, commit=False)
+        self.assertTrue('test_coll' not in Server().collections)
         msg = None
         try:
             coll.get_doc("blurb", "1").data
         except ResourceNotFound, e:
             msg = e.msg
-        #self.assertEqual(msg, 'No collection of name "test_coll" exists') # FIXME  - disabled for same reason as check of test_coll not being in Server().collections is, a few lines up.
+        self.assertEqual(msg, 'No collection of name "test_coll" exists')
 
     def test_delete_doc(self):
         """Test that deleting a document functions correctly.

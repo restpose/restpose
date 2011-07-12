@@ -7,13 +7,13 @@ from unittest import TestCase
 
 class RestPoseTestCase(TestCase):
 
-    def wait(self, coll, errors=None):
+    def wait(self, coll, errors=None, commit=True):
         """Wait on a collection for a checkpoint to be reached.
 
         Checks that the errors in the checkpoint are as listed in errors.
 
         """
-        chk = coll.checkpoint().wait()
+        chk = coll.checkpoint(commit=commit).wait()
         if errors is None:
             errors = []
         self.assertEqual(chk.errors, errors)
