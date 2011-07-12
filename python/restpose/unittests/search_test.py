@@ -3,7 +3,7 @@
 # This file is part of the restpose python module, released under the MIT
 # license.  See the COPYING file for more information.
 
-from unittest import TestCase
+from .helpers import RestPoseTestCase
 from .. import query, Server
 from ..resource import RestPoseResource
 from .. import ResourceNotFound
@@ -37,7 +37,7 @@ class LogResource(RestPoseResource):
         return res
 
 
-class SearchTest(TestCase):
+class SearchTest(RestPoseTestCase):
     maxDiff = 10000
 
     # Expected items for tests which return a single result
@@ -84,7 +84,8 @@ class SearchTest(TestCase):
         coll = Server().collection("test_coll")
         #coll.delete()
         coll.add_doc(doc, type="blurb", id="1")
-        coll.checkpoint().wait()
+        chk = coll.checkpoint().wait()
+        assert chk.total_errors == 0
 
     def setUp(self):
         self.coll = Server().collection("test_coll")
@@ -249,7 +250,7 @@ class SearchTest(TestCase):
         doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
                 'empty': "" }
         coll.add_doc(doc, type="blurb", id="1")
-        coll.checkpoint().wait()
+        self.wait(coll)
         self.assertTrue(len(logres.log) >= 3)
         self.assertEqual(logres.log[0],
                          'PUT: /coll/test_coll/type/blurb/id/1 -> 202')
