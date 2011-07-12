@@ -152,8 +152,11 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     }
     for (vector<pair<string, string> >::const_iterator
 	 i = errors.errors.begin(); i != errors.errors.end(); ++i) {
-	LOG_ERROR("Indexing error in field \"" + i->first + "\": \"" +
-		  i->second + "\"");
+	string msg("Indexing error in field \"" + i->first + "\": \"" +
+		   i->second + "\"");
+	LOG_ERROR(msg);
+	taskman->get_checkpoints().append_error(coll_name, msg,
+						doc_type, doc_id);
     }
 
     taskman->queue_indexing_from_processing(coll_name,
