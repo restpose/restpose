@@ -83,7 +83,7 @@ class SearchTest(RestPoseTestCase):
                 'empty': "" }
         coll = Server().collection("test_coll")
         #coll.delete()
-        coll.add_doc(doc, type="blurb", id="1")
+        coll.add_doc(doc, doc_type="blurb", id="1")
         chk = coll.checkpoint().wait()
         assert chk.total_errors == 0
 
@@ -127,87 +127,87 @@ class SearchTest(RestPoseTestCase):
         self.assertEqual(gotdoc.values, {})
 
     def test_field_is(self):
-        q = self.coll.type("blurb").field_is('tag', 'A tag')
+        q = self.coll.doc_type("blurb").field_is('tag', 'A tag')
         results = q.search().do()
         self.check_results(results, items=self.expected_items_single)
 
     def test_field_exists(self):
-        q = self.coll.type("blurb").field_exists()
+        q = self.coll.doc_type("blurb").field_exists()
         results = q.search().do()
         self.check_results(results, items=self.expected_items_single)
 
-        q = self.coll.type("blurb").field_exists('tag')
+        q = self.coll.doc_type("blurb").field_exists('tag')
         results = q.search().do()
         self.check_results(results, items=self.expected_items_single)
 
-        q = self.coll.type("blurb").field_exists('id')
+        q = self.coll.doc_type("blurb").field_exists('id')
         # ID field is not stored, so searching for its existence returns
         # nothing.
         results = q.search().do()
         self.check_results(results, items=[])
 
-        q = self.coll.type("blurb").field_exists('type')
+        q = self.coll.doc_type("blurb").field_exists('type')
         # Type field is not stored, so searching for its existence returns
         # nothing.
         results = q.search().do()
         self.check_results(results, items=[])
 
-        q = self.coll.type("blurb").field_exists('missing')
+        q = self.coll.doc_type("blurb").field_exists('missing')
         results = q.search().do()
         self.check_results(results, items=[])
 
     def test_field_empty(self):
-        q = self.coll.type("blurb").field_empty()
+        q = self.coll.doc_type("blurb").field_empty()
         self.check_results(q.search().do(), items=self.expected_items_single)
 
-        q = self.coll.type("blurb").field_empty('empty')
+        q = self.coll.doc_type("blurb").field_empty('empty')
         self.check_results(q.search().do(), items=self.expected_items_single)
 
-        q = self.coll.type("blurb").field_empty('text')
+        q = self.coll.doc_type("blurb").field_empty('text')
         self.check_results(q.search().do(), items=[])
 
-        q = self.coll.type("blurb").field_empty('id')
+        q = self.coll.doc_type("blurb").field_empty('id')
         self.check_results(q.search().do(), items=[])
 
-        q = self.coll.type("blurb").field_empty('type')
+        q = self.coll.doc_type("blurb").field_empty('type')
         self.check_results(q.search().do(), items=[])
 
-        q = self.coll.type("blurb").field_empty('missing')
+        q = self.coll.doc_type("blurb").field_empty('missing')
         self.check_results(q.search().do(), items=[])
 
     def test_field_nonempty(self):
-        q = self.coll.type("blurb").field_nonempty()
+        q = self.coll.doc_type("blurb").field_nonempty()
         self.check_results(q.search().do(), items=self.expected_items_single)
 
-        q = self.coll.type("blurb").field_nonempty('empty')
+        q = self.coll.doc_type("blurb").field_nonempty('empty')
         self.check_results(q.search().do(), items=[])
 
-        q = self.coll.type("blurb").field_nonempty('text')
+        q = self.coll.doc_type("blurb").field_nonempty('text')
         self.check_results(q.search().do(), items=self.expected_items_single)
 
-        q = self.coll.type("blurb").field_nonempty('id')
+        q = self.coll.doc_type("blurb").field_nonempty('id')
         self.check_results(q.search().do(), items=[])
 
-        q = self.coll.type("blurb").field_nonempty('type')
+        q = self.coll.doc_type("blurb").field_nonempty('type')
         self.check_results(q.search().do(), items=[])
 
-        q = self.coll.type("blurb").field_nonempty('missing')
+        q = self.coll.doc_type("blurb").field_nonempty('missing')
         self.check_results(q.search().do(), items=[])
 
     def test_field_has_error(self):
-        q = self.coll.type("blurb").field_has_error()
+        q = self.coll.doc_type("blurb").field_has_error()
         self.check_results(q.search().do(), items=[])
 
     def test_query_all(self):
-        q = self.coll.type("blurb").query_all()
+        q = self.coll.doc_type("blurb").query_all()
         self.check_results(q.search().do(), items=self.expected_items_single)
 
     def test_query_none(self):
-        q = self.coll.type("blurb").query_none()
+        q = self.coll.doc_type("blurb").query_none()
         self.check_results(q.search().do(), items=[])
 
     def test_calc_cooccur(self):
-        q = self.coll.type("blurb").query_all()
+        q = self.coll.doc_type("blurb").query_all()
         s = q.search()
         results = q.search().calc_cooccur('t').do()
         self.assertEqual(self.coll.status.get('doc_count'), 1)
@@ -222,7 +222,7 @@ class SearchTest(RestPoseTestCase):
                            }])
 
     def test_calc_occur(self):
-        q = self.coll.type("blurb").query_all()
+        q = self.coll.doc_type("blurb").query_all()
         s = q.search()
         results = q.search().calc_occur('t').do()
         self.assertEqual(self.coll.status.get('doc_count'), 1)
@@ -237,7 +237,7 @@ class SearchTest(RestPoseTestCase):
                            }])
 
     def test_raw_query(self):
-        results = self.coll.type("blurb").search(dict(query=dict(matchall=True)))
+        results = self.coll.doc_type("blurb").search(dict(query=dict(matchall=True)))
         self.check_results(results, items=self.expected_items_single)
 
 
@@ -249,7 +249,7 @@ class SearchTest(RestPoseTestCase):
         coll = Server(resource_instance=logres).collection("test_coll")
         doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
                 'empty': "" }
-        coll.add_doc(doc, type="blurb", id="1")
+        coll.add_doc(doc, doc_type="blurb", id="1")
         self.wait(coll)
         self.assertTrue(len(logres.log) >= 3)
         self.assertEqual(logres.log[0],
@@ -261,7 +261,7 @@ class SearchTest(RestPoseTestCase):
         self.assertEqual(logres.log[2][-6:], '-> 200')
 
         logres.log[:] = []
-        doc = coll.type('blurb').get_doc('2')
+        doc = coll.doc_type('blurb').get_doc('2')
         self.assertRaises(ResourceNotFound, getattr, doc, 'data')
         self.assertEqual(logres.log,
                          ['GET: /coll/test_coll/type/blurb/id/2 -> ' +
@@ -273,11 +273,11 @@ class SearchTest(RestPoseTestCase):
 
         """
         coll = Server().collection("test_coll")
-        coll.add_doc({}, type="empty_type", id="1")
-        coll.delete_doc(type="empty_type", id="1")
+        coll.add_doc({}, doc_type="empty_type", id="1")
+        coll.delete_doc(doc_type="empty_type", id="1")
         self.wait(coll)
-        empty_query = coll.type("empty_type").query_all()
-        missing_query = coll.type("missing_type").query_all()
+        empty_query = coll.doc_type("empty_type").query_all()
+        missing_query = coll.doc_type("missing_type").query_all()
 
         self.assertEqual(empty_query
                          .search(offset=7, size=11, check_at_least=3)

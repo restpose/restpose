@@ -13,11 +13,11 @@ Example:
     >>> status = server.status()
     >>> doc = { 'text': 'Hello world', 'tag': 'A tag' }
     >>> coll = server.collection("my_coll")
-    >>> coll.add_doc(doc, type="blurb", id="1")
+    >>> coll.add_doc(doc, doc_type="blurb", id="1")
     >>> checkpt = coll.checkpoint().wait()
     >>> checkpt.total_errors, checkpt.errors, checkpt.reached
     (0, [], True)
-    >>> query = coll.type("blurb").field_is('tag', 'A tag')
+    >>> query = coll.doc_type("blurb").field_is('tag', 'A tag')
     >>> results = query.search().do()
     >>> results.matches_estimated
     1
@@ -238,15 +238,15 @@ class QueryTarget(object):
 
 
 class Document(object):
-    def __init__(self, collection, type, id):
+    def __init__(self, collection, doc_type, id):
         if collection is None:
-            # type should be a DocumentType object.
-            self._resource = type._resource
-            self._path = type._basepath + '/id/' + id
+            # doc_type should be a DocumentType object.
+            self._resource = doc_type._resource
+            self._path = doc_type._basepath + '/id/' + id
         else:
-            # type should be a string.
+            # doc_type should be a string.
             self._resource = collection._resource
-            self._path = collection._basepath + '/type/' + type + '/id/' + id
+            self._path = collection._basepath + '/type/' + doc_type + '/id/' + id
         self._data = None
         self._terms = None
         self._values = None
@@ -278,8 +278,8 @@ class Document(object):
 
 
 class DocumentType(QueryTarget):
-    def __init__(self, collection, type):
-        self._basepath = collection._basepath + '/type/' + type
+    def __init__(self, collection, doc_type):
+        self._basepath = collection._basepath + '/type/' + doc_type
         self._resource = collection._resource
 
     def add_doc(self, doc, id=None):
@@ -309,8 +309,8 @@ class Collection(QueryTarget):
         self._basepath = '/coll/' + coll_name
         self._resource = server._resource
 
-    def type(self, type):
-        return DocumentType(self, type)
+    def doc_type(self, doc_type):
+        return DocumentType(self, doc_type)
 
     @property
     def status(self):
@@ -333,17 +333,17 @@ class Collection(QueryTarget):
             raise RestPoseError("Unexpected return status from config: %d" %
                                 resp.status_int)
 
-    def add_doc(self, doc, type=None, id=None):
+    def add_doc(self, doc, doc_type=None, id=None):
         """Add a document to the collection.
 
         """
         path = self._basepath
         use_put = True
 
-        if type is None:
+        if doc_type is None:
             use_put = False
         else:
-            path += '/type/%s' % type
+            path += '/type/%s' % doc_type
 
         if id is None:
             use_put = False
@@ -359,18 +359,18 @@ class Collection(QueryTarget):
                                 resp.status_int)
 
 
-    def delete_doc(self, type, id):
+    def delete_doc(self, doc_type, id):
         """Delete a document from the collection.
 
         """
-        path = '%s/type/%s/id/%s' % (self._basepath, type, id)
+        path = '%s/type/%s/id/%s' % (self._basepath, doc_type, id)
         return self._resource.delete(path).json
 
-    def get_doc(self, type, id):
+    def get_doc(self, doc_type, id):
         """Get a document from the collection.
 
         """
-        return Document(self, type, id)
+        return Document(self, doc_type, id)
 
     def checkpoint(self):
         """Set a checkpoint on the collection.

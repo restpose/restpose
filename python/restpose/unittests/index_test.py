@@ -16,7 +16,7 @@ class IndexTest(RestPoseTestCase):
         coll.delete()
         doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
                 'empty': "" }
-        coll.add_doc(doc, type="blurb", id="1")
+        coll.add_doc(doc, doc_type="blurb", id="1")
         self.wait(coll)
         self.assertEqual(coll.get_doc("blurb", "1").data,
                          dict(
@@ -48,7 +48,7 @@ class IndexTest(RestPoseTestCase):
         coll.delete()
         doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
                 'empty': "" }
-        coll.add_doc(doc, type="blurb", id="1")
+        coll.add_doc(doc, doc_type="blurb", id="1")
         self.wait(coll)
         self.assertEqual(coll.get_doc("blurb", "1").data,
                          dict(
@@ -60,7 +60,7 @@ class IndexTest(RestPoseTestCase):
                               type = ['blurb'],
                              ))
 
-        coll.delete_doc(type="blurb", id="1")
+        coll.delete_doc(doc_type="blurb", id="1")
         self.wait(coll)
         msg = None
         try:
