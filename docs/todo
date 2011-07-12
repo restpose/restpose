@@ -1,6 +1,8 @@
 TODO
 ====
 
+Look for a "commit=0" parameter on making a checkpoint, and set do_commit to 0 if it's appropriate.
+
 Before an initial release
 -------------------------
 
@@ -35,6 +37,8 @@ Before an initial release
  - If the client doesn't send a Host header, we need to synthesise one so that
    Location headers in responses are valid.
 
+ - Re-enable caching of readers (see FIXME comment in constructor in
+   collection_pool.cc)
 
 Future
 ------

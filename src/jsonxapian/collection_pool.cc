@@ -40,7 +40,7 @@ using namespace RestPose;
 
 CollectionPool::CollectionPool(const string & datadir_)
 	: datadir(datadir_),
-	  max_cached_readers_per_collection(5)
+	  max_cached_readers_per_collection(0) // FIXME - currently, we disable caching of readers because when a collection is deleted, we need to know to invalidate all cached readers, including those which are currently assigned to tasks.  To do this, we need to start tracking the assigned readers, and add some way of checking whether the collection has been deleted since these readers were assigned, and skip adding the readers to the cache when they are returned in this situation.  For a quick fix, until this can be implemented, I've just disabled caching of readers.
 {
     if (!string_endswith(datadir, DIR_SEPARATOR)) {
 	datadir += DIR_SEPARATOR;
