@@ -83,7 +83,7 @@ class SearchTest(RestPoseTestCase):
                 'empty': "" }
         coll = Server().collection("test_coll")
         #coll.delete()
-        coll.add_doc(doc, doc_type="blurb", id="1")
+        coll.add_doc(doc, doc_type="blurb", doc_id="1")
         chk = coll.checkpoint().wait()
         assert chk.total_errors == 0
 
@@ -249,7 +249,7 @@ class SearchTest(RestPoseTestCase):
         coll = Server(resource_instance=logres).collection("test_coll")
         doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
                 'empty': "" }
-        coll.add_doc(doc, doc_type="blurb", id="1")
+        coll.add_doc(doc, doc_type="blurb", doc_id="1")
         self.wait(coll)
         self.assertTrue(len(logres.log) >= 3)
         self.assertEqual(logres.log[0],
@@ -273,8 +273,8 @@ class SearchTest(RestPoseTestCase):
 
         """
         coll = Server().collection("test_coll")
-        coll.add_doc({}, doc_type="empty_type", id="1")
-        coll.delete_doc(doc_type="empty_type", id="1")
+        coll.add_doc({}, doc_type="empty_type", doc_id="1")
+        coll.delete_doc(doc_type="empty_type", doc_id="1")
         self.wait(coll)
         empty_query = coll.doc_type("empty_type").query_all()
         missing_query = coll.doc_type("missing_type").query_all()

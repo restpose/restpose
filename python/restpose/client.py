@@ -13,7 +13,7 @@ Example:
     >>> status = server.status()
     >>> doc = { 'text': 'Hello world', 'tag': 'A tag' }
     >>> coll = server.collection("my_coll")
-    >>> coll.add_doc(doc, doc_type="blurb", id="1")
+    >>> coll.add_doc(doc, doc_type="blurb", doc_id="1")
     >>> checkpt = coll.checkpoint().wait()
     >>> checkpt.total_errors, checkpt.errors, checkpt.reached
     (0, [], True)
@@ -238,15 +238,15 @@ class QueryTarget(object):
 
 
 class Document(object):
-    def __init__(self, collection, doc_type, id):
+    def __init__(self, collection, doc_type, doc_id):
         if collection is None:
             # doc_type should be a DocumentType object.
             self._resource = doc_type._resource
-            self._path = doc_type._basepath + '/id/' + id
+            self._path = doc_type._basepath + '/id/' + doc_id
         else:
             # doc_type should be a string.
             self._resource = collection._resource
-            self._path = collection._basepath + '/type/' + doc_type + '/id/' + id
+            self._path = collection._basepath + '/type/' + doc_type + '/id/' + doc_id
         self._data = None
         self._terms = None
         self._values = None
@@ -282,16 +282,16 @@ class DocumentType(QueryTarget):
         self._basepath = collection._basepath + '/type/' + doc_type
         self._resource = collection._resource
 
-    def add_doc(self, doc, id=None):
+    def add_doc(self, doc, doc_id=None):
         """Add a document to the collection.
 
         """
         path = self._basepath
         use_put = True
-        if id is None:
+        if doc_id is None:
             use_put = False
         else:
-            path += '/id/%s' % id
+            path += '/id/%s' % doc_id
         if use_put:
             resp = self._resource.put(path, payload=doc).json
         else:
@@ -300,8 +300,8 @@ class DocumentType(QueryTarget):
             raise RestPoseError("Unexpected return status from add_doc: %d" %
                                 resp.status_int)
 
-    def get_doc(self, id):
-        return Document(None, self, id)
+    def get_doc(self, doc_id):
+        return Document(None, self, doc_id)
 
 
 class Collection(QueryTarget):
@@ -333,7 +333,7 @@ class Collection(QueryTarget):
             raise RestPoseError("Unexpected return status from config: %d" %
                                 resp.status_int)
 
-    def add_doc(self, doc, doc_type=None, id=None):
+    def add_doc(self, doc, doc_type=None, doc_id=None):
         """Add a document to the collection.
 
         """
@@ -345,10 +345,10 @@ class Collection(QueryTarget):
         else:
             path += '/type/%s' % doc_type
 
-        if id is None:
+        if doc_id is None:
             use_put = False
         else:
-            path += '/id/%s' % id
+            path += '/id/%s' % doc_id
 
         if use_put:
             resp = self._resource.put(path, payload=doc)
@@ -359,18 +359,18 @@ class Collection(QueryTarget):
                                 resp.status_int)
 
 
-    def delete_doc(self, doc_type, id):
+    def delete_doc(self, doc_type, doc_id):
         """Delete a document from the collection.
 
         """
-        path = '%s/type/%s/id/%s' % (self._basepath, doc_type, id)
+        path = '%s/type/%s/id/%s' % (self._basepath, doc_type, doc_id)
         return self._resource.delete(path).json
 
-    def get_doc(self, doc_type, id):
+    def get_doc(self, doc_type, doc_id):
         """Get a document from the collection.
 
         """
-        return Document(self, doc_type, id)
+        return Document(self, doc_type, doc_id)
 
     def checkpoint(self):
         """Set a checkpoint on the collection.
