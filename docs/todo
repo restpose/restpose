@@ -1,7 +1,9 @@
 TODO
 ====
 
-Look for a "commit=0" parameter on making a checkpoint, and set do_commit to 0 if it's appropriate.
+Look for a "commit=0" parameter on making a checkpoint, and set do_commit to 0
+if it's appropriate.  Use this in the python test for deleting a collection, to
+wait for the collection deletion to complete without creating a new collection.
 
 Before an initial release
 -------------------------
