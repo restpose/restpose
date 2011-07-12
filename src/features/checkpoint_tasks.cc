@@ -49,10 +49,11 @@ IndexingCheckpointTask::perform_task(const string & coll_name,
 }
 
 void
-IndexingCheckpointTask::post_perform(RestPose::Collection * collection,
+IndexingCheckpointTask::post_perform(const std::string & coll_name,
+				     RestPose::Collection *,
 				     TaskManager * taskman)
 {
-    taskman->get_checkpoints().set_reached(collection->get_name(), checkid);
+    taskman->get_checkpoints().set_reached(coll_name, checkid);
 }
 
 void

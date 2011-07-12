@@ -64,7 +64,7 @@ CollCreateCheckpointHandler::enqueue(ConnectionInfo & conn,
 
 {
     string checkid;
-    bool do_commit = true; // FIXME - get this from a parameter.
+    bool do_commit = conn.get_uri_arg_bool("commit", true);
     Queue::QueueState state = create_checkpoint(taskman, coll_name, checkid,
 						do_commit, true);
     Json::Value result(Json::objectValue);

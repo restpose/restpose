@@ -61,11 +61,12 @@ IndexingTask::perform(const string & coll_name,
 	taskman->get_checkpoints().append_error(coll_name,
 	    description + " failed with out of memory", doc_type, doc_id);
     }
-    post_perform(collection, taskman);
+    post_perform(coll_name, collection, taskman);
 }
 
 void
-IndexingTask::post_perform(RestPose::Collection *,
+IndexingTask::post_perform(const std::string &,
+			   RestPose::Collection *,
 			   TaskManager *)
 {
 }

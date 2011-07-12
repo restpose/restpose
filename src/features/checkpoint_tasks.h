@@ -47,7 +47,8 @@ class IndexingCheckpointTask : public IndexingTask {
 	      std::string & doc_type,
 	      std::string & doc_id) const;
 
-    void post_perform(RestPose::Collection * collection,
+    void post_perform(const std::string & coll_name,
+		      RestPose::Collection * collection,
 		      TaskManager * taskman);
 
     IndexingTask * clone() const;

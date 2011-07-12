@@ -136,7 +136,8 @@ class IndexingTask : public Task {
      *
      *  Default implementation does nothing.
      */
-    virtual void post_perform(RestPose::Collection * collection,
+    virtual void post_perform(const std::string & coll_name,
+			      RestPose::Collection * collection,
 			      TaskManager * taskman);
 
     /** Clone this task.  Not frequently called - used when queue is full, and
