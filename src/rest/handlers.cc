@@ -83,10 +83,10 @@ Handler *
 IndexDocumentHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
-    LOG_INFO("IndexDocumentHandler called");
     string coll_name = path_params[0];
     string doc_type = path_params[1];
     string doc_id = path_params[2];
+    LOG_INFO("IndexDocumentHandler called for '" + coll_name + "' type='" + doc_type + "' id='" + doc_id + "'");
     return new IndexDocumentHandler(coll_name, doc_type, doc_id);
 }
 
