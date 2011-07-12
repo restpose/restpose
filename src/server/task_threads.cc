@@ -222,14 +222,16 @@ SearchThread::run()
 		if (collection == NULL) {
 		    collection = pool.get_readonly(*coll_name_ptr);
 		    coll_name = *coll_name_ptr;
-		} else if (collection->get_name() != *coll_name_ptr) {
+		} else {
+		    // Release back to the pool, and the get from the pool
+		    // again even if the collection name is the same as last
+		    // time, so that if the pool knows that things have
+		    // changed, it can return an updated collection.
 		    Collection * tmp = collection;
 		    collection = NULL;
 		    pool.release(tmp);
 		    collection = pool.get_readonly(*coll_name_ptr);
 		    coll_name = *coll_name_ptr;
-		} else {
-		    collection->open_readonly();
 		}
 	    }
 
