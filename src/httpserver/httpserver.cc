@@ -153,6 +153,28 @@ ConnectionInfo::~ConnectionInfo()
     delete handler;
 }
 
+const vector<string> *
+ConnectionInfo::get_uri_arg_vals(const string & key) const
+{
+    map<string, vector<string> >::const_iterator
+	    i = uri_args.find(key);
+    if (i == uri_args.end()) {
+	return NULL;
+    }
+    return &(i->second);
+}
+
+const string *
+ConnectionInfo::get_uri_arg_val(const string & key) const
+{
+    const vector<string> *
+	    vals = get_uri_arg_vals(key);
+    if (vals == NULL) {
+	return NULL;
+    }
+    return &(vals->front());
+}
+
 void
 ConnectionInfo::parse_url_components()
 {
@@ -261,6 +283,16 @@ receive_header(void *cls,
 }
 
 static int
+receive_argument(void *cls,
+		 enum MHD_ValueKind,
+		 const char *key, const char *value)
+{
+    ConnectionInfo * conn_info = static_cast<ConnectionInfo *>(cls);
+    conn_info->uri_args[key].push_back(value);
+    return MHD_YES;
+}
+
+static int
 answer_connection_cb(void * cls,
 		     struct MHD_Connection *connection,
 		     const char *url,
@@ -283,6 +315,8 @@ answer_connection_cb(void * cls,
 
 	MHD_get_connection_values(connection, MHD_HEADER_KIND,
 				  &receive_header, conn_info);
+	MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND,
+				  &receive_argument, conn_info);
 
 	// FIXME - are any of these always the same each time the callback is
 	// called, so can be initialised only once?

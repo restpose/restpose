@@ -81,6 +81,9 @@ class ConnectionInfo {
     /// The components of the url path, separated on /.
     std::vector<std::string> components;
 
+    /// Decoded URI arguments.
+    std::map<std::string, std::vector<std::string> > uri_args;
+
     /// The handler assigned to deal with this request.
     Handler * handler;
 
@@ -90,6 +93,19 @@ class ConnectionInfo {
 		   const char * version_);
 
     ~ConnectionInfo();
+
+    /** Get a vector of values of a URI argument.
+     *
+     *  Returns NULL if the argument doesn't exist.
+     */
+    const std::vector<std::string> *
+	    get_uri_arg_vals(const std::string & key) const;
+
+    /** Get a the first value of a URI argument.
+     *
+     *  Returns NULL if the argument doesn't exist.
+     */
+    const std::string * get_uri_arg_val(const std::string & key) const;
 
     /** Parse the url components (separated by / ) into the components member.
      */
