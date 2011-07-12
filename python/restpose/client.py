@@ -15,8 +15,8 @@ Example:
     >>> coll = server.collection("my_coll")
     >>> coll.add_doc(doc, type="blurb", id="1")
     >>> checkpt = coll.checkpoint().wait()
-    >>> checkpt.total_errors, checkpt.errors, checkpt.reached, checkpt.expired
-    (0, [], True, False)
+    >>> checkpt.total_errors, checkpt.errors, checkpt.reached
+    (0, [], True)
     >>> query = coll.type("blurb").field_is('tag', 'A tag')
     >>> results = query.search().do()
     >>> results.matches_estimated
@@ -65,6 +65,17 @@ class Server(object):
 
         """
         return self._resource.get('/status').json
+
+    @property
+    def collections(self):
+        """Get a list of existing collections.
+
+        """
+        resp = self._resource.get('/coll')
+        if resp.status_int != 200:
+            raise RestPoseError("Unexpected return status: %d" %
+                                resp.status_int)
+        return resp.json.keys()
 
     def collection(self, coll_name):
         """Access to a collection.
@@ -374,6 +385,12 @@ class Collection(QueryTarget):
         return CheckPoint(self,
             self._resource.post(self._basepath + "/checkpoint").json)
 
+    def delete(self):
+        """Delete the entire collection.
+
+        """
+        self._resource.delete(self._basepath)
+
 class CheckPoint(object):
     """A checkpoint, used to check the progress of indexing.
 
@@ -382,6 +399,10 @@ class CheckPoint(object):
         self._check_id = chkpt_response.get('checkid')
         self._basepath = collection._basepath + '/checkpoint/' + self._check_id
         self._resource = collection._resource
+
+        # The raw representation of the checkpoint, as returned from the
+        # request, or None if the checkpoint hasn't been reached or expired, or
+        # 'expired' if the checkpoint has expired.
         self._raw = None
 
     @property
@@ -396,34 +417,33 @@ class CheckPoint(object):
     def _refresh(self):
         """Contact the server, and get the status of the checkpoint.
 
-        """
-        res = self._resource.get(self._basepath).json
-        if res is None:
-            self._raw = 'expired'
-        elif res.get('reached', False):
-            self._raw = res
-
-    @property
-    def expired(self):
-        """Return true if a checkpoint has expired.
-
-        Contacts the server to check the current state.
+        If the checkpoint has been reached or expired, this doesn't contact the
+        server, since the checkpoint should no longer change at this point.
 
         """
-        if self._raw != 'expired':
-            self._refresh()
-        return self._raw == 'expired'
+        if self._raw is None:
+            resp = self._resource.get(self._basepath).json
+            if resp is None:
+                self._raw = 'expired'
+            elif resp.get('reached', False):
+                self._raw = resp
+
+        if self._raw == 'expired':
+            raise CheckPointExpiredError("Checkpoint %s expired" %
+                                         self.check_id)
 
     @property
     def reached(self):
         """Return true if the checkpoint has been reached.
 
-        Contacts the server to check the current state.
+        May contact the server to check the current state.
+
+        Raises CheckPointExpiredError if the checkpoint expired before the
+        state was checked.
 
         """
-        if self._raw is None:
-            self._refresh()
-        return self._raw is not None
+        self._refresh()
+        return self._raw is not None and self._raw != 'expired'
 
     @property
     def errors(self):
@@ -434,7 +454,11 @@ class CheckPoint(object):
 
         Returns None if the checkpoint hasn't been reached yet.
 
+        Raises CheckPointExpiredError if the checkpoint expired before the
+        state was checked.
+
         """
+        self._refresh()
         if self._raw is None:
             return None
         return self._raw.get('errors', [])
@@ -448,7 +472,11 @@ class CheckPoint(object):
 
         Returns None if the checkpoint hasn't been reached yet.
 
+        Raises CheckPointExpiredError if the checkpoint expired before the
+        state was checked.
+
         """
+        self._refresh()
         if self._raw is None:
             return None
         return self._raw.get('total_errors', 0)
@@ -466,9 +494,7 @@ class CheckPoint(object):
         """
         while True:
             self._refresh()
-            res = self._resource.get(self._basepath).json
-            if res.get('reached', False):
-                self._raw = res
+            if self._raw is not None:
                 return self
             # FIXME - sleep a bit.  Currently the server doesn't long-poll for
             # the checkpoint, so we need to sleep to avoid using lots of CPU.

@@ -19,4 +19,3 @@ class RestPoseTestCase(TestCase):
         self.assertEqual(chk.errors, errors)
         self.assertEqual(chk.total_errors, len(errors))
         self.assertTrue(chk.reached)
-        self.assertFalse(chk.expired)
