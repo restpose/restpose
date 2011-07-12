@@ -101,11 +101,27 @@ class ConnectionInfo {
     const std::vector<std::string> *
 	    get_uri_arg_vals(const std::string & key) const;
 
-    /** Get a the first value of a URI argument.
+    /** Get a value stored as a URI argument.
+     *
+     *  If there are multiple values stored, this will return one of them.
      *
      *  Returns NULL if the argument doesn't exist.
      */
     const std::string * get_uri_arg_val(const std::string & key) const;
+
+    /** Get a value stored as a URI argument, as a bool.
+     *
+     *  This gets the argument value, as for get_uri_arg_val(), and attempts
+     *  to convert it to a bool, as follows:
+     *
+     *  1, true, yes, on map to true.
+     *  0, false, no, off map to false.
+     *
+     *  If no argument is stored, or the value is none of the above, returns
+     *  defval.
+     */
+    bool get_uri_arg_bool(const std::string & key,
+			  bool defval) const;
 
     /** Parse the url components (separated by / ) into the components member.
      */

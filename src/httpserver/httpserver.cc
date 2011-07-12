@@ -175,6 +175,29 @@ ConnectionInfo::get_uri_arg_val(const string & key) const
     return &(vals->front());
 }
 
+bool
+ConnectionInfo::get_uri_arg_bool(const string & key,
+				 bool defval) const
+{
+    const string * valptr = get_uri_arg_val(key);
+    if (valptr == NULL) {
+	return defval;
+    }
+
+    string val;
+    val.reserve(valptr->size());
+    for (string::size_type i = 0; i != valptr->size(); ++i) {
+	val += tolower((*valptr)[i]);
+    }
+    if (val == "1" || val == "true" || val == "yes" || val == "on") {
+	return true;
+    }
+    if (val == "0" || val == "false" || val == "no" || val == "off") {
+	return false;
+    }
+    return defval;
+}
+
 void
 ConnectionInfo::parse_url_components()
 {
