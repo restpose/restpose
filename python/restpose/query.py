@@ -15,6 +15,8 @@ def query_struct(query):
         return copy.deepcopy(query.query)
     elif hasattr(query, 'items'):
         return dict([(k, copy.deepcopy(v)) for (k, v) in query.items()])
+    elif query is None:
+        return None
     raise TypeError("Query must either be a restpose.Query object, or have an 'items' method")
 
 class Query(object):
@@ -262,11 +264,16 @@ class Search(object):
         if display:
             self.body['display'] = display
 
+    def clone(self):
+        result = Search(self.target)
+        result.body = copy.deepcopy(self.body)
+        return result
+
     def offset(self, offset):
         """Get a new Search, with the offset set to the specified value.
         
         """
-        newself = copy.deepcopy(self)
+        newself = self.clone()
         newself.body['from'] = int(offset)
         return newself
 
@@ -275,7 +282,7 @@ class Search(object):
         to the specified value.
         
         """
-        newself = copy.deepcopy(self)
+        newself = self.clone()
         newself.body['size'] = int(size)
         return newself
 
@@ -288,7 +295,7 @@ class Search(object):
         matching documents, but don't want to retrieve all matches.
 
         """
-        newself = copy.deepcopy(self)
+        newself = self.clone()
         newself.body['check_at_least'] = int(check_at_least)
         return newself
 
@@ -310,7 +317,7 @@ class Search(object):
         @param stopwords: list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]
 
         """
-        newself = copy.deepcopy(self)
+        newself = self.clone()
         info = newself.body.setdefault('info', [])
         info.append({'occur': dict(prefix=prefix,
                                    doc_limit=doc_limit,
@@ -334,7 +341,7 @@ class Search(object):
         get_termfreqs was true.
 
         """
-        newself = copy.deepcopy(self)
+        newself = self.clone()
         info = newself.body.setdefault('info', [])
         info.append({'cooccur': dict(prefix=prefix,
                                      doc_limit=doc_limit,
