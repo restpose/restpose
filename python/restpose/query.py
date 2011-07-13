@@ -262,6 +262,36 @@ class Search(object):
         if display:
             self.body['display'] = display
 
+    def offset(self, offset):
+        """Get a new Search, with the offset set to the specified value.
+        
+        """
+        newself = copy.deepcopy(self)
+        newself.body['from'] = int(offset)
+        return newself
+
+    def size(self, size):
+        """Get a new Search, with the requested number of results to return set
+        to the specified value.
+        
+        """
+        newself = copy.deepcopy(self)
+        newself.body['size'] = int(size)
+        return newself
+
+    def check_at_least(self, size):
+        """Get a new Search, with the check_at_least value to use when running
+        the search set to the specified value.
+
+        This is the minimum number of documents to try and check when running
+        the search - useful mainly when you want reasonably accurate counts of
+        matching documents, but don't want to retrieve all matches.
+
+        """
+        newself = copy.deepcopy(self)
+        newself.body['check_at_least'] = int(check_at_least)
+        return newself
+
     def calc_occur(self, prefix, doc_limit=None, result_limit=None,
                    get_termfreqs=False, stopwords=[]):
         """Get occurrence counts of terms in the matching documents.
@@ -280,14 +310,15 @@ class Search(object):
         @param stopwords: list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]
 
         """
-        info = self.body.setdefault('info', [])
+        newself = copy.deepcopy(self)
+        info = newself.body.setdefault('info', [])
         info.append({'occur': dict(prefix=prefix,
                                    doc_limit=doc_limit,
                                    result_limit=result_limit,
                                    get_termfreqs=get_termfreqs,
                                    stopwords=stopwords,
                                   )})
-        return self
+        return newself
 
     def calc_cooccur(self, prefix, doc_limit=None, result_limit=None,
                      get_termfreqs=False, stopwords=[]):
@@ -303,14 +334,15 @@ class Search(object):
         get_termfreqs was true.
 
         """
-        info = self.body.setdefault('info', [])
+        newself = copy.deepcopy(self)
+        info = newself.body.setdefault('info', [])
         info.append({'cooccur': dict(prefix=prefix,
                                      doc_limit=doc_limit,
                                      result_limit=result_limit,
                                      get_termfreqs=get_termfreqs,
                                      stopwords=stopwords,
                                     )})
-        return self
+        return newself
 
     def do(self):
         return self.target.search(self)
