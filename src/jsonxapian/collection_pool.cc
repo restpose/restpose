@@ -24,6 +24,8 @@
 
 #include <config.h>
 #include "collection_pool.h"
+
+#include <algorithm>
 #include "diritor.h"
 #include <memory>
 #include "omassert.h"
@@ -40,7 +42,7 @@ using namespace RestPose;
 
 CollectionPool::CollectionPool(const string & datadir_)
 	: datadir(datadir_),
-	  max_cached_readers_per_collection(0) // FIXME - currently, we disable caching of readers because when a collection is deleted, we need to know to invalidate all cached readers, including those which are currently assigned to tasks.  To do this, we need to start tracking the assigned readers, and add some way of checking whether the collection has been deleted since these readers were assigned, and skip adding the readers to the cache when they are returned in this situation.  For a quick fix, until this can be implemented, I've just disabled caching of readers.
+	  max_cached_readers_per_collection(5)
 {
     if (!string_endswith(datadir, DIR_SEPARATOR)) {
 	datadir += DIR_SEPARATOR;
@@ -100,6 +102,11 @@ CollectionPool::del(const std::string & coll_name)
 	readonly.erase(i);
     }
 
+    i = readonly_in_use.find(coll_name);
+    if (i != readonly_in_use.end()) {
+	readonly_in_use.erase(i);
+    }
+
     map<string, Collection *>::iterator j = writable.find(coll_name);
     if (j != writable.end()) {
 	delete j->second;
@@ -127,6 +134,20 @@ CollectionPool::get_readonly(const string & collection)
 	i->second.pop_back();
     }
     result->open_readonly();
+
+    // Add collection to readonly_in_use
+    i = readonly_in_use.find(collection);
+    if (i == readonly_in_use.end()) {
+	// Insert a new element.
+	pair<map<string, vector<Collection *> >::iterator, bool> ret;
+	pair<string, vector<Collection *> > item;
+	item.first = collection;
+	ret = readonly_in_use.insert(item);
+	Assert(ret.second);
+	i = ret.first;
+    }
+    i->second.push_back(result.get());
+
     return result.release();
 }
 
@@ -171,7 +192,22 @@ CollectionPool::release(Collection * collection)
 	    }
 	}
     } else {
+	// Check if collection is in list of valid in-use collections.
 	map<string, vector<Collection *> >::iterator i;
+	i = readonly_in_use.find(collection->get_name());
+	if (i == readonly_in_use.end()) {
+	    return;
+	}
+	vector<Collection *>::iterator j = find(i->second.begin(),
+						i->second.end(),
+						collptr.get());
+	if (j == i->second.end()) {
+	    return;
+	}
+	// Remove from list of in-use collectins.
+	i->second.erase(j);
+
+	// Add back to pool.
 	i = readonly.find(collection->get_name());
 	if (i == readonly.end()) {
 	    // Insert a new element.

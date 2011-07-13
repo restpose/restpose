@@ -55,6 +55,16 @@ class CollectionPool {
      */
     std::map<std::string, std::vector<RestPose::Collection *> > readonly;
 
+    /** The valid readonly collections in use.
+     *
+     *  These are not owned by the pool, but should be returned to it after
+     *  use.  Unknown collections will just be deleted when returned.  Tracking
+     *  these is needed, so that if a collection is deleted, its entries in
+     *  this map are removed, and as a result, old handles on it will not be
+     *  used.
+     */
+    std::map<std::string, std::vector<RestPose::Collection *> > readonly_in_use;
+
     /** The writable collections owned by this pool, keyed by collection name.
      */
     std::map<std::string, RestPose::Collection *> writable;
