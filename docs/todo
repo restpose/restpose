@@ -38,7 +38,9 @@ Before an initial release
    Location headers in responses are valid.
 
  - Re-enable caching of readers (see FIXME comment in constructor in
-   collection_pool.cc)
+   collection_pool.cc).  This is currently slowing down search operations
+   significantly (though it'll be a less significant difference for large
+   databases).
 
 Future
 ------
