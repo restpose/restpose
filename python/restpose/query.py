@@ -412,6 +412,14 @@ class SearchResults(object):
         return self._raw.get('matches_upper_bound', 0)
 
     @property
+    def estimate_is_exact(self):
+        """Return True if the value returned by matches_estimated is exact,
+        False if it isn't (or at least, isn't guaranteed to be).
+
+        """
+        return self.matches_lower_bound == self.matches_upper_bound
+
+    @property
     def items(self):
         """The matching result items."""
         if self._items is None:
@@ -424,9 +432,20 @@ class SearchResults(object):
         return self._raw.get('info', {})
 
     def __iter__(self):
+        """Get an iterator over all items in this result set.
+
+        The iterator produces SearchResult items.
+
+        """
         return iter(self.items)
 
     def __len__(self):
+        """Get the number of items in this result set.
+
+        This is the number of items produced by iterating over the result set.
+        It is not (usually) the number of items matching the search.
+
+        """
         return len(self.items)
 
     def __str__(self):
