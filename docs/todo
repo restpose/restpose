@@ -37,11 +37,6 @@ Before an initial release
  - If the client doesn't send a Host header, we need to synthesise one so that
    Location headers in responses are valid.
 
- - Re-enable caching of readers (see FIXME comment in constructor in
-   collection_pool.cc).  This is currently slowing down search operations
-   significantly (though it'll be a less significant difference for large
-   databases).
-
 Future
 ------
 
