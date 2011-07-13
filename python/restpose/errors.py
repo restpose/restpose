@@ -11,6 +11,7 @@ Errors specific to RestPose.
 class RestPoseError(Exception):
     pass
 
+
 class CheckPointExpiredError(RestPoseError):
     """An error raised when a checkpoint has expired.
 

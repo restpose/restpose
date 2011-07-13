@@ -89,6 +89,7 @@ class Server(object):
         """
         return Collection(self, coll_name)
 
+
 class QueryTarget(object):
     """An object which can be used to make and run queries.
 
@@ -396,6 +397,7 @@ class Collection(QueryTarget):
 
         """
         self._resource.delete(self._basepath)
+
 
 class CheckPoint(object):
     """A checkpoint, used to check the progress of indexing.

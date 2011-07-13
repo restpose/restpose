@@ -33,6 +33,7 @@ class RestPoseResponse(restkit.Response):
             return json.loads(self.body_string())
         return None
 
+
 class RestPoseResource(restkit.Resource):
     def __init__(self, uri, **client_opts):
         client_opts['response_class'] = RestPoseResponse
