@@ -15,6 +15,7 @@ class DummyTarget(object):
     	self.last = q
 	return query.SearchResults({})
 
+
 class QueryTest(TestCase):
     def test_ops(self):
         target = DummyTarget()
