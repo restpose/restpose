@@ -19,6 +19,7 @@ def query_struct(query):
         return None
     raise TypeError("Query must either be a restpose.Query object, or have an 'items' method")
 
+
 class Query(object):
     """Base class of all queries.
 
@@ -100,6 +101,7 @@ class Query(object):
                 kwargs['target'] = self.target
         return Search(query=self, **kwargs)
 
+
 class QueryField(Query):
     """A query in a particular field.
 
@@ -108,6 +110,7 @@ class QueryField(Query):
         super(QueryField, self).__init__(target=target)
         self.query = dict(field=[fieldname, querytype, value])
 
+
 class QueryMeta(Query):
     """A query for meta information (about field presence, errors, etc).
 
@@ -115,6 +118,7 @@ class QueryMeta(Query):
     def __init__(self, querytype, value, target=None):
         super(QueryMeta, self).__init__(target=target)
         self.query = dict(meta=[querytype, value])
+
 
 class QueryAll(Query):
     """A query which matches all documents.
@@ -354,6 +358,7 @@ class Search(object):
     def do(self):
         return self.target.search(self)
 
+
 class SearchResult(object):
     def __init__(self, rank, data):
         self.rank = rank
@@ -363,6 +368,7 @@ class SearchResult(object):
         return 'SearchResult(rank=%d, data=%s)' % (
             self.rank, self.data,
         )
+
 
 class InfoItem(object):
     def __init__(self, raw):
