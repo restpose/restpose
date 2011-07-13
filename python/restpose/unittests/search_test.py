@@ -240,6 +240,41 @@ class SearchTest(RestPoseTestCase):
         results = self.coll.doc_type("blurb").search(dict(query=dict(matchall=True)))
         self.check_results(results, items=self.expected_items_single)
 
+    def test_query_adjust_offset(self):
+        """Test adjusting the configured offset for a search.
+
+        """
+        q = self.coll.doc_type("blurb").query_all()
+        search = q.search()
+        self.check_results(search.offset(1).do(), offset=1,
+                           matches_lower_bound=1,
+                           matches_estimated=1,
+                           matches_upper_bound=1,
+                           items=[])
+        # Check that the adjustment didn't change the original search.
+        self.check_results(search.do(), items=self.expected_items_single)
+
+    def test_query_adjust_size(self):
+        """Test adjusting the configured size for a search.
+
+        """
+        q = self.coll.doc_type("blurb").query_all()
+        search = q.search()
+        self.check_results(search.size(1).do(), size_requested=1,
+                           items=self.expected_items_single)
+        # Check that the adjustment didn't change the original search.
+        self.check_results(search.do(), items=self.expected_items_single)
+
+    def test_query_adjust_check_at_least(self):
+        """Test adjusting the configured check_at_least value for a search.
+
+        """
+        q = self.coll.doc_type("blurb").query_all()
+        search = q.search()
+        self.check_results(search.check_at_least(1).do(), check_at_least=1,
+                           items=self.expected_items_single)
+        # Check that the adjustment didn't change the original search.
+        self.check_results(search.do(), items=self.expected_items_single)
 
     def test_resource_log_search(self):
         "Test runnning a search, using a special resource to log requests."

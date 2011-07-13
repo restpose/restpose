@@ -286,7 +286,7 @@ class Search(object):
         newself.body['size'] = int(size)
         return newself
 
-    def check_at_least(self, size):
+    def check_at_least(self, check_at_least):
         """Get a new Search, with the check_at_least value to use when running
         the search set to the specified value.
 
