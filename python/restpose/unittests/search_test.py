@@ -128,88 +128,87 @@ class SearchTest(RestPoseTestCase):
 
     def test_field_is(self):
         q = self.coll.doc_type("blurb").field_is('tag', 'A tag')
-        results = q.search().do()
+        results = q.results
         self.check_results(results, items=self.expected_items_single)
 
     def test_field_exists(self):
         q = self.coll.doc_type("blurb").field_exists()
-        results = q.search().do()
+        results = q.results
         self.check_results(results, items=self.expected_items_single)
 
         q = self.coll.doc_type("blurb").field_exists('tag')
-        results = q.search().do()
+        results = q.results
         self.check_results(results, items=self.expected_items_single)
 
         q = self.coll.doc_type("blurb").field_exists('id')
         # ID field is not stored, so searching for its existence returns
         # nothing.
-        results = q.search().do()
+        results = q.results
         self.check_results(results, items=[])
 
         q = self.coll.doc_type("blurb").field_exists('type')
         # Type field is not stored, so searching for its existence returns
         # nothing.
-        results = q.search().do()
+        results = q.results
         self.check_results(results, items=[])
 
         q = self.coll.doc_type("blurb").field_exists('missing')
-        results = q.search().do()
+        results = q.results
         self.check_results(results, items=[])
 
     def test_field_empty(self):
         q = self.coll.doc_type("blurb").field_empty()
-        self.check_results(q.search().do(), items=self.expected_items_single)
+        self.check_results(q.results, items=self.expected_items_single)
 
         q = self.coll.doc_type("blurb").field_empty('empty')
-        self.check_results(q.search().do(), items=self.expected_items_single)
+        self.check_results(q.results, items=self.expected_items_single)
 
         q = self.coll.doc_type("blurb").field_empty('text')
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
         q = self.coll.doc_type("blurb").field_empty('id')
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
         q = self.coll.doc_type("blurb").field_empty('type')
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
         q = self.coll.doc_type("blurb").field_empty('missing')
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
     def test_field_nonempty(self):
         q = self.coll.doc_type("blurb").field_nonempty()
-        self.check_results(q.search().do(), items=self.expected_items_single)
+        self.check_results(q.results, items=self.expected_items_single)
 
         q = self.coll.doc_type("blurb").field_nonempty('empty')
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
         q = self.coll.doc_type("blurb").field_nonempty('text')
-        self.check_results(q.search().do(), items=self.expected_items_single)
+        self.check_results(q.results, items=self.expected_items_single)
 
         q = self.coll.doc_type("blurb").field_nonempty('id')
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
         q = self.coll.doc_type("blurb").field_nonempty('type')
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
         q = self.coll.doc_type("blurb").field_nonempty('missing')
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
     def test_field_has_error(self):
         q = self.coll.doc_type("blurb").field_has_error()
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
     def test_query_all(self):
         q = self.coll.doc_type("blurb").query_all()
-        self.check_results(q.search().do(), items=self.expected_items_single)
+        self.check_results(q.results, items=self.expected_items_single)
 
     def test_query_none(self):
         q = self.coll.doc_type("blurb").query_none()
-        self.check_results(q.search().do(), items=[])
+        self.check_results(q.results, items=[])
 
     def test_calc_cooccur(self):
         q = self.coll.doc_type("blurb").query_all()
-        s = q.search()
-        results = q.search().calc_cooccur('t').do()
+        results = q.calc_cooccur('t').results
         self.assertEqual(self.coll.status.get('doc_count'), 1)
         self.check_results(results, check_at_least=1,
                            items=self.expected_items_single,
@@ -223,8 +222,7 @@ class SearchTest(RestPoseTestCase):
 
     def test_calc_occur(self):
         q = self.coll.doc_type("blurb").query_all()
-        s = q.search()
-        results = q.search().calc_occur('t').do()
+        results = q.calc_occur('t').results
         self.assertEqual(self.coll.status.get('doc_count'), 1)
         self.check_results(results, check_at_least=1,
                            items=self.expected_items_single,
@@ -245,36 +243,33 @@ class SearchTest(RestPoseTestCase):
 
         """
         q = self.coll.doc_type("blurb").query_all()
-        search = q.search()
-        self.check_results(search.offset(1).do(), offset=1,
+        self.check_results(q[1:].results, offset=1,
                            matches_lower_bound=1,
                            matches_estimated=1,
                            matches_upper_bound=1,
                            items=[])
         # Check that the adjustment didn't change the original search.
-        self.check_results(search.do(), items=self.expected_items_single)
+        self.check_results(q.results, items=self.expected_items_single)
 
     def test_query_adjust_size(self):
         """Test adjusting the configured size for a search.
 
         """
         q = self.coll.doc_type("blurb").query_all()
-        search = q.search()
-        self.check_results(search.size(1).do(), size_requested=1,
+        self.check_results(q[:1].results, size_requested=1,
                            items=self.expected_items_single)
         # Check that the adjustment didn't change the original search.
-        self.check_results(search.do(), items=self.expected_items_single)
+        self.check_results(q.results, items=self.expected_items_single)
 
     def test_query_adjust_check_at_least(self):
         """Test adjusting the configured check_at_least value for a search.
 
         """
         q = self.coll.doc_type("blurb").query_all()
-        search = q.search()
-        self.check_results(search.check_at_least(1).do(), check_at_least=1,
+        self.check_results(q.check_at_least(1).results, check_at_least=1,
                            items=self.expected_items_single)
         # Check that the adjustment didn't change the original search.
-        self.check_results(search.do(), items=self.expected_items_single)
+        self.check_results(q.results, items=self.expected_items_single)
 
     def test_resource_log_search(self):
         "Test runnning a search, using a special resource to log requests."
@@ -314,18 +309,18 @@ class SearchTest(RestPoseTestCase):
         empty_query = coll.doc_type("empty_type").query_all()
         missing_query = coll.doc_type("missing_type").query_all()
 
-        self.assertEqual(empty_query
-                         .search(offset=7, size=11, check_at_least=3)
-                         .do()._raw,
-                         missing_query
-                         .search(offset=7, size=11, check_at_least=3)
-                         .do()._raw)
+        self.assertEqual(empty_query[7:18]
+                         .check_at_least(3)
+                         .results._raw,
+                         missing_query[7:18]
+                         .check_at_least(3)
+                         .results._raw)
 
-        self.assertEqual(empty_query
-                         .search(offset=7, size=11, check_at_least=3)
+        self.assertEqual(empty_query[7:18]
+                         .check_at_least(3)
                          .calc_cooccur('t')
-                         .do()._raw,
-                         missing_query
-                         .search(offset=7, size=11, check_at_least=3)
+                         .results._raw,
+                         missing_query[7:18]
+                         .check_at_least(3)
                          .calc_cooccur('t')
-                         .do()._raw)
+                         .results._raw)

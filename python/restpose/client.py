@@ -18,12 +18,11 @@ Example:
     >>> checkpt.total_errors, checkpt.errors, checkpt.reached
     (0, [], True)
     >>> query = coll.doc_type("blurb").field_is('tag', 'A tag')
-    >>> results = query.search().do()
-    >>> results.matches_estimated
+    >>> query.results.matches_estimated
     1
-    >>> results.items[0].data['id']
+    >>> query.results.items[0].data['id']
     ['1']
-    >>> results.items[0].data['type']
+    >>> query.results.items[0].data['type']
     ['blurb']
 
 """
@@ -223,16 +222,17 @@ class QueryTarget(object):
         """
         return self.query_meta('error', (fieldname,))
 
-    def search(self, query):
+    def search(self, search):
         """Perform a search.
 
+        @param search is a search structure to be sent to the server, or a
+        Search or Query object.
+
         """
-        if isinstance(query, Query):
-            body = Search(target=self, query=query).body
-        elif isinstance(query, Search):
-            body = query.body
+        if hasattr(search, '_build_search'):
+            body = search._build_search()
         else:
-            body = query
+            body = search
         result = self._resource.post(self._basepath + "/search",
                                      payload=body).json
         return SearchResults(result)
