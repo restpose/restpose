@@ -162,6 +162,21 @@ class QueryTest(TestCase):
         chk(target, from_=0)
 
 
+        # Check negative indexes.
+        self.assertRaises(IndexError, q.__getitem__, slice(-1, None))
+        self.assertRaises(IndexError, q.__getitem__, slice(None, -1))
+
+
+        # Check (mostly invalid) step values
+        self.assertRaises(IndexError, q.__getitem__, slice(0, None, 0))
+        self.assertRaises(IndexError, q.__getitem__, slice(0, None, 2))
+        q[0::1].results
+        chk(target, from_=0)
+
+        # Check invalid index
+        self.assertRaises(TypeError, q.__getitem__, "bad index")
+
+
         # Check all types of subslice for a slice with stat and end set.
         q[10:20][3:5].results
         chk(target, from_=13, size=2)
@@ -259,3 +274,10 @@ class QueryTest(TestCase):
 
         q[:][:].results
         chk(target, from_=0)
+
+    def test_no_target(self):
+        """Test behaviour of a query for which no target is set.
+
+        """
+        q = query.QueryField("fieldname", "is", "10")
+        self.assertRaises(ValueError, getattr, q, 'results')
