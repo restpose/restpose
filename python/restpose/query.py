@@ -111,7 +111,7 @@ class Searchable(object):
         if isinstance(key, slice):
             result = self._search()
             if key.step is not None and int(key.step) != 1:
-                raise TypeError("step values != 1 are not currently supported")
+                raise IndexError("step values != 1 are not currently supported")
 
             # Get start from the slice, or 0 if not specified.
             if key.start is not None:
@@ -136,19 +136,15 @@ class Searchable(object):
             # Update the size.
             oldsize = result._size
             if stop is None:
-                if oldsize is None:
-                    newstop = None
-                else:
-                    newstop = oldstart + oldsize
-            else:
-                newsize = max(stop - start, 0)
-                newstop = start + oldstart + newsize
                 if oldsize is not None:
-                    oldstop = oldstart + oldsize
-                    newstop = min(oldstop, newstop)
+                    result._size = max(oldsize - start, 0)
+            else:
+                if oldsize is not None:
+                    newstop = min(oldsize, stop)
+                else:
+                    newstop = stop
+                result._size = max(newstop - start, 0)
 
-            if newstop is not None:
-                result._size = max(newstop - result._offset, 0)
 
             return result
 
