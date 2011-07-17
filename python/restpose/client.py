@@ -60,7 +60,9 @@ class Server(object):
     def status(self):
         """Get server status.
 
-        Returns a dictionary
+        Returns a dictionary.
+
+        @todo Document the contents of the response.
 
         """
         return self._resource.get('/status').json
