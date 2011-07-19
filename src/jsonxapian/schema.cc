@@ -1464,17 +1464,18 @@ Schema::perform_search(const CollectionConfig & collconfig,
 	}
     }
 
-    Xapian::doccount from, size, check_at_least;
+    Xapian::doccount total_docs, from, size, check_at_least;
+    total_docs = db.get_doccount();
     from = json_get_uint64_member(search, "from", Json::Value::maxUInt, 0);
 
     if (search["size"] == -1) {
-	size = db.get_doccount();
+	size = total_docs;
     } else {
 	size = json_get_uint64_member(search, "size", Json::Value::maxUInt, 10);
     }
 
     if (search["check_at_least"] == -1) {
-	check_at_least = db.get_doccount();
+	check_at_least = total_docs;
     } else {
 	check_at_least = json_get_uint64_member(search, "check_at_least",
 						Json::Value::maxUInt, 0);
@@ -1502,6 +1503,7 @@ Schema::perform_search(const CollectionConfig & collconfig,
 
     // Write the results
     info_handlers.write_results(results, mset);
+    results["total_docs"] = total_docs;
     results["from"] = from;
     results["size_requested"] = size;
     results["check_at_least"] = check_at_least;
