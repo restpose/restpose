@@ -60,6 +60,7 @@ FieldConfig::from_json(const Json::Value & value,
 		break;
 	    case 'd':
 		if (type == "date") return new DateFieldConfig(value);
+		if (type == "double") return new DoubleFieldConfig(value);
 		break;
 	    case 'e':
 		if (type == "exact") return new ExactFieldConfig(value);
@@ -605,6 +606,62 @@ TextFieldConfig::to_json(Json::Value & value) const
     value["store_field"] = store_field;
     value["processor"] = processor;
 }
+
+
+DoubleFieldConfig::DoubleFieldConfig(const Json::Value & value)
+{
+    json_check_object(value, "schema object");
+    slot = json_get_uint64_member(value, "slot", Xapian::BAD_VALUENO);
+    store_field = json_get_string_member(value, "store_field", string());
+}
+
+DoubleFieldConfig::~DoubleFieldConfig()
+{}
+
+FieldIndexer *
+DoubleFieldConfig::indexer() const
+{
+    return new DoubleIndexer(slot.get(), store_field);
+}
+
+Xapian::Query
+DoubleFieldConfig::query(const string & qtype,
+			 const Json::Value & value) const
+{
+    if (qtype != "range") {
+	throw InvalidValueError("Invalid query type \"" + qtype +
+				"\" for date field");
+    }
+    json_check_array(value, "filter value");
+    if (value.size() != 2) {
+	throw InvalidValueError("Numeric field range must have exactly two points");
+    }
+
+    if (!value[0].isConvertibleTo(Json::realValue)) {
+	throw InvalidValueError(std::string("JSON value for double field query (") +
+				json_serialise(value[0]) +
+				") was not convertible to a double");
+    }
+
+    if (!value[1].isConvertibleTo(Json::realValue)) {
+	throw InvalidValueError(std::string("JSON value for double field query (") +
+				json_serialise(value[1]) +
+				") was not convertible to a double");
+    }
+
+    string start = Xapian::sortable_serialise(value[0u].asDouble());
+    string end = Xapian::sortable_serialise(value[1u].asDouble());
+    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
+}
+
+void
+DoubleFieldConfig::to_json(Json::Value & value) const
+{
+    value["type"] = "double";
+    slot.to_json(value["slot"]);
+    value["store_field"] = store_field;
+}
+
 
 TimestampFieldConfig::TimestampFieldConfig(const Json::Value & value)
 {

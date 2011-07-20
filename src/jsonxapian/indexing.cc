@@ -178,6 +178,34 @@ StoredIndexer::index(IndexingState & state,
     state.docdata.set(store_field, json_serialise(values));
 }
 
+
+DoubleIndexer::~DoubleIndexer()
+{}
+
+void
+DoubleIndexer::index(IndexingState & state,
+		     const std::string & fieldname,
+		     const Json::Value & values) const
+{
+    for (Json::Value::const_iterator i = values.begin();
+	 i != values.end(); ++i) {
+	if ((*i).isNull()) {
+	    state.field_empty(fieldname);
+	} else if ((*i).isConvertibleTo(Json::realValue)) {
+	    state.field_nonempty(fieldname);
+	    state.doc.add_value(slot,
+				Xapian::sortable_serialise((*i).asDouble()));
+	} else {
+	    state.append_error(fieldname, "Double field must be numeric");
+	}
+    }
+
+    if (!store_field.empty()) {
+	state.docdata.set(store_field, json_serialise(values));
+    }
+}
+
+
 TimeStampIndexer::~TimeStampIndexer()
 {}
 

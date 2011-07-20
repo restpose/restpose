@@ -259,6 +259,41 @@ namespace RestPose {
 	Xapian::Query query_parse(const Json::Value & qparams) const;
     };
 
+    struct DoubleFieldConfig : public FieldConfig {
+	/// The slot to use for the field.
+	SlotName slot;
+
+	/// The fieldname to store field values under (empty to not store).
+	std::string store_field;
+
+	/// Create from a JSON object.
+	DoubleFieldConfig(const Json::Value & value);
+
+	/// Create from parameters.
+	DoubleFieldConfig(unsigned int slot_,
+			  const std::string & store_field_)
+		: slot(slot_),
+		  store_field(store_field_)
+	{}
+
+	virtual ~DoubleFieldConfig();
+
+	/// Create an indexer for the field.
+	FieldIndexer * indexer() const;
+
+	/// Create a query to search this field.
+	Xapian::Query query(const std::string & qtype,
+			    const Json::Value & value) const;
+
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
+
+	/// Add the configuration for a field to a JSON object.
+	void to_json(Json::Value & value) const;
+    };
+
     struct TimestampFieldConfig : public FieldConfig {
 	/// The slot to use for the field.
 	SlotName slot;
@@ -271,7 +306,7 @@ namespace RestPose {
 
 	/// Create from parameters.
 	TimestampFieldConfig(unsigned int slot_,
-			const std::string & store_field_)
+			     const std::string & store_field_)
 		: slot(slot_),
 		  store_field(store_field_)
 	{}

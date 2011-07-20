@@ -236,6 +236,25 @@ namespace RestPose {
     };
 
 
+    /** A field indexer which expects a number which can be represented as a double.
+     */
+    class DoubleIndexer : public FieldIndexer {
+	unsigned int slot;
+	std::string store_field;
+      public:
+	DoubleIndexer(unsigned int slot_,
+		      const std::string & store_field_)
+		: slot(slot_), store_field(store_field_)
+	{}
+
+	virtual ~DoubleIndexer();
+
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
+    };
+
+
     /** A field indexer which expects a number representing seconds since 1970.
      */
     class TimeStampIndexer : public FieldIndexer {

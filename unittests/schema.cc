@@ -307,6 +307,35 @@ TEST(IntegerExactFields)
     }
 }
 
+TEST(DoubleFields)
+{
+    CollectionConfig config("test"); // dummy config, used for testing.
+    Json::Value tmp, tmp2;
+    Schema s2("");
+    s2.set("num", new DoubleFieldConfig(7, "num"));
+    CHECK_EQUAL("{\"fields\":{\"num\":{\"slot\":7,\"store_field\":\"num\",\"type\":\"double\"}},\"patterns\":[]}",
+		json_serialise(s2.to_json(tmp2)));
+
+    Schema s("");
+    s.from_json(s2.to_json(tmp));
+    tmp = tmp2 = Json::nullValue;
+    CHECK_EQUAL(json_serialise(s.to_json(tmp)),
+		json_serialise(s2.to_json(tmp2)));
+
+    {
+	Json::Value v(Json::objectValue);
+	v["num"] = 0;
+	string idterm;
+	IndexingErrors errors;
+	Xapian::Document doc = s.process(v, config, idterm, errors);
+	CHECK_EQUAL(idterm, "");
+	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL("{\"data\":{\"num\":[0]},\"values\":{\"7\":\"\x80\"}}",
+		    json_serialise(doc_to_json(doc, tmp)));
+	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"num\":[0]}");
+    }
+}
+
 TEST(TimestampFields)
 {
     CollectionConfig config("test"); // dummy config, used for testing.
