@@ -420,10 +420,31 @@ class LargeSearchTest(RestPoseTestCase):
 
     def test_query_all(self):
         q = self.coll.doc_type("num").query_all()
-        # FIXME - sort by num
+        # FIXME - force sort by num
         self.assertEqual(q[0].data, self.make_doc(0))
         self.assertEqual(q[1].data, self.make_doc(1))
         self.assertEqual(q[50].data, self.make_doc(50))
         self.assertEqual(q[192].data, self.make_doc(192))
         self.assertRaises(IndexError, q.__getitem__, 193)
         self.assertEqual(len(q), 193)
+
+        qs = q[10:20]
+        self.assertEqual(qs[0].data, self.make_doc(10))
+        self.assertEqual(qs[1].data, self.make_doc(11))
+        self.assertEqual(qs[9].data, self.make_doc(19))
+        self.assertRaises(IndexError, q.__getitem__, 10)
+        self.assertRaises(IndexError, q.__getitem__, -1)
+
+        qs = q[190:200]
+        self.assertEqual(qs[0].data, self.make_doc(10))
+        self.assertEqual(qs[1].data, self.make_doc(11))
+        self.assertEqual(qs[2].data, self.make_doc(12))
+        self.assertRaises(IndexError, q.__getitem__, 3)
+        self.assertRaises(IndexError, q.__getitem__, -1)
+
+        qs = q[15:]
+        self.assertEqual(qs[0].data, self.make_doc(15))
+        self.assertEqual(q[50 - 15].data, self.make_doc(50))
+        self.assertEqual(q[192 - 15].data, self.make_doc(192))
+        self.assertRaises(IndexError, q.__getitem__, 193 - 15)
+        self.assertEqual(len(q), 193 - 15)
