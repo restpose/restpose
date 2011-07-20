@@ -73,10 +73,21 @@ hexesc(const std::string & input)
     result.reserve(input.size() * 2);
     for (std::string::size_type i = 0; i != input.size(); ++i) {
 	unsigned char ch = input[i];
-	if (ch == '\\') {
-	    result += '\\';
-	    continue;
-	} else if (ch >= 32 && ch <= 127) {
+	switch (ch) {
+	    case '\\':
+		result += "\\\\";
+		continue;
+	    case '\t':
+		result += "\\t";
+		continue;
+	    case '\n':
+		result += "\\n";
+		continue;
+	    case '\r':
+		result += "\\r";
+		continue;
+	}
+	if (ch >= 32 && ch <= 127) {
 	    result += ch;
 	    continue;
 	}
