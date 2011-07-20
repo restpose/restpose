@@ -1576,9 +1576,15 @@ Schema::perform_search(const CollectionConfig & collconfig,
 	items.append(item);
     }
     if (verbose) {
-	// FIXME - give debugging details about the search executed.
+	// Give debugging details about the search executed.
 	// Note - we can't just include query.get_description() in the output,
-	// because this isn't always a valid unicode string.
+	// because this isn't always a valid unicode string, so we escape it
+	// with hexesc.
+	results["query_description"] = hexesc(query.get_description());
+
+	// Also include the serialised form, since this can be usefully
+	// unserialised to build testcases to demonstrate problems.
+	results["query_serialised"] = hexesc(query.serialise());
     }
 }
 
