@@ -26,10 +26,10 @@
 
 #include "doctojson.h"
 
-#include <json/writer.h>
-
 #include "docdata.h"
+#include <json/writer.h>
 #include "utils/jsonutils.h"
+#include "utils/stringutils.h"
 
 using namespace RestPose;
 
@@ -42,17 +42,20 @@ RestPose::doc_to_json(const Xapian::Document & doc, Json::Value & result)
     {
 	DocumentData docdata;
 	docdata.unserialise(doc.get_data());
-	Json::Value dataval(Json::objectValue);
+	Json::Value & dataval(result["data"]);
+	dataval = Json::objectValue;
 	for (DocumentData::const_iterator i = docdata.begin();
 	     i != docdata.end(); ++i) {
 	    json_unserialise(i->second, dataval[i->first]);
 	}
-	if (!dataval.empty())
-	    result["data"] = dataval;
+	if (dataval.empty()) {
+	    result.removeMember("data");
+	}
     }
 
     {
-	Json::Value termsval(Json::objectValue);
+	Json::Value & termsval(result["terms"]);
+	termsval = Json::objectValue;
 	for (Xapian::TermIterator i = doc.termlist_begin();
 	     i != doc.termlist_end(); ++i) {
 	    Json::Value termval(Json::objectValue);
@@ -67,21 +70,23 @@ RestPose::doc_to_json(const Xapian::Document & doc, Json::Value & result)
 		}
 		termval["positions"] = posval;
 	    }
-	    termsval[*i] = termval;
+	    termsval[hexesc(*i)] = termval;
 	}
-
-	if (!termsval.empty())
-	    result["terms"] = termsval;
+	if (termsval.empty()) {
+	    result.removeMember("terms");
+	}
     }
 
     {
-	Json::Value valuesval(Json::objectValue);
+	Json::Value & valuesval(result["values"]);
+	valuesval = Json::objectValue;
 	for (Xapian::ValueIterator i = doc.values_begin();
 	     i != doc.values_end(); ++i) {
-	    valuesval[Json::valueToString(Json::UInt64(i.get_valueno()))] = *i;
+	    valuesval[Json::valueToString(Json::UInt64(i.get_valueno()))] = hexesc(*i);
 	}
-	if (!valuesval.empty())
-	    result["values"] = valuesval;
+	if (valuesval.empty()) {
+	    result.removeMember("values");
+	}
     }
     return result;
 }
