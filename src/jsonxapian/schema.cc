@@ -184,8 +184,7 @@ MetaFieldConfig::query(const std::string & qtype,
 }
 
 void
-MetaFieldConfig::
-to_json(Json::Value & value) const
+MetaFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "meta";
     value["prefix"] = prefix.substr(0, prefix.size() - 1);
@@ -611,7 +610,7 @@ TextFieldConfig::to_json(Json::Value & value) const
 DoubleFieldConfig::DoubleFieldConfig(const Json::Value & value)
 {
     json_check_object(value, "schema object");
-    slot = json_get_uint64_member(value, "slot", Xapian::BAD_VALUENO);
+    slot = value["slot"];
     store_field = json_get_string_member(value, "store_field", string());
 }
 
@@ -708,7 +707,7 @@ TimestampFieldConfig::to_json(Json::Value & value) const
 DateFieldConfig::DateFieldConfig(const Json::Value & value)
 {
     json_check_object(value, "schema object");
-    slot = json_get_uint64_member(value, "slot", Xapian::BAD_VALUENO);
+    slot = value["slot"];
     store_field = json_get_string_member(value, "store_field", string());
 }
 
