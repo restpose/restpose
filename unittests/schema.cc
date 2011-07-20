@@ -334,6 +334,12 @@ TEST(DoubleFields)
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"num\":[0]}");
     }
+
+    Xapian::Database db = Xapian::InMemory::open();
+    Xapian::Query q = s.build_query(config, db, json_unserialise("{\"field\": [\"num\", \"range\", [-1, 1]]}", tmp));
+    CHECK_EQUAL("Xapian::Query(VALUE_RANGE 7 ^ \xa0)", q.get_description());
+    q = s.build_query(config, db, json_unserialise("{\"field\": [\"num\", \"range\", [0, 1]]}", tmp));
+    CHECK_EQUAL("Xapian::Query(VALUE_RANGE 7 \x80 \xa0)", q.get_description());
 }
 
 TEST(TimestampFields)
