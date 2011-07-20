@@ -144,24 +144,23 @@ class Searchable(object):
             raise IndexError("Rank requested is outsize slice range.")
         if self._size is not None and self._offset + self._size <= rank:
             raise IndexError("Rank requested is outsize slice range.")
-        if self.results is not None:
+        if self._results is not None:
             # Check if the requested range for the results includes the
             # specified rank.
             if self._results.offset <= rank and \
                self._results.offset + self._results.size_requested > rank:
                 return
 
-        if self.results is None:
-            if self._size is None:
-                # Fetch a page of results.
-                page_num = int((rank - self._offset) / self.page_size)
-                self._ensure_results(page_num * self.page_size,
-                                     self.page_size,
-                                     self._check_at_least)
-            else:
-                # Fetch the specified results.
-                self._ensure_results(self._offset, self._size,
-                                     self._check_at_least)
+        if self._size is None:
+            # Fetch a page of results.
+            page_num = int((rank - self._offset) / self.page_size)
+            self._ensure_results(page_num * self.page_size,
+                                 self.page_size,
+                                 self._check_at_least)
+        else:
+            # Fetch the specified results.
+            self._ensure_results(self._offset, self._size,
+                                 self._check_at_least)
 
     def __len__(self):
         """Get the exact number of matching documents.
