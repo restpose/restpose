@@ -63,6 +63,9 @@ Future
 
  - Add ability to set weighting scheme / parameters.
 
+ - Python bindings - add an easy way to be notified of the queries performed in
+   a session, and document how to hook that into Django's debug views.
+
 To think about
 --------------
 
