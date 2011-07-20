@@ -64,4 +64,28 @@ string_join(const std::string & separator, Iterator begin, Iterator end)
     return result;
 }
 
+/** Escape non-ascii characters in the string.
+ */
+inline std::string
+hexesc(const std::string & input)
+{
+    std::string result;
+    result.reserve(input.size() * 2);
+    for (std::string::size_type i = 0; i != input.size(); ++i) {
+	unsigned char ch = input[i];
+	if (ch == '\\') {
+	    result += '\\';
+	    continue;
+	} else if (ch >= 32 && ch <= 127) {
+	    result += ch;
+	    continue;
+	}
+	result += "\\x";
+	result += "0123456789abcdef"[(ch & 0xf0) >> 4];
+	result += "0123456789abcdef"[(ch & 0x0f)];
+    }
+
+    return result;
+}
+
 #endif /* RESTPOSE_INCLUDED_STRINGUTILS_H */
