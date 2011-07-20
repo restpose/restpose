@@ -78,7 +78,8 @@ Various types of search are possible:
    slightly faster to parse).
 
  - "range": searches for documents in which a stored value is in a given range.
-   This type is currently available only for "date" and "timestamp" field types.
+   This type is currently available only for "double", "date" and "timestamp"
+   field types.
 
  - "text": searches for a piece of text in a text field.  The value to search
    for may be a single string, or an object holding the following parameters:

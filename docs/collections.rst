@@ -158,6 +158,22 @@ can be one of:
 
  - `truncate`: Truncate the field value to the `max_length` value.
 
+Numeric (double) fields
+-----------------------
+
+(`type` = `double`)
+
+Numeric fields expect a numeric value, which will be stored as a double
+precision floating point value.  Precision loss may occur if the numeric values
+supplied cannot be represented as a double precision floating point value (but
+note that, for example, all 32 bit integer values can be accurately represented
+as doubles).
+
+They have one additional parameter: the "slot" parameter, which is the number
+or name of the slot that the values will be stored in.  Each numeric field that
+should be searchable should be given a distinct value for the "slot" parameter.
+See the `slot_numbers`_ section for more details about slot numbers.
+
 Category fields
 ---------------
 
