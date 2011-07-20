@@ -114,6 +114,8 @@ CollectionConfig::set_default_schema()
 "  \"patterns\": ["
 "    [ \"*_text\", { \"type\": \"text\", \"prefix\": \"t*\", \"store_field\": \"*_text\", \"processor\": \"stem_en\" } ],"
 "    [ \"text\", { \"type\": \"text\", \"prefix\": \"t\", \"store_field\": \"text\", \"processor\": \"stem_en\" } ],"
+"    [ \"*_num\", { \"type\": \"double\", \"slot\": \"n*\", \"store_field\": \"*_num\" } ],"
+"    [ \"num\", { \"type\": \"double\", \"slot\": \"n\", \"store_field\": \"num\" } ],"
 "    [ \"*_time\", { \"type\": \"timestamp\", \"slot\": \"d*\", \"store_field\": \"*_time\" } ],"
 "    [ \"time\", { \"type\": \"timestamp\", \"slot\": \"d\", \"store_field\": \"time\" } ],"
 "    [ \"*_tag\", { \"type\": \"exact\", \"prefix\": \"g*\", \"store_field\": \"*_tag\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"

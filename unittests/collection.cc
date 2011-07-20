@@ -45,6 +45,8 @@ using namespace RestPose;
   "\"patterns\":[" \
     "[\"*_text\",{\"prefix\":\"t*\",\"processor\":\"stem_en\",\"store_field\":\"*_text\",\"type\":\"text\"}]," \
     "[\"text\",{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}]," \
+    "[\"*_num\",{\"slot\":\"n*\",\"store_field\":\"*_num\",\"type\":\"double\"}]," \
+    "[\"num\",{\"slot\":\"n\",\"store_field\":\"num\",\"type\":\"double\"}]," \
     "[\"*_time\",{\"slot\":\"d*\",\"store_field\":\"*_time\",\"type\":\"timestamp\"}]," \
     "[\"time\",{\"slot\":\"d\",\"store_field\":\"time\",\"type\":\"timestamp\"}]," \
     "[\"*_tag\",{\"max_length\":100,\"prefix\":\"g*\",\"store_field\":\"*_tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
