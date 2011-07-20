@@ -549,15 +549,6 @@ namespace RestPose {
 	/// Assignment not allowed.
 	void operator=(const Schema &);
 
-	/// Build a Xapian query from a JSON query structure.
-	Xapian::Query build_query(const CollectionConfig & collconfig,
-				  const Xapian::Database & db,
-				  const Json::Value & query) const;
-
-	/// Get the list of fields to return, from a search
-	void get_fieldlist(Json::Value & result,
-			   const Json::Value & search) const;
-
       public:
 	Schema(const std::string & doc_type_) : doc_type(doc_type_) {}
 
@@ -614,6 +605,15 @@ namespace RestPose {
 	    const CollectionConfig & collconfig,
 	    std::string & idterm,
 	    IndexingErrors & errors);
+
+	/// Build a Xapian query from a JSON query structure.
+	Xapian::Query build_query(const CollectionConfig & collconfig,
+				  const Xapian::Database & db,
+				  const Json::Value & query) const;
+
+	/// Get the list of fields to return, from a search
+	void get_fieldlist(Json::Value & result,
+			   const Json::Value & search) const;
 
 	/** Perform a search.
 	 */
