@@ -57,9 +57,9 @@ TEST(SearchIntegerExactFields)
 	CHECK_EQUAL(0u, errors.errors.size());
 	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},"
-		     "\"terms\":{\"\\t\\t32\":{},"
-		                "\"intid\\t18446744073709551615\":{},"
-				"\"type\\ttesttype\":{}}}",
+		     "\"terms\":{\"\\\\t\\\\t32\":{},"
+		                "\"intid\\\\t18446744073709551615\":{},"
+				"\"type\\\\ttesttype\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(idterm, "\t\t32");
 	db.add_document(doc);
@@ -74,9 +74,9 @@ TEST(SearchIntegerExactFields)
 	CHECK_EQUAL(0u, errors.errors.size());
 	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"intid\":[31]},"
-		     "\"terms\":{\"\\t\\t18446744073709551615\":{},"
-				"\"intid\\t31\":{},"
-				"\"type\\ttesttype\":{}}}",
+		     "\"terms\":{\"\\\\t\\\\t18446744073709551615\":{},"
+				"\"intid\\\\t31\":{},"
+				"\"type\\\\ttesttype\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(idterm, "\t\t18446744073709551615");
 	db.add_document(doc);

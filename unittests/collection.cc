@@ -247,8 +247,8 @@ TEST(CollectionAddViaPipe)
 	  "\"pipes\":{\"default\":{\"mappings\":[{\"map\":[{\"from\":[\"foo\"],\"to\":\"bar\"}]}]}},"
 	  "\"types\":{\"default\":{\"fields\":{"
 	    "\"id\":{\"max_length\":64,"
-	            "\"store_field\":\"\","
-	            "\"too_long_action\":\"error\",\"type\":\"id\"},"
+		    "\"store_field\":\"\","
+		    "\"too_long_action\":\"error\",\"type\":\"id\"},"
 	    "\"foo\":{\"store_field\":\"foo\",\"type\":\"stored\"},"
 	    "\"bar\":{\"store_field\":\"bar\",\"type\":\"stored\"}"
 	  "}}}"
@@ -267,8 +267,8 @@ TEST(CollectionAddViaPipe)
 		  "\"bar\":{\"store_field\":\"bar\",\"type\":\"stored\"},"
 		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"stored\"},"
 		  "\"id\":{\"max_length\":64,"
-	                  "\"store_field\":\"\","
-	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
+			  "\"store_field\":\"\","
+			  "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
@@ -309,8 +309,8 @@ TEST(CollectionCategoriser)
 		  "\"text\":{\"store_field\":\"text\",\"type\":\"stored\"},"
 		  "\"lang\":{\"store_field\":\"lang\",\"type\":\"stored\"},"
 		  "\"id\":{\"max_length\":64,"
-	                  "\"store_field\":\"\","
-	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
+			  "\"store_field\":\"\","
+			  "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		  "}}}"
 	"}", tmp));
     CHECK_EQUAL("{"
@@ -320,8 +320,8 @@ TEST(CollectionCategoriser)
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"id\":{\"max_length\":64,"
-	                  "\"store_field\":\"\","
-	                  "\"too_long_action\":\"error\",\"type\":\"id\"},"
+			  "\"store_field\":\"\","
+			  "\"too_long_action\":\"error\",\"type\":\"id\"},"
 		  "\"lang\":{\"store_field\":\"lang\",\"type\":\"stored\"},"
 		  "\"text\":{\"store_field\":\"text\",\"type\":\"stored\"}"
 		  "},\"patterns\":[]}}"
@@ -364,8 +364,8 @@ TEST(CollectionCategoriser)
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"id\":{\"max_length\":64,"
-	                  "\"store_field\":\"\","
-	                  "\"too_long_action\":\"error\",\"type\":\"id\"},"
+			  "\"store_field\":\"\","
+			  "\"too_long_action\":\"error\",\"type\":\"id\"},"
 		  "\"lang\":{\"store_field\":\"lang\",\"type\":\"stored\"},"
 		  "\"text\":{\"store_field\":\"text\",\"type\":\"stored\"}"
 		  "},\"patterns\":[]}}"
@@ -376,8 +376,8 @@ TEST(CollectionCategoriser)
 	  "{\"map\":["
 	    "{\"categoriser\":\"lang\",\"from\":[\"text\"],\"to\":\"lang\"},"
 	    "{\"from\":[\"text\"],\"to\":\"text\"}"
- 	  "]}"
-        "]}", tmp));
+	  "]}"
+	"]}", tmp));
     CHECK_EQUAL("{\"mappings\":["
 		  "{\"map\":["
 		    "{\"categoriser\":\"lang\",\"from\":[\"text\"],\"to\":\"lang\"},"
@@ -414,7 +414,7 @@ TEST(CollectionCategoriser)
 		   "\"lang\":[\"english\"],"
 		   "\"text\":[\"Hello world\"]"
 		 "},"
-		 "\"terms\":{\"\\tdefault\\t2\":{}}"
+		 "\"terms\":{\"\\\\tdefault\\\\t2\":{}}"
 		"}", json_serialise(tmp));
 }
 
@@ -433,8 +433,8 @@ TEST(CollectionCategory)
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"cat\",\"prefix\":\"foo\"},"
 		  "\"id\":{\"max_length\":64,"
-	                  "\"store_field\":\"\","
-	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
+			  "\"store_field\":\"\","
+			  "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		  "}}}"
 	"}", tmp));
     CHECK_EQUAL("{"
@@ -450,8 +450,8 @@ TEST(CollectionCategory)
 			   "\"too_long_action\":\"error\","
 			   "\"type\":\"cat\"},"
 		  "\"id\":{\"max_length\":64,"
-	                  "\"store_field\":\"\","
-	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
+			  "\"store_field\":\"\","
+			  "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
@@ -472,8 +472,8 @@ TEST(CollectionCategory)
 			   "\"too_long_action\":\"error\","
 			   "\"type\":\"cat\"},"
 		  "\"id\":{\"max_length\":64,"
-	                  "\"store_field\":\"\","
-	                  "\"too_long_action\":\"error\",\"type\":\"id\"}"
+			  "\"store_field\":\"\","
+			  "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
@@ -483,7 +483,7 @@ TEST(CollectionCategory)
 	std::string idterm;
 	Xapian::Document xdoc = c->process_doc(doc, "default", "0", idterm);
 	CHECK_EQUAL("\tdefault\t0", idterm);
-	CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"]},\"terms\":{\"\\tdefault\\t0\":{},\"foo\\tChello\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"]},\"terms\":{\"\\\\tdefault\\\\t0\":{},\"foo\\\\tChello\":{}}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
 
 	doc = Json::objectValue;
@@ -493,28 +493,28 @@ TEST(CollectionCategory)
 	idterm.resize(0);
 	xdoc = c->process_doc(doc, "default", "1", idterm);
 	CHECK_EQUAL("\tdefault\t1", idterm);
-	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
 	c->raw_update_doc(xdoc, idterm);
 
 	Json::Value tmp2;
 	c->get_document("default", "1", tmp2);
-	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));
 
 	c->category_add_parent("foo", "parent", "grand");
 	c->get_document("default", "1", tmp2);
-	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAgrand\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAgrand\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));
 
 	c->category_remove("foo", "child");
 	c->get_document("default", "1", tmp2);
-	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));
 
 	c->category_add_parent("foo", "child", "parent");
 	c->get_document("default", "1", tmp2);
-	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\tdefault\\t1\":{},\"foo\\tAgrand\":{},\"foo\\tAparent\":{},\"foo\\tCchild\":{},\"foo\\tCworld\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAgrand\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));
     }
 }
@@ -538,12 +538,14 @@ TEST(MetaInfoSimple)
     CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"],"
 		"\"id\":[\"0\"],"
 		"\"type\":[\"default\"]},"
-		"\"terms\":{\"\\tdefault\\t0\":{},"
-		"\"!\\tdefault\":{},"
-		"\"#\\tFfoo\":{},"
-		"\"#\\tN\":{},"
-		"\"#\\tNfoo\":{},"
-		"\"t\\thello\":{\"positions\":[1],\"wdf\":1}}}",
+		"\"terms\":{"
+			   "\"!\\\\tdefault\":{},"
+			   "\"#\\\\tFfoo\":{},"
+			   "\"#\\\\tN\":{},"
+			   "\"#\\\\tNfoo\":{},"
+			   "\"\\\\tdefault\\\\t0\":{},"
+			   "\"t\\\\thello\":{\"positions\":[1],\"wdf\":1}"
+		"}}",
 		json_serialise(doc_to_json(xdoc, tmp)));
 }
 
@@ -571,25 +573,26 @@ TEST(MetaInfoMissing)
 	CHECK_EQUAL("\tdefault\t0", idterm);
 	CHECK_EQUAL(0u, errors.errors.size());
 	CHECK_EQUAL("{\"data\":{\"foo_cat\":[null],"
-		               "\"foo_tag\":[null],"
-		               "\"foo_text\":[null],"
-		               "\"foo_time\":[null],"
-		               "\"foo_url\":[null],"
-		               "\"id\":[\"0\"],"
+			       "\"foo_tag\":[null],"
+			       "\"foo_text\":[null],"
+			       "\"foo_time\":[null],"
+			       "\"foo_url\":[null],"
+			       "\"id\":[\"0\"],"
 			       "\"type\":[\"default\"]},"
-		     "\"terms\":{\"\\tdefault\\t0\":{},"
-		                "\"!\\tdefault\":{},"
-		                "\"#\\tFfoo_cat\":{},"
-		                "\"#\\tFfoo_tag\":{},"
-		                "\"#\\tFfoo_text\":{},"
-		                "\"#\\tFfoo_time\":{},"
-		                "\"#\\tFfoo_url\":{},"
-		                "\"#\\tM\":{},"
-		                "\"#\\tMfoo_cat\":{},"
-		                "\"#\\tMfoo_tag\":{},"
-		                "\"#\\tMfoo_text\":{},"
-		                "\"#\\tMfoo_time\":{},"
-		                "\"#\\tMfoo_url\":{}}}",
+		     "\"terms\":{\"!\\\\tdefault\":{},"
+				"\"#\\\\tFfoo_cat\":{},"
+				"\"#\\\\tFfoo_tag\":{},"
+				"\"#\\\\tFfoo_text\":{},"
+				"\"#\\\\tFfoo_time\":{},"
+				"\"#\\\\tFfoo_url\":{},"
+				"\"#\\\\tM\":{},"
+				"\"#\\\\tMfoo_cat\":{},"
+				"\"#\\\\tMfoo_tag\":{},"
+				"\"#\\\\tMfoo_text\":{},"
+				"\"#\\\\tMfoo_time\":{},"
+				"\"#\\\\tMfoo_url\":{},"
+				"\"\\\\tdefault\\\\t0\":{}"
+		    "}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
     }
 }

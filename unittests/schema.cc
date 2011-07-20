@@ -116,7 +116,7 @@ TEST(SchemaToDoc)
 	CHECK_EQUAL(0u, errors.errors.size());
 	CHECK_EQUAL(doc.get_data(), "\003url\027[\"http://example.com/\"]");
 	Json::Value tmp;
-	CHECK_EQUAL("{\"data\":{\"url\":[\"http://example.com/\"]},\"terms\":{\"\\t\\tabcd\":{},\"url\\thttp://example.com/\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"url\":[\"http://example.com/\"]},\"terms\":{\"\\\\t\\\\tabcd\":{},\"url\\\\thttp://example.com/\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"url\":[\"http://example.com/\"]}");
     }
@@ -131,7 +131,7 @@ TEST(SchemaToDoc)
 	CHECK_EQUAL(0u, errors.errors.size());
 	CHECK_EQUAL(doc.get_data(), "");
 	Json::Value tmp;
-	CHECK_EQUAL("{\"terms\":{\"ns\\tabcd\":{}}}",
+	CHECK_EQUAL("{\"terms\":{\"ns\\\\tabcd\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{}");
     }
@@ -163,7 +163,7 @@ TEST(LongExactFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "\t\t0123456789012345678901234567890123456789012345678901234567890123");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"terms\":{\"\\t\\t0123456789012345678901234567890123456789012345678901234567890123\":{}}}",
+	CHECK_EQUAL("{\"terms\":{\"\\\\t\\\\t0123456789012345678901234567890123456789012345678901234567890123\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{}");
     }
@@ -176,7 +176,7 @@ TEST(LongExactFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"url\":[\"0123456789012345678901234567890\"]},\"terms\":{\"url\\t012345678901234567890123Y]^J/ \":{}}}",
+	CHECK_EQUAL("{\"data\":{\"url\":[\"0123456789012345678901234567890\"]},\"terms\":{\"url\\\\t012345678901234567890123Y]^J/ \":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"url\":[\"0123456789012345678901234567890\"]}");
     }
@@ -189,7 +189,7 @@ TEST(LongExactFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"tags\":[\"0123456789012345678901234567890\"]},\"terms\":{\"tags\\t012345678901234567890123456789\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"tags\":[\"0123456789012345678901234567890\"]},\"terms\":{\"tags\\\\t012345678901234567890123456789\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"tags\":[\"0123456789012345678901234567890\"]}");
     }
@@ -206,7 +206,7 @@ TEST(LongExactFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"valuable\":[\"012345678901234567890123456789\"]},\"terms\":{\"valuable\\t012345678901234567890123456789\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"valuable\":[\"012345678901234567890123456789\"]},\"terms\":{\"valuable\\\\t012345678901234567890123456789\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"valuable\":[\"012345678901234567890123456789\"]}");
     }
@@ -236,7 +236,7 @@ TEST(IntegerExactFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"intid\":[5000000000]},\"terms\":{\"intid\\t5000000000\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[5000000000]},\"terms\":{\"intid\\\\t5000000000\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"intid\":[5000000000]}");
     }
@@ -255,7 +255,7 @@ TEST(IntegerExactFields)
 	CHECK(reader.parse("{\"intid\": 0}", v, false));
 	errors.errors.clear();
 	Xapian::Document doc = s.process(v, config, idterm, errors);
-	CHECK_EQUAL("{\"data\":{\"intid\":[0]},\"terms\":{\"intid\\t0\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[0]},\"terms\":{\"intid\\\\t0\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
@@ -263,7 +263,7 @@ TEST(IntegerExactFields)
 	CHECK(reader.parse("{\"intid\": 1}", v, false));
 	errors.errors.clear();
 	doc = s.process(v, config, idterm, errors);
-	CHECK_EQUAL("{\"data\":{\"intid\":[1]},\"terms\":{\"intid\\t1\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[1]},\"terms\":{\"intid\\\\t1\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
@@ -271,7 +271,7 @@ TEST(IntegerExactFields)
 	CHECK(reader.parse("{\"intid\": 4294967295}", v, false)); // 2**32-1
 	errors.errors.clear();
 	doc = s.process(v, config, idterm, errors);
-	CHECK_EQUAL("{\"data\":{\"intid\":[4294967295]},\"terms\":{\"intid\\t4294967295\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[4294967295]},\"terms\":{\"intid\\\\t4294967295\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
@@ -279,7 +279,7 @@ TEST(IntegerExactFields)
 	CHECK(reader.parse("{\"intid\": 9223372036854775807}", v, false)); // 2**63-1
 	errors.errors.clear();
 	doc = s.process(v, config, idterm, errors);
-	CHECK_EQUAL("{\"data\":{\"intid\":[9223372036854775807]},\"terms\":{\"intid\\t9223372036854775807\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[9223372036854775807]},\"terms\":{\"intid\\\\t9223372036854775807\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
@@ -287,7 +287,7 @@ TEST(IntegerExactFields)
 	CHECK(reader.parse("{\"intid\": 9223372036854775808}", v, false)); // 2**63
 	errors.errors.clear();
 	doc = s.process(v, config, idterm, errors);
-	CHECK_EQUAL("{\"data\":{\"intid\":[9223372036854775808]},\"terms\":{\"intid\\t9223372036854775808\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[9223372036854775808]},\"terms\":{\"intid\\\\t9223372036854775808\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
@@ -295,7 +295,7 @@ TEST(IntegerExactFields)
 	CHECK(reader.parse("{\"intid\": 18446744073709551615}", v, false)); // 2**64-1
 	errors.errors.clear();
 	doc = s.process(v, config, idterm, errors);
-	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"intid\\t18446744073709551615\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"intid\\\\t18446744073709551615\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
@@ -330,7 +330,7 @@ TEST(DoubleFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"num\":[0]},\"values\":{\"7\":\"\x80\"}}",
+	CHECK_EQUAL("{\"data\":{\"num\":[0]},\"values\":{\"7\":\"\\\\x80\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"num\":[0]}");
     }
@@ -365,7 +365,7 @@ TEST(TimestampFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"timestamp\":[1283400000]},\"values\":{\"0\":\"\340\\\\\307\362\\u0014\"}}",
+	CHECK_EQUAL("{\"data\":{\"timestamp\":[1283400000]},\"values\":{\"0\":\"\\\\xe0\\\\\\\\\\\\xc7\\\\xf2\\\\x14\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"timestamp\":[1283400000]}");
     }
@@ -394,7 +394,7 @@ TEST(DateFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"date2\":[\"2010-06-08\"]},\"values\":{\"0\":\"\317\332&(\"}}",
+	CHECK_EQUAL("{\"data\":{\"date2\":[\"2010-06-08\"]},\"values\":{\"0\":\"\\\\xcf\\\\xda&(\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL("{\"date2\":[\"2010-06-08\"]}", s.display_doc_as_string(doc));
     }
@@ -423,7 +423,7 @@ TEST(CategoryFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"category\":[\"foo\"]},\"terms\":{\"cat\\tCfoo\":{}}}",
+	CHECK_EQUAL("{\"data\":{\"category\":[\"foo\"]},\"terms\":{\"cat\\\\tCfoo\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL("{\"category\":[\"foo\"]}", s.display_doc_as_string(doc));
     }
@@ -497,12 +497,12 @@ TEST(EnglishStemmedFields)
 	CHECK_EQUAL(0u, errors.errors.size());
 	CHECK_EQUAL("{\"data\":{\"text\":[\"Some english words\"]},\"terms\":{"
 
-		    "\"Zt\\tenglish\":{\"wdf\":1},"
-		    "\"Zt\\tsome\":{\"wdf\":1},"
-		    "\"Zt\\tword\":{\"wdf\":1},"
-		    "\"t\\tenglish\":{\"positions\":[2],\"wdf\":1},"
-		    "\"t\\tsome\":{\"positions\":[1],\"wdf\":1},"
-		    "\"t\\twords\":{\"positions\":[3],\"wdf\":1}"
+		    "\"Zt\\\\tenglish\":{\"wdf\":1},"
+		    "\"Zt\\\\tsome\":{\"wdf\":1},"
+		    "\"Zt\\\\tword\":{\"wdf\":1},"
+		    "\"t\\\\tenglish\":{\"positions\":[2],\"wdf\":1},"
+		    "\"t\\\\tsome\":{\"positions\":[1],\"wdf\":1},"
+		    "\"t\\\\twords\":{\"positions\":[3],\"wdf\":1}"
 		    
 		    "}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
@@ -533,7 +533,7 @@ TEST(CJKFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"text\":[\"Some english text\"]},\"terms\":{\"t\\tenglish\":{\"positions\":[2],\"wdf\":1},\"t\\tsome\":{\"positions\":[1],\"wdf\":1},\"t\\ttext\":{\"positions\":[3],\"wdf\":1}}}",
+	CHECK_EQUAL("{\"data\":{\"text\":[\"Some english text\"]},\"terms\":{\"t\\\\tenglish\":{\"positions\":[2],\"wdf\":1},\"t\\\\tsome\":{\"positions\":[1],\"wdf\":1},\"t\\\\ttext\":{\"positions\":[3],\"wdf\":1}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"text\":[\"Some english text\"]}");
     }
