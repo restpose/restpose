@@ -41,17 +41,19 @@ class LogResource(RestPoseResource):
 class SearchTest(RestPoseTestCase):
     maxDiff = 10000
 
+    expected_item_data =  {
+        'cat': ['greeting'],
+        'empty': [''],
+        'id': ['1'],
+        'tag': ['A tag'],
+        'text': ['Hello world'],
+        'type': ['blurb'],
+    }
+
     # Expected items for tests which return a single result
     expected_items_single = [
-        query.SearchResult(rank=0, data={
-                'cat': ['greeting'],
-                'empty': [''],
-                'id': ['1'],
-                'tag': ['A tag'],
-                'text': ['Hello world'],
-                'type': ['blurb'],
-            }),
-        ]
+        query.SearchResult(rank=0, data=expected_item_data),
+    ]
 
     def check_results(self, results, offset=0, size_requested=None, check_at_least=0,
                       matches_lower_bound=None,
@@ -85,7 +87,8 @@ class SearchTest(RestPoseTestCase):
         doc = { 'text': 'Hello world', 'tag': 'A tag', 'cat': "greeting",
                 'empty': "" }
         coll = Server().collection("test_coll")
-        #coll.delete()
+        coll.delete()
+        coll.checkpoint().wait()
         coll.add_doc(doc, doc_type="blurb", doc_id="1")
         chk = coll.checkpoint().wait()
         assert chk.total_errors == 0
@@ -331,3 +334,10 @@ class SearchTest(RestPoseTestCase):
                          .check_at_least(3)
                          .calc_cooccur('t')
                          .results._raw)
+
+    def test_query_subscript(self):
+        """Test subscript on a query.
+
+        """
+        q = self.coll.doc_type("blurb").query_all()
+        self.assertEqual(q[0].data, self.expected_item_data)
