@@ -29,7 +29,7 @@ Example:
 
 from .resource import RestPoseResource
 from .query import Query, QueryAll, QueryNone, QueryField, QueryMeta, \
-                   Search, SearchResults
+                   SearchResults
 from .errors import RestPoseError, CheckPointExpiredError
 
 class Server(object):

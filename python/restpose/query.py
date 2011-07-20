@@ -15,11 +15,9 @@ def _query_struct(query):
 
     """
     if isinstance(query, Query):
-        return copy.deepcopy(query.query)
+        return copy.deepcopy(query._query)
     elif hasattr(query, 'items'):
         return dict([(k, copy.deepcopy(v)) for (k, v) in query.items()])
-    elif query is None:
-        return None
     raise TypeError("Query must either be a restpose.Query object, or have an 'items' method")
 
 def _target_from_queries(queries):
@@ -44,8 +42,15 @@ class Searchable(object):
     """An object which can be sliced or iterated to perform a query.
 
     """
-    # Number of results to get in each request, if size is not explicitly set.
-    _page_size = 20
+    #: Number of results to get in each request, if size is not explicitly set.
+    page_size = 20
+
+    _query = None
+    _offset = 0
+    _size = None
+    _check_at_least = 0
+    _info = None
+    _results = None
 
     def __init__(self, target):
         """Create a new Searchable.
@@ -55,36 +60,108 @@ class Searchable(object):
 
         """
         self._target = target
-        self._results = None
 
     def _build_search(self, offset=None, size=None, check_at_least=None):
-        """Build a search structure to send to the server.
-
-        When supplied, the optional parameters should modify the corresponding
-        parts of the search structure.
+        """Build the search structure to send to the server.
 
         """
-        raise NotImplementedError
+        body = dict(query=self._query)
 
-    def _search(self):
-        """Convert the Searchable to a Search.
+        if offset is None:
+            offset = self._offset
+        if offset:
+            body['from'] = offset
 
-        Must return a Search object which may be modified without affecting
-        the Searchable.
+        if size is None:
+            size = self._size
+        if size is not None:
+            body['size'] = size
 
-        """
-        raise NotImplementedError
+        if check_at_least is None:
+            check_at_least = self._check_at_least
+        if check_at_least:
+            body['check_at_least'] = check_at_least
+
+        if self._info is not None:
+            body['info'] = self._info
+
+        return body
 
     @property
     def results(self):
         """Get the results for this search.
 
         """
-        if self._results is None:
-            if self._target is None:
-                raise ValueError("Target of search not set")
-            self._results = self._target.search(self)
+        self._ensure_results(self._offset, self._size, self._check_at_least)
         return self._results
+
+    def _ensure_results(self, offset, size, check_at_least):
+        """Ensure that the results contain items from offset to size, with
+        check_at_least being at least the value set.
+
+        """
+        if self._target is None:
+            raise ValueError("Target of search not set")
+
+        if size is None:
+            size = self.page_size
+
+        if self._results is not None:
+            need_recalc = False
+            if offset < self._results.offset:
+                need_recalc = True
+            elif (offset + size >
+                  self._results.offset + self._results.size_requested):
+                need_recalc = True
+            elif check_at_least == -1:
+                if self._results.total_docs > self._results.check_at_least:
+                    need_recalc = True
+            elif check_at_least is not None and check_at_least >= 0:
+                if check_at_least > self._results.check_at_least:
+                    need_recalc = True
+            if not need_recalc:
+                return
+
+        s = self._build_search(offset, size, check_at_least)
+        #print "search: ", s
+        self._results = self._target.search(s)
+        #print "raw results: ", self._results._raw
+
+    def _ensure_results_contain(self, rank):
+        """Ensure that the results contain the given rank.
+
+        If no size is set, and the offset is after the starting offset, will
+        fetch the necessary page of results (according to the page_size
+        setting).
+
+        If size is set, and the offset is within the valid range, will fetch
+        the results.
+
+        Otherwise, will raise IndexError.
+
+        """
+        if self._offset > rank:
+            raise IndexError("Rank requested is outsize slice range.")
+        if self._size is not None and self._offset + self._size <= rank:
+            raise IndexError("Rank requested is outsize slice range.")
+        if self.results is not None:
+            # Check if the requested range for the results includes the
+            # specified rank.
+            if self._results.offset <= rank and \
+               self._results.offset + self._results.size_requested > rank:
+                return
+
+        if self.results is None:
+            if self._size is None:
+                # Fetch a page of results.
+                page_num = int((rank - self._offset) / self.page_size)
+                self._ensure_results(page_num * self.page_size,
+                                     self.page_size,
+                                     self._check_at_least)
+            else:
+                # Fetch the specified results.
+                self._ensure_results(self._offset, self._size,
+                                     self._check_at_least)
 
     def __len__(self):
         """Get the exact number of matching documents.
@@ -98,67 +175,34 @@ class Searchable(object):
         """
         if self._results is not None and self._results.estimate_is_exact:
             return self._results.matches_estimated
-        FIXME
-        self._results
+
+        # Need to run a search with check_at_least = -1 to ensure exact
+        # estimate.
+        self._ensure_results(self._offset, self._size, -1)
+        assert self._results.estimate_is_exact
+        return self._results.matches_estimated
 
     def __getitem__(self, key):
-        """Get an item, or set the slice of results to return.
+        """Get an item, or a slice of results.
 
         """
         if not isinstance(key, (slice, int, long)):
             raise TypeError("keys must be slice objects, or integers")
 
         if isinstance(key, slice):
-            result = self._search()
-            if key.step is not None and int(key.step) != 1:
-                raise IndexError("step values != 1 are not currently supported")
-
-            # Get start from the slice, or 0 if not specified.
-            if key.start is not None:
-                start = int(key.start)
-                if start < 0:
-                    raise IndexError("Negative indexing is not supported")
-            else:
-                start = 0
-
-            # Get stop from the slice, or None if not specified.
-            if key.stop is not None:
-                stop = int(key.stop)
-                if stop < 0:
-                    raise IndexError("Negative indexing is not supported")
-            else:
-                stop = None
-
-            # Set the starting offset.
-            oldstart = result._offset
-            result._offset = start + oldstart
-
-            # Update the size.
-            oldsize = result._size
-            if stop is None:
-                if oldsize is not None:
-                    result._size = max(oldsize - start, 0)
-            else:
-                if oldsize is not None:
-                    newstop = min(oldsize, stop)
-                else:
-                    newstop = stop
-                result._size = max(newstop - start, 0)
-
-
+            result = TerminalQuery(self)
+            result._apply_slice(key)
             return result
 
-        else:
-            key = int(key)
-            if key < 0:
-                raise IndexError("Negative indexing is not supported")
-            start = result._body.get('from', 0)
-            size = result._body.get('size', None)
-            FIXME
-            if key >= size:
-                raise IndexError("")
-
-            return result.results[start]
+        key = int(key)
+        if key < 0:
+            raise IndexError("Negative indexing is not supported")
+        size = self._size
+        if size is not None and key >= size:
+            raise IndexError("Index out of range of slice of results")
+        rank = self._offset + key
+        self._ensure_results_contain(rank)
+        return self._results.at_rank(rank)
 
     def check_at_least(self, check_at_least):
         """Set the check_at_least value.
@@ -171,8 +215,8 @@ class Searchable(object):
         performing the search set to the specified value.
 
         """
-        result = self._search()
-        result._body['check_at_least'] = int(check_at_least)
+        result = TerminalQuery(self)
+        result._check_at_least = int(check_at_least)
         return result
 
     def calc_occur(self, prefix, doc_limit=None, result_limit=None,
@@ -193,14 +237,15 @@ class Searchable(object):
         @param stopwords: list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]
 
         """
-        result = self._search()
-        info = result._body.setdefault('info', [])
-        info.append({'occur': dict(prefix=prefix,
-                                   doc_limit=doc_limit,
-                                   result_limit=result_limit,
-                                   get_termfreqs=get_termfreqs,
-                                   stopwords=stopwords,
-                                  )})
+        result = TerminalQuery(self)
+        if result._info is None:
+            result._info = []
+        result._info.append({'occur': dict(prefix=prefix,
+                                           doc_limit=doc_limit,
+                                           result_limit=result_limit,
+                                           get_termfreqs=get_termfreqs,
+                                           stopwords=stopwords,
+                                          )})
         return result
 
     def calc_cooccur(self, prefix, doc_limit=None, result_limit=None,
@@ -217,14 +262,15 @@ class Searchable(object):
         get_termfreqs was true.
 
         """
-        result = self._search()
-        info = result._body.setdefault('info', [])
-        info.append({'cooccur': dict(prefix=prefix,
-                                     doc_limit=doc_limit,
-                                     result_limit=result_limit,
-                                     get_termfreqs=get_termfreqs,
-                                     stopwords=stopwords,
-                                    )})
+        result = TerminalQuery(self)
+        if result._info is None:
+            result._info = []
+        result._info.append({'cooccur': dict(prefix=prefix,
+                                             doc_limit=doc_limit,
+                                             result_limit=result_limit,
+                                             get_termfreqs=get_termfreqs,
+                                             stopwords=stopwords,
+                                            )})
         return result
 
 
@@ -235,27 +281,9 @@ class Query(Searchable):
     query as a structure ready to be converted to JSON and sent to the server.
 
     """
+
     def __init__(self, target=None):
         super(Query, self).__init__(target)
-
-    def _build_search(self, offset=None, size=None, check_at_least=None):
-        """Build a search structure to send to the server.
-
-        """
-        body = dict(query=self.query)
-        if offset is not None:
-            body['from'] = offset
-        if size is not None:
-            body['size'] = size
-        if check_at_least is not None:
-            body['check_at_least'] = check_at_least
-        return body
-
-    def _search(self):
-        """Get a Search object from this query.
-
-        """
-        return Search(self._target, dict(query=self.query))
 
     def __mul__(self, mult):
         """Return a query with the weights scaled by a multiplier.
@@ -325,7 +353,7 @@ class QueryField(Query):
     """
     def __init__(self, fieldname, querytype, value, target=None):
         super(QueryField, self).__init__(target=target)
-        self.query = dict(field=[fieldname, querytype, value])
+        self._query = dict(field=[fieldname, querytype, value])
 
 
 class QueryMeta(Query):
@@ -334,14 +362,14 @@ class QueryMeta(Query):
     """
     def __init__(self, querytype, value, target=None):
         super(QueryMeta, self).__init__(target=target)
-        self.query = dict(meta=[querytype, value])
+        self._query = dict(meta=[querytype, value])
 
 
 class QueryAll(Query):
     """A query which matches all documents.
 
     """
-    query = {"matchall": True}
+    _query = {"matchall": True}
 
     def __init__(self, target=None):
         super(QueryAll, self).__init__(target=target)
@@ -351,84 +379,73 @@ class QueryNone(Query):
     """A query which matches no documents.
 
     """
-    query = {"matchnothing": True}
+    _query = {"matchnothing": True}
 
     def __init__(self, target=None):
         super(QueryNone, self).__init__(target=target)
 QueryNothing = QueryNone
 
 
-class QueryAnd(Query):
+class CombinedQuery(Query):
+    """Base class of Queries which are combinations of a sequence of queries.
+
+    Subclasses must define self._op, the operator to use to combine queries.
+
+    """
+    def __init__(self, queries, target=None):
+        if target is None:
+            queries = tuple(queries) # Handle queries being an iterator.
+            target = _target_from_queries(queries)
+        super(CombinedQuery, self).__init__(target=target)
+        self._query = {self._op: list(_query_struct(query)
+                                      for query in queries)}
+
+class QueryAnd(CombinedQuery):
     """A query which matches only the documents matched by all subqueries.
 
     The weights are the sum of the weights in the subqueries.
 
     """
-    def __init__(self, queries, target=None):
-        if target is None:
-            queries = tuple(queries) # Handle queries being an iterator.
-            target = _target_from_queries(queries)
-        super(QueryAnd, self).__init__(target=target)
-        self.query = {"and": list(_query_struct(query) for query in queries)}
+    _op = "and"
 
 
-class QueryOr(Query):
+class QueryOr(CombinedQuery):
     """A query which matches the documents matched by any subquery.
 
     The weights are the sum of the weights in the subqueries which match.
 
     """
-    def __init__(self, queries, target=None):
-        if target is None:
-            queries = tuple(queries) # Handle queries being an iterator.
-            target = _target_from_queries(queries)
-        super(QueryOr, self).__init__(target=target)
-        self.query = {"or": list(_query_struct(query) for query in queries)}
+    _op = "or"
 
 
-class QueryXor(Query):
+class QueryXor(CombinedQuery):
     """A query which matches the documents matched by an odd number of
     subqueries.
 
     The weights are the sum of the weights in the subqueries which match.
 
     """
-    def __init__(self, queries, target=None):
-        if target is None:
-            queries = tuple(queries) # Handle queries being an iterator.
-            target = _target_from_queries(queries)
-        super(QueryXor, self).__init__(target=target)
-        self.query = {"xor": list(_query_struct(query) for query in queries)}
+    _op = "xor"
 
 
-class QueryNot(Query):
+class QueryNot(CombinedQuery):
     """A query which matches the documents matched by the first subquery, but
     not any of the other subqueries.
 
     The weights returned are the weights in the first subquery.
 
     """
-    def __init__(self, queries, target=None):
-        if target is None:
-            queries = tuple(queries) # Handle queries being an iterator.
-            target = _target_from_queries(queries)
-        super(QueryNot, self).__init__(target=target)
-        self.query = {"not": list(_query_struct(query) for query in queries)}
+    _op = "not"
 
 
-class QueryAndMaybe(Query):
+class QueryAndMaybe(CombinedQuery):
     """A query which matches the documents matched by the first subquery, but
     adds additional weights from the other subqueries.
 
     The weights are the sum of the weights in the subqueries.
 
     """
-    def __init__(self, queries, target=None):
-        if target is None:
-            queries = tuple(queries) # Handle queries being an iterator.
-            target = _target_from_queries(queries)
-        super(QueryNot, self).__init__(target=target)
-        self.query = {"and_maybe": list(_query_struct(query) for query in queries)}
+    _op = "and_maybe"
 
 
 class QueryMultWeight(Query):
@@ -443,79 +460,65 @@ class QueryMultWeight(Query):
         if target is None:
             target = query.target
         super(QueryMultWeight, self).__init__(target=target)
-        self.query = dict(scale=dict(query=_query_struct(query), factor=factor))
+        self._query = dict(scale=dict(query=_query_struct(query), factor=factor))
 
 
-class Search(Searchable):
-    """A search: a query, together with how to perform it.
+class TerminalQuery(Searchable):
+    """A Query which has had offsets or additional search options set.
+
+    This is produced from a Query when additional search options are set.  It
+    can't be combined with other Query objects, since the semantics of doing so
+    would be confusing.
 
     """
-    def __init__(self, target, body):
-        super(Search, self).__init__(target)
-        self._body = body
+    def __init__(self, orig, slice=None):
+        super(TerminalQuery, self).__init__(orig._target)
+        self._query = orig._query
+        self._offset = orig._offset
+        self._size = orig._size
+        self._check_at_least = orig._check_at_least
+        self._info = copy.copy(orig._info)
+        if slice is not None:
+            self._apply_slice(slice)
 
-    @property
-    def _offset(self):
-        """The rank offset that this search will retrieve results from.
-
-        """
-        return self._body.get('from', 0)
-    @_offset.setter
-    def _offset(self, offset):
-        self._body['from'] = int(offset)
-
-    @property
-    def _size(self):
-        """The number of results that this search will retrieve.
-
-        Returns None if undefined.
+    def _apply_slice(self, slice):
+        """Restrict the range of documents to return from the query.
 
         """
-        return self._body.get('size', None)
-    @_size.setter
-    def _size(self, size):
-        self._body['size'] = int(size)
+        if slice.step is not None and int(slice.step) != 1:
+            raise IndexError("step values != 1 are not supported")
 
-    def _build_search(self, offset=None, size=None, check_at_least=None):
-        """Build the search into the structure to send to the server.
+        # Get start from the slice, or 0 if not specified.
+        if slice.start is not None:
+            start = int(slice.start)
+            if start < 0:
+                raise IndexError("Negative indexing is not supported")
+        else:
+            start = 0
 
-        This returns the search stored in this object, modified by the
-        parameters passed to this call, if any.
+        # Get stop from the slice, or None if not specified.
+        if slice.stop is not None:
+            stop = int(slice.stop)
+            if stop < 0:
+                raise IndexError("Negative indexing is not supported")
+        else:
+            stop = None
 
-        """
-        body = self._body
-        copied = False
-        if offset is not None:
-            body = copy.copy(body)
-            copied = True
-            body['from'] = offset
-        if size is not None:
-            if not copied:
-                body = copy.copy(body)
-                copied = True
-            body['size'] = size
-        if check_at_least is not None:
-            if not copied:
-                body = copy.copy(body)
-                copied = True
-            body['check_at_least'] = check_at_least
-        return body
+        # Set the starting offset.
+        oldstart = self._offset
+        self._offset = start + oldstart
 
-    def _search(self):
-        """Get a clone of this Search object.
-
-        Returns a Search whose configuration may be independently modified.
-
-        """
-        body = {}
-        for k, v in self._body.iteritems():
-            if k == 'query':
-                # No need to copy the query structure - it should be immutable,
-                # anyway.
-                body[k] = v
+        # Update the size.
+        oldsize = self._size
+        if stop is None:
+            if oldsize is not None:
+                self._size = max(oldsize - start, 0)
+        else:
+            if oldsize is not None:
+                newstop = min(oldsize, stop)
             else:
-                body[k] = copy.deepcopy(v)
-        return Search(self._target, body)
+                newstop = stop
+            self._size = max(newstop - start, 0)
 
 
 class SearchResult(object):
@@ -529,46 +532,41 @@ class SearchResult(object):
         )
 
 
-class InfoItem(object):
-    def __init__(self, raw):
-        self._raw = raw
-
-
 class SearchResults(object):
+    """The results returned from the server when performing a search.
+
+    """
     def __init__(self, raw):
+        #: The raw results returned from the server.
         self._raw = raw
+
+        #: The matching documents.
         self._items = None
+
+        #: Information associated with the search results (eg, term
+        #: occurrence, facets).
         self._infos = None
 
-    @property
-    def offset(self):
-        """The offset of the first result item."""
-        return self._raw.get('from', 0)
+        #: The total number of documents searched.
+        self.total_docs = raw.get('total_docs', 0)
 
-    @property
-    def size_requested(self):
-        """The requested size."""
-        return self._raw.get('size_requested', 0)
+        #: The offset of the first result item.
+        self.offset = raw.get('from', 0)
 
-    @property
-    def check_at_least(self):
-        """The requested check_at_least value."""
-        return self._raw.get('check_at_least', 0)
+        #: The requested size.
+        self.size_requested = raw.get('size_requested', 0)
 
-    @property
-    def matches_lower_bound(self):
-        """A lower bound on the number of matches."""
-        return self._raw.get('matches_lower_bound', 0)
+        #: The requested check_at_least value.
+        self.check_at_least = raw.get('check_at_least', 0)
 
-    @property
-    def matches_estimated(self):
-        """An estimate of the number of matches."""
-        return self._raw.get('matches_estimated', 0)
+        #: A lower bound on the number of matches.
+        self.matches_lower_bound = raw.get('matches_lower_bound', 0)
 
-    @property
-    def matches_upper_bound(self):
-        """An upper bound on the number of matches."""
-        return self._raw.get('matches_upper_bound', 0)
+        #: An estimate of the number of matches.
+        self.matches_estimated = raw.get('matches_estimated', 0)
+
+        #: An upper bound on the number of matches.
+        self.matches_upper_bound = raw.get('matches_upper_bound', 0)
 
     @property
     def estimate_is_exact(self):
@@ -588,7 +586,7 @@ class SearchResults(object):
 
     @property
     def info(self):
-        return self._raw.get('info', {})
+        return self._raw.get('info', [])
 
     def at_rank(self, rank):
         """Get the result at a given rank.
@@ -601,8 +599,6 @@ class SearchResults(object):
         index = rank - self.offset
         if index < 0:
             raise IndexError
-        if self._items is None:
-            return SearchResult(rank, self._raw.get('items', [])[index])
         return self.items[index]
 
     def __iter__(self):
@@ -621,6 +617,9 @@ class SearchResults(object):
 
         """
         return len(self.items)
+
+    def __getitem__(self, key):
+        return self.items.__getitem__(key)
 
     def __str__(self):
         result = u'SearchResults(offset=%d, size_requested=%d, ' \

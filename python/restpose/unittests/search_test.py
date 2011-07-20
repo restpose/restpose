@@ -6,6 +6,7 @@
 from .helpers import RestPoseTestCase
 from .. import query, Server
 from ..resource import RestPoseResource
+from ..query import Query
 from .. import ResourceNotFound
 from restkit import ResourceError
 
@@ -52,12 +53,14 @@ class SearchTest(RestPoseTestCase):
             }),
         ]
 
-    def check_results(self, results, offset=0, size_requested=10, check_at_least=0,
+    def check_results(self, results, offset=0, size_requested=None, check_at_least=0,
                       matches_lower_bound=None,
                       matches_estimated=None,
                       matches_upper_bound=None,
                       items = [],
-                      info = {}):
+                      info = []):
+        if size_requested is None:
+            size_requested = Query.page_size
         if matches_lower_bound is None:
             matches_lower_bound = len(items)
         if matches_estimated is None:
@@ -236,7 +239,11 @@ class SearchTest(RestPoseTestCase):
 
     def test_raw_query(self):
         results = self.coll.doc_type("blurb").search(dict(query=dict(matchall=True)))
-        self.check_results(results, items=self.expected_items_single)
+
+        # if size isn't specified in the query, uses the server's page size,
+        # which is 10.
+        self.check_results(results, items=self.expected_items_single,
+                           size_requested=10)
 
     def test_query_adjust_offset(self):
         """Test adjusting the configured offset for a search.

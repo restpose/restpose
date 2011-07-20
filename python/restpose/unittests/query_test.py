@@ -13,9 +13,13 @@ class DummyTarget(object):
     last = None
     count = 0
     def search(self, search):
-        self.last = search._build_search()
+        self.last = search
         self.count = self.count + 1
-        return query.SearchResults({})
+        return query.SearchResults({
+                                    'from': search.get('from', 0),
+                                    'size_requested': search.get('size', 0),
+                                    'check_at_least': search.get('check_at_least', 0),
+                                   })
 
 
 class QueryTest(TestCase):
@@ -29,16 +33,17 @@ class QueryTest(TestCase):
         q = query.QueryField("fieldname", "is", "10", target)
 
         self.assertEqual(q.results.offset, 0)
-        self.assertEqual(q.results.size_requested, 0)
+        self.assertEqual(q.results.size_requested, 20)
         self.assertEqual(q.results.check_at_least, 0)
         self.assertEqual(q.results.matches_lower_bound, 0)
         self.assertEqual(q.results.matches_estimated, 0)
         self.assertEqual(q.results.matches_upper_bound, 0)
         self.assertEqual(q.results.items, [])
-        self.assertEqual(q.results.info, {})
+        self.assertEqual(q.results.info, [])
         self.check_target(target,
                           {
                            'query': {'field': ['fieldname', 'is', '10']},
+                           'size': 20,
                           })
 
         qm = q * 3.14
@@ -47,100 +52,110 @@ class QueryTest(TestCase):
                           {
                            'query': {'scale': {'factor': 3.14,
                              'query': {'field': ['fieldname', 'is', '10']}}},
+                           'size': 20,
                           })
 
         q2 = query.QueryField("fieldname", "is", "11", target)
         q1 = qm | q2
         q1.results
         self.check_target(target,
-                         {
-                          'query': {'or': [
-                            {'scale': {'factor': 3.14,
-                              'query': {'field': ['fieldname', 'is', '10']}
-                            }},
-                            {'field': ['fieldname', 'is', '11']}
-                          ]}
-                         })
+                          {
+                           'query': {'or': [
+                             {'scale': {'factor': 3.14,
+                               'query': {'field': ['fieldname', 'is', '10']}
+                             }},
+                             {'field': ['fieldname', 'is', '11']}
+                           ]},
+                           'size': 20,
+                          })
 
         q1 = qm & q2
         q1.results
         self.check_target(target,
-                         {
-                          'query': {'and': [
-                            {'scale': {'factor': 3.14,
-                              'query': {'field': ['fieldname', 'is', '10']}
-                            }},
-                            {'field': ['fieldname', 'is', '11']}
-                          ]}
-                         })
+                          {
+                           'query': {'and': [
+                             {'scale': {'factor': 3.14,
+                               'query': {'field': ['fieldname', 'is', '10']}
+                             }},
+                             {'field': ['fieldname', 'is', '11']}
+                           ]},
+                           'size': 20,
+                          })
 
         q1 = qm ^ q2
         q1.results
         self.check_target(target,
-                         {
-                          'query': {'xor': [
-                            {'scale': {'factor': 3.14,
-                              'query': {'field': ['fieldname', 'is', '10']}
-                            }},
-                            {'field': ['fieldname', 'is', '11']}
-                          ]}
-                         })
+                          {
+                           'query': {'xor': [
+                             {'scale': {'factor': 3.14,
+                               'query': {'field': ['fieldname', 'is', '10']}
+                             }},
+                             {'field': ['fieldname', 'is', '11']}
+                           ]},
+                           'size': 20,
+                          })
 
         q1 = qm - q2
         q1.results
         self.check_target(target,
-                         {
-                          'query': {'not': [
-                            {'scale': {'factor': 3.14,
-                              'query': {'field': ['fieldname', 'is', '10']}
-                            }},
-                            {'field': ['fieldname', 'is', '11']}
-                          ]}
-                         })
+                          {
+                           'query': {'not': [
+                             {'scale': {'factor': 3.14,
+                               'query': {'field': ['fieldname', 'is', '10']}
+                             }},
+                             {'field': ['fieldname', 'is', '11']}
+                           ]},
+                           'size': 20,
+                          })
 
         qm = 2 * q
         qm.results
         self.check_target(target,
-                         {
-                          'query': {'scale': {'factor': 2,
-                            'query': {'field': ['fieldname', 'is', '10']}}},
-                         })
+                          {
+                           'query': {'scale': {'factor': 2,
+                             'query': {'field': ['fieldname', 'is', '10']}}},
+                           'size': 20,
+                          })
 
         qm = q / 2
         qm.results
         self.check_target(target,
-                         {
-                          'query': {'scale': {'factor': 0.5,
-                            'query': {'field': ['fieldname', 'is', '10']}}},
-                         })
+                          {
+                           'query': {'scale': {'factor': 0.5,
+                             'query': {'field': ['fieldname', 'is', '10']}}},
+                           'size': 20,
+                          })
 
         qm = operator.div(q, 2)
         qm.results
         self.check_target(target,
-                         {
-                          'query': {'scale': {'factor': 0.5,
-                            'query': {'field': ['fieldname', 'is', '10']}}},
-                         })
+                          {
+                           'query': {'scale': {'factor': 0.5,
+                             'query': {'field': ['fieldname', 'is', '10']}}},
+                           'size': 20,
+                          })
 
         qm = operator.truediv(q, 2)
         qm.results
         self.check_target(target,
-                         {
-                          'query': {'scale': {'factor': 0.5,
-                            'query': {'field': ['fieldname', 'is', '10']}}},
-                         })
+                          {
+                           'query': {'scale': {'factor': 0.5,
+                             'query': {'field': ['fieldname', 'is', '10']}}},
+                           'size': 20,
+                          })
 
     def test_slices(self):
         target = DummyTarget()
         q = query.QueryField("fieldname", "is", "10", target)
 
-        def chk(target, from_=None, size=None, check_at_least=None):
+        def chk(target, from_=0, size=None, check_at_least=None):
             expected = { 'query': {'field': ['fieldname', 'is', '10']} }
-            if from_ is not None:
+            if from_ != 0:
                 expected['from'] = from_
-            if size is not None:
-                expected['size'] = size
-            if check_at_least is not None:
+            if size is None:
+                size = 20
+            expected['size'] = size
+            if check_at_least:
                 expected['check_at_least'] = check_at_least
             self.check_target(target, expected)
 
