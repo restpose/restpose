@@ -15,7 +15,8 @@ documents to calculate and return.
         "size": <maximum number of documents to return.  -1=return all matches.  Integer.  Default=10>,
         "check_at_least": <minimum number of documents to examine before early termination optimisations are allowed.  -1=check all matches.  Integer.  Default=0>,
         "info": [ INFO ],
-        "display": <list of fields to return>
+        "display": <list of fields to return>,
+        "verbose": <flag indicating whether to return verbose debugging informat.  Boolean.  Default=false.>,
     }
 
 Basic queries
@@ -206,8 +207,8 @@ suffix1, termfreq of suffix2] if get_termfreqs was true.
             "prefix": <prefix of terms to check cooccurrence for>,
             "doc_limit": <number of matching documents to stop checking after.  null=unlimited.  Integer or null.  Default=null>
             "result_limit": <number of term pairs to return results for.  null=unlimited.  Integer or null. Default=null.>
-	    "get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
-	    "stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
+            "get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
+            "stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
         }
     }
 
@@ -227,7 +228,7 @@ occurrence count, termfreq] if get_termfreqs was true.
             "prefix": <prefix of terms to check occurrence for>,
             "doc_limit": <number of matching documents to stop checking after.  null=unlimited.  Integer or null.  Default=null>
             "result_limit": <number of terms to return results for.  null=unlimited.  Integer or null. Default=null.>
-	    "get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
-	    "stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
+            "get_termfreqs": <set to true to also get frequencies of terms in the db.  Boolean.  Default=false>
+            "stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
         }
     }
