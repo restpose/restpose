@@ -111,24 +111,24 @@ class SearchTest(RestPoseTestCase):
                                       'type': ['blurb'],
                                       })
         self.assertEqual(gotdoc.terms, {
-                                      '\tblurb\t1': {},
-                                      '!\tblurb': {},
-                                      '#\tFcat': {},
-                                      '#\tFempty': {},
-                                      '#\tFtag': {},
-                                      '#\tFtext': {},
-                                      '#\tM': {},
-                                      '#\tMempty': {},
-                                      '#\tN': {},
-                                      '#\tNcat': {},
-                                      '#\tNtag': {},
-                                      '#\tNtext': {},
-                                      'Zt\thello': {'wdf': 1},
-                                      'Zt\tworld': {'wdf': 1},
-                                      'c\tCgreeting': {},
-                                      'g\tA tag': {},
-                                      't\thello': {'positions': [1], 'wdf': 1},
-                                      't\tworld': {'positions': [2], 'wdf': 1},
+                                      '\\tblurb\\t1': {},
+                                      '!\\tblurb': {},
+                                      '#\\tFcat': {},
+                                      '#\\tFempty': {},
+                                      '#\\tFtag': {},
+                                      '#\\tFtext': {},
+                                      '#\\tM': {},
+                                      '#\\tMempty': {},
+                                      '#\\tN': {},
+                                      '#\\tNcat': {},
+                                      '#\\tNtag': {},
+                                      '#\\tNtext': {},
+                                      'Zt\\thello': {'wdf': 1},
+                                      'Zt\\tworld': {'wdf': 1},
+                                      'c\\tCgreeting': {},
+                                      'g\\tA tag': {},
+                                      't\\thello': {'positions': [1], 'wdf': 1},
+                                      't\\tworld': {'positions': [2], 'wdf': 1},
                                       })
         self.assertEqual(gotdoc.values, {})
 
@@ -341,3 +341,89 @@ class SearchTest(RestPoseTestCase):
         """
         q = self.coll.doc_type("blurb").query_all()
         self.assertEqual(q[0].data, self.expected_item_data)
+
+
+class LargeSearchTest(RestPoseTestCase):
+    """Tests of handling results of searches which return lots of results.
+
+    """
+    maxDiff = 10000
+
+    def check_results(self, results, offset=0, size_requested=None, check_at_least=0,
+                      matches_lower_bound=None,
+                      matches_estimated=None,
+                      matches_upper_bound=None,
+                      items = [],
+                      info = []):
+        if size_requested is None:
+            size_requested = Query.page_size
+        if matches_lower_bound is None:
+            matches_lower_bound = len(items)
+        if matches_estimated is None:
+            matches_estimated = len(items)
+        if matches_upper_bound is None:
+            matches_upper_bound = len(items)
+
+        self.assertEqual(results.offset, offset)
+        self.assertEqual(results.size_requested, size_requested)
+        self.assertEqual(results.check_at_least, check_at_least)
+        self.assertEqual(results.matches_lower_bound, matches_lower_bound)
+        self.assertEqual(results.matches_estimated, matches_estimated)
+        self.assertEqual(results.matches_upper_bound, matches_upper_bound)
+        self.assertEqual(len(results.items), len(items))
+        for i in xrange(len(items)):
+            self.assertEqual(results.items[i].rank, items[i].rank)
+            self.assertEqual(results.items[i].data, items[i].data)
+        self.assertEqual(results.info, info)
+
+    @staticmethod
+    def make_doc(num):
+        return { 'num': [num], 'id': [str(num)], 'type': ['num'] }
+
+    @classmethod
+    def setup_class(cls):
+        coll = Server().collection("test_coll")
+        coll.delete()
+        coll.checkpoint().wait()
+        for num in xrange(193):
+            doc = cls.make_doc(num)
+            coll.add_doc(doc, doc_type="num", doc_id=str(num))
+        chk = coll.checkpoint().wait()
+        assert chk.total_errors == 0
+
+    def setUp(self):
+        self.coll = Server().collection("test_coll")
+
+    def test_indexed_ok(self):
+        """Check that setup put the database into the desired state.
+
+        """
+        self.assertEqual(self.coll.status.get('doc_count'), 193)
+        gotdoc = self.coll.get_doc("num", "77")
+        self.assertEqual(gotdoc.data, {
+                                      'num': [77],
+                                      'id': ['77'],
+                                      'type': ['num'],
+                                      })
+        self.assertEqual(gotdoc.terms, {
+                                      '\\tnum\\t77': {},
+                                      '!\\tnum': {},
+                                      '#\\tFnum': {},
+                                      '#\\tN': {},
+                                      '#\\tNnum': {},
+                                      })
+        self.assertEqual(gotdoc.values, { '268435599': '\\xb8\\xd0' })
+
+    def test_query_empty(self):
+        q = self.coll.doc_type("num").query_none()
+        self.assertRaises(IndexError, q.__getitem__, 0)
+
+    def test_query_all(self):
+        q = self.coll.doc_type("num").query_all()
+        # FIXME - sort by num
+        self.assertEqual(q[0].data, self.make_doc(0))
+        self.assertEqual(q[1].data, self.make_doc(1))
+        self.assertEqual(q[50].data, self.make_doc(50))
+        self.assertEqual(q[192].data, self.make_doc(192))
+        self.assertRaises(IndexError, q.__getitem__, 193)
+        self.assertEqual(len(q), 193)
