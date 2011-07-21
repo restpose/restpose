@@ -50,6 +50,7 @@ class Searchable(object):
     _size = None
     _check_at_least = 0
     _info = None
+    _order_by = None
     _results = None
 
     def __init__(self, target):
@@ -84,6 +85,9 @@ class Searchable(object):
 
         if self._info is not None:
             body['info'] = self._info
+
+        if self._order_by is not None:
+            body['order_by'] = self._order_by
 
         return body
 
@@ -140,7 +144,7 @@ class Searchable(object):
         Otherwise, will raise IndexError.
 
         """
-        if self._offset > rank:
+        if rank < self._offset:
             raise IndexError("Rank requested is outsize slice range.")
         if self._size is not None and self._offset + self._size <= rank:
             raise IndexError("Rank requested is outsize slice range.")
@@ -154,7 +158,7 @@ class Searchable(object):
         if self._size is None:
             # Fetch a page of results.
             page_num = int((rank - self._offset) / self.page_size)
-            self._ensure_results(page_num * self.page_size,
+            self._ensure_results(self._offset + page_num * self.page_size,
                                  self.page_size,
                                  self._check_at_least)
         else:
@@ -163,7 +167,7 @@ class Searchable(object):
                                  self._check_at_least)
 
     def __len__(self):
-        """Get the exact number of matching documents.
+        """Get the exact number of matching documents for this Query.
 
         Note that searches often don't involve calculating the exact number of
         matching documents, so this will often force a search to be performed
@@ -171,15 +175,33 @@ class Searchable(object):
         unless it is strictly neccessary to know the exact number of matching
         documents.
 
+        Also, note that if this is a TerminalQuery which has been sliced, this
+        will return the number of results in the slice.
+
         """
         if self._results is not None and self._results.estimate_is_exact:
-            return self._results.matches_estimated
+            total = self._results.matches_estimated
+        else:
+            # Need to run a search with check_at_least = -1 to ensure exact
+            # estimate.
+            self._ensure_results(self._offset, self._size, -1)
+            assert self._results.estimate_is_exact
+            total = self._results.matches_estimated
 
-        # Need to run a search with check_at_least = -1 to ensure exact
-        # estimate.
-        self._ensure_results(self._offset, self._size, -1)
-        assert self._results.estimate_is_exact
-        return self._results.matches_estimated
+        # Note - the following code could be shrunk using min and max, but
+        # please leave it as is until test branch coverage for it is at 100%.
+        if total < self._offset:
+            return 0
+        total = total - self._offset
+        if self._size is not None and total > self._size:
+            return self._size
+        return total
+
+    def __iter__(self):
+        """Get an iterator over the results in this Query.
+
+        """
+        return QueryIterator(self)
 
     def __getitem__(self, key):
         """Get an item, or a slice of results.
@@ -216,6 +238,28 @@ class Searchable(object):
         """
         result = TerminalQuery(self)
         result._check_at_least = int(check_at_least)
+        return result
+
+    RELEVANCE = object()
+    def order_by(self, field, ascending=None):
+        """Set the sort order.
+
+        """
+        order_item = {}
+        if field is self.RELEVANCE:
+            order_item['score'] = 'weight'
+        else:
+            # assert that field is a string, because we may well want to allow
+            # more complex types to be specified in future, and don't want to
+            # risk breaking existing applications at that point.
+            assert isinstance(field, basestring)
+            order_item['field'] = field
+        
+        if ascending is not None:
+            order_item['ascending'] = ascending
+        
+        result = TerminalQuery(self)
+        result._order_by = [order_item]
         return result
 
     def calc_occur(self, prefix, doc_limit=None, result_limit=None,
@@ -477,6 +521,7 @@ class TerminalQuery(Searchable):
         self._size = orig._size
         self._check_at_least = orig._check_at_least
         self._info = copy.copy(orig._info)
+        self._order_by = copy.copy(orig._order_by)
         if slice is not None:
             self._apply_slice(slice)
 

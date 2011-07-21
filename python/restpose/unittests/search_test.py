@@ -418,9 +418,21 @@ class LargeSearchTest(RestPoseTestCase):
         q = self.coll.doc_type("num").query_none()
         self.assertRaises(IndexError, q.__getitem__, 0)
 
-    def test_query_all(self):
+    def test_query_order_by_field(self):
+        """Test setting the result order to be by a field.
+
+        """
         q = self.coll.doc_type("num").query_all()
-        # FIXME - force sort by num
+        q1 = q.order_by('num') # default order is ascending
+        self.assertEqual(q1[0].data, self.make_doc(0))
+        q1 = q.order_by('num', True) 
+        self.assertEqual(q1[0].data, self.make_doc(0))
+        q1 = q.order_by('num', False) 
+        self.assertEqual(q1[192].data, self.make_doc(192))
+
+    def test_query_all(self):
+        q = self.coll.doc_type("num").query_all().order_by('num')
+
         self.assertEqual(q[0].data, self.make_doc(0))
         self.assertEqual(q[1].data, self.make_doc(1))
         self.assertEqual(q[50].data, self.make_doc(50))
@@ -432,19 +444,21 @@ class LargeSearchTest(RestPoseTestCase):
         self.assertEqual(qs[0].data, self.make_doc(10))
         self.assertEqual(qs[1].data, self.make_doc(11))
         self.assertEqual(qs[9].data, self.make_doc(19))
-        self.assertRaises(IndexError, q.__getitem__, 10)
-        self.assertRaises(IndexError, q.__getitem__, -1)
+        self.assertRaises(IndexError, qs.__getitem__, 10)
+        self.assertRaises(IndexError, qs.__getitem__, -1)
+        self.assertEqual(len(qs), 10)
 
         qs = q[190:200]
-        self.assertEqual(qs[0].data, self.make_doc(10))
-        self.assertEqual(qs[1].data, self.make_doc(11))
-        self.assertEqual(qs[2].data, self.make_doc(12))
-        self.assertRaises(IndexError, q.__getitem__, 3)
-        self.assertRaises(IndexError, q.__getitem__, -1)
+        self.assertEqual(qs[0].data, self.make_doc(190))
+        self.assertEqual(qs[1].data, self.make_doc(191))
+        self.assertEqual(qs[2].data, self.make_doc(192))
+        self.assertRaises(IndexError, qs.__getitem__, 3)
+        self.assertRaises(IndexError, qs.__getitem__, -1)
+        self.assertEqual(len(qs), 3)
 
         qs = q[15:]
         self.assertEqual(qs[0].data, self.make_doc(15))
-        self.assertEqual(q[50 - 15].data, self.make_doc(50))
-        self.assertEqual(q[192 - 15].data, self.make_doc(192))
-        self.assertRaises(IndexError, q.__getitem__, 193 - 15)
-        self.assertEqual(len(q), 193 - 15)
+        self.assertEqual(qs[50 - 15].data, self.make_doc(50))
+        self.assertEqual(qs[192 - 15].data, self.make_doc(192))
+        self.assertRaises(IndexError, qs.__getitem__, 193 - 15)
+        self.assertEqual(len(qs), 193 - 15)
