@@ -131,6 +131,15 @@ class Searchable(object):
         self._results = self._target.search(s)
         #print "raw results: ", self._results._raw
 
+    def _ensure_results_stats(self):
+        """Ensure that the results contain stats.
+
+        """
+        # If any results have been calculated, we have stats.
+        if self._results is None:
+            self._ensure_results(self._offset, self._size,
+                                 self._check_at_least)
+
     def _ensure_results_contain(self, rank):
         """Ensure that the results contain the given rank.
 
@@ -166,6 +175,46 @@ class Searchable(object):
             self._ensure_results(self._offset, self._size,
                                  self._check_at_least)
 
+    @property
+    def total_docs(self):
+        """Get the total number of documents searched.
+
+        """
+        self._ensure_results_stats()
+        return self._results.total_docs
+
+    @property
+    def matches_lower_bound(self):
+        """A lower bound on the number of matches.
+
+        """
+        self._ensure_results_stats()
+        return self._results.matches_lower_bound
+
+    @property
+    def matches_estimated(self):
+        """An estimate of the number of matches.
+
+        """
+        self._ensure_results_stats()
+        return self._results.matches_estimated
+
+    @property
+    def matches_upper_bound(self):
+        """An upper bound on the number of matches.
+
+        """
+        self._ensure_results_stats()
+        return self._results.matches_upper_bound
+
+    @property
+    def estimate_is_exact(self):
+        """True if the value returned by matches_estimated is exact,
+        False if it isn't (or at least, isn't guaranteed to be).
+
+        """
+        return self.matches_lower_bound == self.matches_upper_bound
+
     def __len__(self):
         """Get the exact number of matching documents for this Query.
 
@@ -173,10 +222,13 @@ class Searchable(object):
         matching documents, so this will often force a search to be performed
         with a check_at_least value of -1, which is something to be avoided
         unless it is strictly neccessary to know the exact number of matching
-        documents.
+        documents.  If you just need a rough idea of the number of matching
+        documents, see `matches_estimated`, and the associated
+        `matches_lower_bound`, `matches_upper_bound` and `estimate_is_exact`
+        properties.
 
         Also, note that if this is a TerminalQuery which has been sliced, this
-        will return the number of results in the slice.
+        will return the number of results in the sliced region.
 
         """
         if self._results is not None and self._results.estimate_is_exact:
@@ -314,6 +366,26 @@ class Searchable(object):
                                              get_termfreqs=get_termfreqs,
                                              stopwords=stopwords,
                                             )})
+        return result
+
+
+class QueryIterator(object):
+    """Iterate over the results of a query.
+
+    """
+    def __init__(self, query):
+        self.query = query
+        self.index = 0
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        try:
+            result = self.query[self.index]
+        except IndexError:
+            raise StopIteration
+        self.index += 1
         return result
 
 
