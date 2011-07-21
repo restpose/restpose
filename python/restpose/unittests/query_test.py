@@ -32,14 +32,14 @@ class QueryTest(TestCase):
         target = DummyTarget()
         q = query.QueryField("fieldname", "is", "10", target)
 
-        self.assertEqual(q.results.offset, 0)
-        self.assertEqual(q.results.size_requested, 20)
-        self.assertEqual(q.results.check_at_least, 0)
-        self.assertEqual(q.results.matches_lower_bound, 0)
-        self.assertEqual(q.results.matches_estimated, 0)
-        self.assertEqual(q.results.matches_upper_bound, 0)
-        self.assertEqual(q.results.items, [])
-        self.assertEqual(q.results.info, [])
+        self.assertEqual(q.matches_lower_bound, 0)
+        self.assertEqual(q.matches_estimated, 0)
+        self.assertEqual(q.matches_upper_bound, 0)
+        self.assertEqual(q._results.offset, 0)
+        self.assertEqual(q._results.size_requested, 20)
+        self.assertEqual(q._results.check_at_least, 0)
+        self.assertEqual(q._results.items, [])
+        self.assertEqual(q._results.info, [])
         self.check_target(target,
                           {
                            'query': {'field': ['fieldname', 'is', '10']},
@@ -47,7 +47,7 @@ class QueryTest(TestCase):
                           })
 
         qm = q * 3.14
-        qm.results
+        qm.matches_estimated
         self.check_target(target,
                           {
                            'query': {'scale': {'factor': 3.14,
@@ -57,7 +57,7 @@ class QueryTest(TestCase):
 
         q2 = query.QueryField("fieldname", "is", "11", target)
         q1 = qm | q2
-        q1.results
+        q1.matches_estimated
         self.check_target(target,
                           {
                            'query': {'or': [
@@ -70,7 +70,7 @@ class QueryTest(TestCase):
                           })
 
         q1 = qm & q2
-        q1.results
+        q1.matches_estimated
         self.check_target(target,
                           {
                            'query': {'and': [
@@ -83,7 +83,7 @@ class QueryTest(TestCase):
                           })
 
         q1 = qm ^ q2
-        q1.results
+        q1.matches_estimated
         self.check_target(target,
                           {
                            'query': {'xor': [
@@ -96,7 +96,7 @@ class QueryTest(TestCase):
                           })
 
         q1 = qm - q2
-        q1.results
+        q1.matches_estimated
         self.check_target(target,
                           {
                            'query': {'not': [
@@ -109,7 +109,7 @@ class QueryTest(TestCase):
                           })
 
         qm = 2 * q
-        qm.results
+        qm.matches_estimated
         self.check_target(target,
                           {
                            'query': {'scale': {'factor': 2,
@@ -118,7 +118,7 @@ class QueryTest(TestCase):
                           })
 
         qm = q / 2
-        qm.results
+        qm.matches_estimated
         self.check_target(target,
                           {
                            'query': {'scale': {'factor': 0.5,
@@ -127,7 +127,7 @@ class QueryTest(TestCase):
                           })
 
         qm = operator.div(q, 2)
-        qm.results
+        qm.matches_estimated
         self.check_target(target,
                           {
                            'query': {'scale': {'factor': 0.5,
@@ -136,7 +136,7 @@ class QueryTest(TestCase):
                           })
 
         qm = operator.truediv(q, 2)
-        qm.results
+        qm.matches_estimated
         self.check_target(target,
                           {
                            'query': {'scale': {'factor': 0.5,
@@ -159,21 +159,21 @@ class QueryTest(TestCase):
                 expected['check_at_least'] = check_at_least
             self.check_target(target, expected)
 
-        q.check_at_least(7).results
+        q.check_at_least(7).matches_estimated
         chk(target, check_at_least=7)
 
 
         # Check slices with each end set or not set.
-        q[10:20].results
+        q[10:20].matches_estimated
         chk(target, from_=10, size=10)
 
-        q[10:].results
+        q[10:].matches_estimated
         chk(target, from_=10)
 
-        q[:10].results
+        q[:10].matches_estimated
         chk(target, from_=0, size=10)
 
-        q[:].results
+        q[:].matches_estimated
         chk(target, from_=0)
 
 
@@ -185,7 +185,7 @@ class QueryTest(TestCase):
         # Check (mostly invalid) step values
         self.assertRaises(IndexError, q.__getitem__, slice(0, None, 0))
         self.assertRaises(IndexError, q.__getitem__, slice(0, None, 2))
-        q[0::1].results
+        q[0::1].matches_estimated
         chk(target, from_=0)
 
         # Check invalid index
@@ -193,101 +193,101 @@ class QueryTest(TestCase):
 
 
         # Check all types of subslice for a slice with stat and end set.
-        q[10:20][3:5].results
+        q[10:20][3:5].matches_estimated
         chk(target, from_=13, size=2)
 
-        q[10:20][3:10].results
+        q[10:20][3:10].matches_estimated
         chk(target, from_=13, size=7)
 
-        q[10:20][3:15].results
+        q[10:20][3:15].matches_estimated
         chk(target, from_=13, size=7)
 
-        q[10:20][3:].results
+        q[10:20][3:].matches_estimated
         chk(target, from_=13, size=7)
 
-        q[10:20][:5].results
+        q[10:20][:5].matches_estimated
         chk(target, from_=10, size=5)
 
-        q[10:20][:10].results
+        q[10:20][:10].matches_estimated
         chk(target, from_=10, size=10)
 
-        q[10:20][:20].results
+        q[10:20][:20].matches_estimated
         chk(target, from_=10, size=10)
 
-        q[10:20][:].results
+        q[10:20][:].matches_estimated
         chk(target, from_=10, size=10)
 
 
         # Check all types of subslice for a slice with only the start set.
-        q[10:][3:5].results
+        q[10:][3:5].matches_estimated
         chk(target, from_=13, size=2)
 
-        q[10:][3:10].results
+        q[10:][3:10].matches_estimated
         chk(target, from_=13, size=7)
 
-        q[10:][3:15].results
+        q[10:][3:15].matches_estimated
         chk(target, from_=13, size=12)
 
-        q[10:][3:].results
+        q[10:][3:].matches_estimated
         chk(target, from_=13)
 
-        q[10:][:5].results
+        q[10:][:5].matches_estimated
         chk(target, from_=10, size=5)
 
-        q[10:][:10].results
+        q[10:][:10].matches_estimated
         chk(target, from_=10, size=10)
 
-        q[10:][:15].results
+        q[10:][:15].matches_estimated
         chk(target, from_=10, size=15)
 
-        q[10:][:20].results
+        q[10:][:20].matches_estimated
         chk(target, from_=10, size=20)
 
-        q[10:][:].results
+        q[10:][:].matches_estimated
         chk(target, from_=10)
 
 
         # Check all types of subslice for a slice with only the end set.
-        q[:10][3:5].results
+        q[:10][3:5].matches_estimated
         chk(target, from_=3, size=2)
 
-        q[:10][3:10].results
+        q[:10][3:10].matches_estimated
         chk(target, from_=3, size=7)
 
-        q[:10][3:15].results
+        q[:10][3:15].matches_estimated
         chk(target, from_=3, size=7)
 
-        q[:10][3:].results
+        q[:10][3:].matches_estimated
         chk(target, from_=3, size=7)
 
-        q[:10][:5].results
+        q[:10][:5].matches_estimated
         chk(target, from_=0, size=5)
 
-        q[:10][:10].results
+        q[:10][:10].matches_estimated
         chk(target, from_=0, size=10)
 
-        q[:10][:15].results
+        q[:10][:15].matches_estimated
         chk(target, from_=0, size=10)
 
-        q[:10][:20].results
+        q[:10][:20].matches_estimated
         chk(target, from_=0, size=10)
 
-        q[:10][:].results
+        q[:10][:].matches_estimated
         chk(target, from_=0, size=10)
 
 
         # Check all types of subslice for a slice with neither start or end
         # set.
-        q[:][10:20].results
+        q[:][10:20].matches_estimated
         chk(target, from_=10, size=10)
 
-        q[:][10:].results
+        q[:][10:].matches_estimated
         chk(target, from_=10)
 
-        q[:][:10].results
+        q[:][:10].matches_estimated
         chk(target, from_=0, size=10)
 
-        q[:][:].results
+        q[:][:].matches_estimated
         chk(target, from_=0)
 
     def test_no_target(self):
@@ -295,4 +295,4 @@ class QueryTest(TestCase):
 
         """
         q = query.QueryField("fieldname", "is", "10")
-        self.assertRaises(ValueError, getattr, q, 'results')
+        self.assertRaises(ValueError, getattr, q, 'matches_estimated')
