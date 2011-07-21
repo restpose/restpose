@@ -51,6 +51,12 @@ namespace RestPose {
 	/// Get the field that values are being stored under. ("" if none).
 	virtual std::string stored_field() const = 0;
 
+	/** Get a slot holiding a sortable representation of this field.
+	 *
+	 *  Return Xapian::BAD_VALUENO if none.
+	 */
+	virtual Xapian::valueno sort_slot() const = 0;
+
 	/// Add the configuration for a field to a JSON object.
 	virtual void to_json(Json::Value & value) const = 0;
 
@@ -97,6 +103,11 @@ namespace RestPose {
 	/// Get the field that values are being stored under.
 	std::string stored_field() const {
 	    return std::string();
+	}
+
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return Xapian::BAD_VALUENO;
 	}
 
 	/// Add the configuration for the field to a JSON object.
@@ -168,6 +179,11 @@ namespace RestPose {
 	    return store_field;
 	}
 
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return Xapian::BAD_VALUENO;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -211,6 +227,11 @@ namespace RestPose {
 	    return store_field;
 	}
 
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return Xapian::BAD_VALUENO;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -249,6 +270,11 @@ namespace RestPose {
 	/// Get the field that values are being stored under.
 	std::string stored_field() const {
 	    return store_field;
+	}
+
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return Xapian::BAD_VALUENO;
 	}
 
 	/// Add the configuration for a field to a JSON object.
@@ -290,6 +316,11 @@ namespace RestPose {
 	    return store_field;
 	}
 
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return slot.get();
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -325,6 +356,11 @@ namespace RestPose {
 	    return store_field;
 	}
 
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return slot.get();
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -358,6 +394,11 @@ namespace RestPose {
 	/// Get the field that values are being stored under.
 	std::string stored_field() const {
 	    return store_field;
+	}
+
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return slot.get();
 	}
 
 	/// Add the configuration for a field to a JSON object.
@@ -408,6 +449,11 @@ namespace RestPose {
 	    return store_field;
 	}
 
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return Xapian::BAD_VALUENO;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -438,6 +484,11 @@ namespace RestPose {
 	    return store_field;
 	}
 
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return Xapian::BAD_VALUENO;
+	}
+
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -455,6 +506,11 @@ namespace RestPose {
 	/// Get the field that values are being stored under.
 	std::string stored_field() const {
 	    return std::string();
+	}
+
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return Xapian::BAD_VALUENO;
 	}
 
 	/// Add the configuration for a field to a JSON object.

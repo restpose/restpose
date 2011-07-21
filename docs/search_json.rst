@@ -15,6 +15,7 @@ documents to calculate and return.
         "size": <maximum number of documents to return.  -1=return all matches.  Integer.  Default=10>,
         "check_at_least": <minimum number of documents to examine before early termination optimisations are allowed.  -1=check all matches.  Integer.  Default=0>,
         "info": [ INFO ],
+        "order_by": ORDER_BY,
         "display": <list of fields to return>,
         "verbose": <flag indicating whether to return verbose debugging informat.  Boolean.  Default=false.>,
     }
@@ -232,3 +233,34 @@ occurrence count, termfreq] if get_termfreqs was true.
             "stopwords": <list of stopwords - term suffixes to ignore.  Array of strings.  Default=[]>
         }
     }
+
+Setting custom sort orders
+==========================
+
+By default, search results are ordered by a relevance score, calculated using
+the BM25 weighting scheme.  The internal RestPose architecture allows for
+considerable flexibility in how weights are calculated, and also allows for
+ordering by schemes other than relevance score (eg, by a field value).  As yet,
+little of this flexibility is exposed in the API, but more is planned to be.
+Contact the author if you wish particular options to be made available.
+
+Currently, the sort order can be set using the ``order_by`` configuration.  A sort order may be set using a field, as follows::
+
+    ORDER_BY = [
+        {"field": <field name>,
+         "ascending": ASCENDING  // Optional - defaults to true
+        }
+    ]
+
+    ASCENDING = <boolean - if true, the first results returned (ie, lowest rank) will have the lowest value for the field.>,
+
+
+Alternately, the sort order can be set to be relevance order (which is the default order)::
+
+    ORDER_BY = [
+        {"score": "weight",
+         "ascending": false  // Optional - defaults to false.  true is not allowed, but this is included for completeness.
+        }
+    ]
+
+At present, the list of sort orders may only contain exactly one item.

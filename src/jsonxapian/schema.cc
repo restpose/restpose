@@ -1551,6 +1551,54 @@ Schema::perform_search(const CollectionConfig & collconfig,
 	}
     }
 
+    // Internal document IDs are not under the user's control, so set this
+    // option for potential (though probably slight) performance increases.
+    enq.set_docid_order(enq.DONT_CARE);
+
+    if (search.isMember("order_by")) {
+	const Json::Value & order_by = search["order_by"];
+	json_check_array(order_by, "list of ordering items");
+	if (order_by.size() != 1) {
+	    throw InvalidValueError("Invalid order_by array - must contain exactly 1 item");
+	}
+	const Json::Value & order_by_item = order_by[0];
+	json_check_object(order_by_item, "ordering item");
+	if (order_by_item.isMember("field")) {
+	    // Order by a field.  The field must have a slot associated with
+	    // it, holding the sortable values.
+	    string fieldname = json_get_string_member(order_by_item, "field",
+						      string());
+	    // If the fieldname is not known, ignore.  Otherwise, get the slot
+	    // number, and set the sort order on the enquire object.
+	    Xapian::valueno slot = Xapian::BAD_VALUENO;
+	    map<string, FieldConfig *>::const_iterator
+		    i = fields.find(fieldname);
+	    if (i != fields.end() && i->second != NULL) {
+		slot = i->second->sort_slot();
+	    }
+	    if (slot == Xapian::BAD_VALUENO) {
+		throw InvalidValueError("Sort field is not configured "
+		  "appropriately (does not have a sortable slot associated)");
+	    }
+	    bool ascending = json_get_bool(order_by_item, "ascending", true);
+	    enq.set_sort_by_value(slot, !ascending);
+	} else if (order_by_item.isMember("score")) {
+	    // Order by the weights calculated in the query tree.
+	    if (order_by_item["score"] != "weight") {
+		throw InvalidValueError("Invalid score specification (only "
+					"allowed value is \"weight\")");
+	    }
+	    if (json_get_bool(order_by_item, "ascending", false)) {
+		throw InvalidValueError("Ascending order is not allowed when "
+					"ordering by weight");
+	    }
+	    enq.set_sort_by_relevance();
+	} else {
+	    throw InvalidValueError("Invalid order_by item - neither contains "
+				    "\"field\" or \"score\" member");
+	}
+    }
+
     Xapian::MSet mset(enq.get_mset(from, size, check_at_least));
 
     // Get the list of fields to return.
