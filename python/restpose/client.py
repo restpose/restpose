@@ -18,11 +18,11 @@ Example:
     >>> checkpt.total_errors, checkpt.errors, checkpt.reached
     (0, [], True)
     >>> query = coll.doc_type("blurb").field_is('tag', 'A tag')
-    >>> query.results.matches_estimated
+    >>> query.matches_estimated
     1
-    >>> query.results.items[0].data['id']
+    >>> query[0].data['id']
     ['1']
-    >>> query.results.items[0].data['type']
+    >>> query[0].data['type']
     ['blurb']
 
 """
