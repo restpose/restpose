@@ -91,14 +91,6 @@ class Searchable(object):
 
         return body
 
-    @property
-    def results(self):
-        """Get the results for this search.
-
-        """
-        self._ensure_results(self._offset, self._size, self._check_at_least)
-        return self._results
-
     def _ensure_results(self, offset, size, check_at_least):
         """Ensure that the results contain items from offset to size, with
         check_at_least being at least the value set.
