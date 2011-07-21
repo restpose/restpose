@@ -425,10 +425,13 @@ class LargeSearchTest(RestPoseTestCase):
         q = self.coll.doc_type("num").query_all()
         q1 = q.order_by('num') # default order is ascending
         self.assertEqual(q1[0].data, self.make_doc(0))
+        self.assertEqual(q1[192].data, self.make_doc(192))
         q1 = q.order_by('num', True) 
         self.assertEqual(q1[0].data, self.make_doc(0))
-        q1 = q.order_by('num', False) 
         self.assertEqual(q1[192].data, self.make_doc(192))
+        q1 = q.order_by('num', False) 
+        self.assertEqual(q1[0].data, self.make_doc(192))
+        self.assertEqual(q1[192].data, self.make_doc(0))
 
     def test_query_all(self):
         q = self.coll.doc_type("num").query_all().order_by('num')
