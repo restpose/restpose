@@ -2,9 +2,10 @@ try:
     from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup, find_packages
+import restpose.version
 
 setup(name="Restpose",
-      version="dev",
+      version=restpose.version.__version__,
       packages=find_packages(),
       include_package_data=True,
       author='Richard Boulton',
