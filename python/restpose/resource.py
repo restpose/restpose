@@ -6,26 +6,36 @@
 """
 Resources for RestPose.
 
-FIXME - document more.
+This module provides a convenient interface to the resources exposed via HTTP
+by the RestPose server.
 
 """
 
-from . import __version__
+from version import __version__
 import restkit
 try:
     import simplejson as json
 except ImportError:
     import json
 
-USER_AGENT = 'restpose_python/%s' % __version__
-
 class RestPoseResponse(restkit.Response):
+    """A response from the RestPose server.
+
+    In addition to the properties exposed by :mod:`restkit:restkit.Response`, this
+    exposes a `json` property, to decode JSON responses automatically.
+    
+    """
+
     @property
     def json(self):
         """Get the response body as JSON.
+
+        :returns: The response body as a python object, decoded from JSON, if
+                  the response Content-Type was application/json.  Otherwise,
+                  return None.
         
-        If the response Content-Type was application/json, convert the
-        response body to JSON and return it.  Otherwise, return None.
+        :raises: an exception if the Content-Type is application/json, but the
+                 body is not valid JSON.
 
         """
         ctype = self.headers.get('Content-Type')
@@ -33,17 +43,54 @@ class RestPoseResponse(restkit.Response):
             return json.loads(self.body_string())
         return None
 
+    def expect_status(self, *expected):
+        """Check that the status code is one of a set of expected codes.
+
+        :param expected: The expected status codes.
+
+        :raises: :exc:`RestPoseError` if the status code returned is not one of the supplied status codes.
+
+        """
+        if self.status_int not in expected:
+            raise RestPoseError("Unexpected return status: %d" %
+                                resp.status_int)
+
 
 class RestPoseResource(restkit.Resource):
+    """A resource providing access to a RestPose server.
+
+    This may be subclassed and provided to :class:`restpose.Server`, to
+    allow requests to be monitored or modified.  For example, a logging
+    subclass could be used to record requests and their responses.
+
+    """
+
+    #: The user agent to send when making requests.
+    user_agent = 'restpose_python/%s' % __version__
+
     def __init__(self, uri, **client_opts):
+        """Initialise the resource.
+
+        :param uri: The full URI for the resource.
+
+        :param client_opts: Any options to be passed to :class:`restkit.Resource`.
+
+        """
         client_opts['response_class'] = RestPoseResponse
         restkit.Resource.__init__(self, uri=uri, **client_opts)
 
     def request(self, method, path=None, payload=None, headers=None, **params):
+        """Perform a request.
+
+        :param method: the HTTP method to use, as a string
+
+        .. todo:: document all params
+
+        """
 
         headers = headers or {}
         headers.setdefault('Accept', 'application/json')
-        headers.setdefault('User-Agent', USER_AGENT)
+        headers.setdefault('User-Agent', self.user_agent)
 
         if payload is not None:
             if not hasattr(payload, 'read') and \

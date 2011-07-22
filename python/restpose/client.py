@@ -4,35 +4,8 @@
 # license.  See the COPYING file for more information.
 
 """
-Client for RestPose.
-
-Servers provide access to a set of collection resources.  A collection can be
-
-    >>> from restpose import Server
-    >>> server = Server()
-    >>> doc = { 'text': 'Hello world', 'tag': 'A tag' }
-    >>> coll = server.collection("my_coll")
-    >>> coll.add_doc(doc, doc_type="blurb", doc_id="1")
-
-After making changes, we use a checkpoint to cause the changes to be applied
-immediately, and to wait until they have been applied.  The changes will be
-applied after a short period of inactivity (by default, 5 seconds) even if we
-don't use a checkpoint.
-
-    >>> checkpt = coll.checkpoint().wait()
-    >>> checkpt.total_errors, checkpt.errors, checkpt.reached
-    (0, [], True)
-
-Once the changes have been applied, we can perform a search by building a
-query.
-
-    >>> query = coll.doc_type("blurb").field_is('tag', 'A tag')
-    >>> query.matches_estimated
-    1
-    >>> query[0].data['id']
-    ['1']
-    >>> query[0].data['type']
-    ['blurb']
+The RestPose client mirrors the resources provided by the RestPose server as
+Python objects.
 
 """
 
@@ -54,6 +27,23 @@ class Server(object):
                  resource_class=None,
                  resource_instance=None,
                  **client_opts):
+        """
+        :param uri: Full URI to the top path of the server.
+
+        :param resource_class: If specified, defines a resource class to use
+               instead of the default class.  This should usually be a subclass
+               of :class:`RestPoseResource`.
+
+        :param resource_instance: If specified, defines a resource instance to
+               use instead of making one with the default class (or the class
+               specified by `resource_class`.
+
+        :param client_opts: Parameters to use to update the existing
+               client_opts in the resource (if `resource_instance` is
+               specified), or to use when creating the resource (if
+               `resource_class` is specified).
+
+        """
         self.uri = uri = uri.rstrip('/')
 
         if resource_class is not None:
@@ -71,7 +61,7 @@ class Server(object):
 
         Returns a dictionary.
 
-        @todo Document the contents of the response.
+        .. todo:: Document the contents of the response.
 
         """
         return self._resource.get('/status').json
@@ -80,21 +70,26 @@ class Server(object):
     def collections(self):
         """Get a list of existing collections.
 
+        Returns a list of collections
+
         """
         resp = self._resource.get('/coll')
-        if resp.status_int != 200:
-            raise RestPoseError("Unexpected return status: %d" %
-                                resp.status_int)
+        resp.expect_status(200)
         return resp.json.keys()
 
     def collection(self, coll_name):
         """Access to a collection.
 
-        Returns a Collection object which can be used to search and modify the
-        contents of the Collection.
+        :param coll_name: The name of the collection to access.
 
-        Collection names may contain only the following ascii characters:
-        lowercase letters, numbers, underscore, hyphen.
+        :returns: a Collection object which can be used to search and modify the
+                  contents of the Collection.
+
+        .. note:: No request is performed directly by this method; a Collection
+                  object is simply created which will make requests when
+                  needed.  For this reason, no error will be reported at this
+                  stage even if the collection does not exist, or if a
+                  collection name containing invalid characters is used.
 
         """
         return Collection(self, coll_name)
