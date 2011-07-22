@@ -1,11 +1,79 @@
+======================
+RestPose URL structure
+======================
 
-.. todo:: Update this file.
+This section of the RestPose documentation details the URLs at which RestPose
+makes resources available.
 
-.. warning:: This file is extremely out of date, and largely wrong.
+Error returns
+=============
+
+If a 400 or 500 series HTTP error code is returned from the following methods,
+except where noted otherwise, the response body will be of type
+:mimetype:`application/json`, and will contain a JSON object with, at least, an
+``err`` property, containing a string describing the error.
+
+Collections
+===========
+
+Everything to do with collections is available under the `/coll` URL.
+
+Listing collections
+-------------------
+
+.. http:get:: /coll
+
+   Get details of the collections held by the server.
+
+   Takes no parameters.
+
+   :statuscode 200: Normal response: returns a JSON object keyed by collection
+	       name, in which the values are empty objects.  (In future, some
+	       information about the collections may be available in the
+	       values.)
+
+
+Information about an individual collection
+------------------------------------------
+
+.. http:get:: /coll/(collection_name)
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.`` or tab characters.
+
+   On success, the return value is a JSON object with the following members:
+
+    * ``doc_count``: The number of documents in the collection.
+
+   :statuscode 200: If the collection exists, and no errors occur.
+   :statuscode 404: If the collection does not exist.  Returns a standard error object.
+
+
+Deleting a collection
+---------------------
+
+.. http:delete:: /coll/(collection_name)
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.`` or tab characters.
+
+   The collection of the given name is deleted, if it exists.  If it doesn't
+   exist, returns successfully, but doesn't change anything.
+
+   :statuscode 200: Normal response: returns an empty JSON object.
+
+
+Collection configuration
+------------------------
+
+FIXME - after this point, this file is inaccurate.
+
+.. http:get:: /coll/(collection_name)/config
+.. http:put:: /coll/(collection_name)/config
 
 
 Inserting documents
-===================
+-------------------
 
 GET a document of given ID and type:
 
