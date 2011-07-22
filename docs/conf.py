@@ -25,7 +25,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.pngmath']
+extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinxcontrib.httpdomain']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -223,7 +223,7 @@ man_pages = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'RestPose'
+epub_title = u'RestPose Server'
 epub_author = u'Richard Boulton'
 epub_publisher = u'Richard Boulton'
 epub_copyright = u'2011, Richard Boulton'
@@ -260,6 +260,9 @@ epub_copyright = u'2011, Richard Boulton'
 #epub_tocdup = True
 
 
-# Example configuration for intersphinx: refer to the Python standard library.
-#intersphinx_mapping = {'http://docs.python.org/': None}
-intersphinx_mapping = {}
+intersphinx_mapping = {
+  'restpose-py': ('http://readthedocs.org/docs/restpose-py/en/latest/', None),
+}
+
+# Cause todos to be displayed.
+todo_include_todos = True
