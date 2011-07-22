@@ -261,7 +261,7 @@ epub_copyright = u'2011, Richard Boulton'
 
 
 intersphinx_mapping = {
-  'restpose-py': ('http://readthedocs.org/docs/restpose-py/en/latest/', None),
+  'restposepy': ('http://readthedocs.org/docs/restpose-py/en/latest/', None),
 }
 
 # Cause todos to be displayed.
