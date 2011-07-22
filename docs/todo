@@ -8,15 +8,14 @@ Before an initial release
    AND_NOT and AND_MAYBE allow arbitrary numbers of queries on the RHS (ANDed
    together).
 
- - Update index.rst - wildly out of date (talks about jxd and jx.py)
-
  - Write docs/urls.rst - content in there currently is worthless, needs
    rewriting from scratch.  Must describe all possible urls, the expected
    content type and parameters, and the possible normal return types.  In
    particular, details about how methods which queue tasks will report high
    load on the queues, an no space on the queues.
 
- - Test passing double values (both positive and negative) to timestamp fields.
+ - Test passing double values (both positive and negative) to timestamp and
+   double fields.
 
  - Python client could do with testing for expired checkpoints.
 
@@ -40,6 +39,8 @@ Before an initial release
 
  - If the client doesn't send a Host header, we need to synthesise one so that
    Location headers in responses are valid.
+
+ - Make searches across all types in a collection work.
 
 Future
 ------
@@ -69,6 +70,9 @@ Future
 
  - Python bindings - add an easy way to be notified of the queries performed in
    a session, and document how to hook that into Django's debug views.
+
+ - Make searches across all types in a collection more efficient, by sharing
+   the parts of the query tree which are the same for multiple types.
 
 To think about
 --------------
