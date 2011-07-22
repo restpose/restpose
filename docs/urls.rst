@@ -66,14 +66,41 @@ Deleting a collection
 Collection configuration
 ------------------------
 
-FIXME - after this point, this file is inaccurate.
-
 .. http:get:: /coll/(collection_name)/config
+
+   Get the collection configuration.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.`` or tab characters.
+
+   :statuscode 200: Normal response: returns a JSON object representing the
+	       full configuration for the collection.  See :ref:`coll_config`
+	       for  details.
+
+   :statuscode 404: If the collection does not exist.  Returns a standard error object.
+
 .. http:put:: /coll/(collection_name)/config
+
+   Set the collection configuration.  Actually, adds a task to set the
+   collection configuration to the processing queue.  This may be monitored,
+   waited for, and committed using checkpoints in just the same way as for the
+   document addition APIs.
+
+   Creates the collection with default settings it it didn't exist before the
+   call.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.`` or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object representing the
+	       full configuration for the collection.  See :ref:`coll_config`
+	       for  details.
 
 
 Inserting documents
 -------------------
+
+FIXME - after this point, this file is inaccurate.
 
 GET a document of given ID and type:
 

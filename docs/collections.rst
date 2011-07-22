@@ -370,6 +370,8 @@ Pipes
 .. todo: document pipes, or replace them and document the replacement
 
 
+.. _coll_config:
+
 ========================
 Collection Configuration
 ========================
@@ -381,3 +383,5 @@ The schema is a JSON file (with the extension that C-style comments are
 permitted in it).  The current schema format is stored in a `schema_format`
 property: this is to allow upgrades to the schema format to be performed in
 future.  This document describes schemas for which `schema_format` is 3.
+
+.. todo:: Describe the representation of the collection configuration fully.
