@@ -4,6 +4,10 @@ TODO
 Before an initial release
 -------------------------
 
+ - Change filter query syntax to simply be another query operator, and like
+   AND_NOT and AND_MAYBE allow arbitrary numbers of queries on the RHS (ANDed
+   together).
+
  - Update index.rst - wildly out of date (talks about jxd and jx.py)
 
  - Write docs/urls.rst - content in there currently is worthless, needs
