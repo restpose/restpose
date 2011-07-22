@@ -1,5 +1,7 @@
 
-FIXME - this file is largely wrong, and mainly just me thinking "out loud".
+.. todo:: Update this file.
+
+.. warning:: This file is extremely out of date, and largely wrong.
 
 
 Inserting documents
