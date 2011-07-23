@@ -97,15 +97,28 @@ Collection configuration
 	       for  details.
 
 
-Inserting documents
--------------------
+Checkpoints
+-----------
 
-FIXME - after this point, this file is inaccurate.
+FIXME - after this point, details of calls need to be added.
 
-GET a document of given ID and type:
+.. http:get:: /coll/(collection_name)/checkpoint
 
- GET /coll/<collection name>/type/<type>/id/<id>
+.. http:post:: /coll/(collection_name)/checkpoint
 
+.. http:get:: /coll/(collection_name)/checkpoint/(checkpoint_id)
+
+Documents
+---------
+
+.. http:get:: /coll/(collection_name)/type/(type)/id/(id)
+
+   Get a document of given ID and type.
+
+.. http:put:: /coll/(collection_name)/type/(type)/id/(id)
+.. http:delete:: /coll/(collection_name)/type/(type)/id/(id)
+
+To be added in future:
 
 Insert a JSON document, calculating ID and type from contents.
  
@@ -123,13 +136,21 @@ Classifying the language of a piece of text.
  POST /coll/<collection name>/pipe/<pipe name>
 
 Performing a search
-===================
+-------------------
 
- GET or POST to /coll/<collection name>/search
+.. http:get:: /coll/(collection_name)/type/(type)/search
+.. http:post:: /coll/(collection_name)/type/(type)/search
 
- Search is sent in the body; see search_json.rst for details.
+   Search is sent in the body; see search_json.rst for details.
 
-Getting the status
-==================
+Getting the status of the server
+--------------------------------
 
- GET /status
+.. http:get:: /status
+
+Root and static files
+---------------------
+
+.. http:get:: /
+
+.. http:get:: /static/(static_path)
