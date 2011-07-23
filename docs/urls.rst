@@ -144,12 +144,12 @@ Performing a search
    Search is sent in the body; see search_json.rst for details.
 
 Getting the status of the server
---------------------------------
+================================
 
 .. http:get:: /status
 
 Root and static files
----------------------
+=====================
 
 .. http:get:: /
 
