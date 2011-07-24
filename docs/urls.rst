@@ -84,7 +84,7 @@ Information about an individual collection
 .. http:get:: /coll/(collection_name)
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
 
    On success, the return value is a JSON object with the following members:
 
@@ -100,7 +100,7 @@ Deleting a collection
 .. http:delete:: /coll/(collection_name)
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
 
    The collection of the given name is deleted, if it exists.  If it doesn't
    exist, returns successfully, but doesn't change anything.
@@ -118,7 +118,7 @@ The collection configuration is represented as a JSON object; for details of its
    Get the collection configuration.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
 
    :statuscode 200: Normal response: returns a JSON object representing the
 	       full configuration for the collection.  See :ref:`coll_config`
@@ -136,7 +136,7 @@ The collection configuration is represented as a JSON object; for details of its
    Creates the collection if it didn't exist before the call.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
 
    :statuscode 202: Normal response: returns a JSON object representing the
 	       full configuration for the collection.  See :ref:`coll_config`
@@ -161,7 +161,7 @@ Checkpoints also do not persist across server restarts.
    Get details of the checkpoints which exist for a collection.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
 
    :statuscode 200: Normal response: returns a JSON array of strings, each
 	       string is the ID of a checkpoint on the collection.  If the
@@ -172,7 +172,7 @@ Checkpoints also do not persist across server restarts.
    Create a checkpoint.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
 
    :queryparam commit: (boolean). True if the checkpoint should cause a commit,
                False if the checkpoint should not cause a commit.
@@ -189,7 +189,7 @@ Checkpoints also do not persist across server restarts.
    expired), or the collection doesn't exist, returns a null JSON value.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
    :param checkpoint_id: The id of the checkpoint.
 
    :statuscode 200: If the checkpoint or collection doesn't exist, returns a
@@ -228,7 +228,7 @@ Documents
    stored fields, but also includes the indexed information about the document.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
    :param type: The type of the document.
    :param id: The ID of the document.
 
@@ -273,7 +273,7 @@ Documents
    call.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
    :param type: The type of the document.
    :param id: The ID of the document.
 
@@ -290,7 +290,7 @@ Documents
    Delete a document from a collection.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
    :param type: The type of the document.
    :param id: The ID of the document.
 
@@ -319,7 +319,7 @@ body as part of a `GET` request.
    :ref:`searches` section for details on the search structure.
 
    :param collection_name: The name of the collection.  May not contain
-          ``:/\.`` or tab characters.
+          ``:/\.,`` or tab characters.
    :param type: The type of the documents to search for.
 
    :statuscode 200: Returns the result of running the search, as a JSON
@@ -336,9 +336,63 @@ Getting the status of the server
 
    Gets details of the status of the server.
 
+   :statuscode 200: Returns a JSON object, with the following items:
+
+    * ``tasks``: Details of the task processing queues and pools in progress.
+      This is an object, with an entry for each named group of task queues in
+      the system (eg, for "indexing", "processing" and "search").  Each entry
+      is an object with the following members:
+      
+      * ``queues``: Details of the status of the queues in the task queue
+	group.  This has an entry for each queue (for the "indexing" and
+	"processing" groups, the name of each task queue is the name of the
+	corresponding collection.  For the "search" group, the name of each
+	task queue corresponds to the name of the task being performed; eg, the
+	task which produces this status output is in the "status" group, so
+	there will always be a ``status`` entry in the ``search`` group).  Each
+	entry is an object with the following members:
+      
+	* ``active``: (bool) True if the group is actively being processed.
+	  False if the group has been deactivated (this is usually done
+	  temporarily to avoid overloading target queues - eg, processing
+	  queues will be deactivated temporarily if their corresponding
+	  indexing queue exceeds a certain size.  They will reactivate
+	  automatically when the indexing queue becomes less full).
+
+	* ``assigned``: (bool) True if a worker is assigned exclusively to this
+	  group.  This is generally true for indexing tasks, but false for
+	  processing and search tasks.
+
+	* ``in_progress``: (int) The number of tasks in the group currently
+	  being processed.
+
+	* ``size``: (int) The number of tasks on the queue, waiting to be
+	  processed.  This does not include the number of tasks actively being
+	  processed (ie, those counted by ``in_progress``).
+
+      * ``threads``: Details of the threads in the thread pool for the queue.
+        This has the following members:
+
+	* ``running``: (int) The number of running threads in the thread pool
+	  (including threads waiting for tasks).
+
+	* ``size``: (int) The number of threads owned by the pool (including
+	  threads shutting down).
+
+	* ``waiting_for_join``: (int) The number of threads in the pool waiting
+	  for cleanup after shutting down.
+
 Root and static files
 =====================
 
 .. http:get:: /
-
 .. http:get:: /static/(static_path)
+
+   Static files are served from the ``static`` directory.  This is intended for
+   hosting pretty web interfaces for server administration and management.
+
+   :statuscode 200: the contents of the file.  Note that the mimetype is
+	       guessed from the file extension, and only a very limited set of
+	       common extensions are known about currently.
+
+   :statuscode 404: the file was not found.

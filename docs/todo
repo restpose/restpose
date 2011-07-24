@@ -8,18 +8,12 @@ Before an initial release
    AND_NOT and AND_MAYBE allow arbitrary numbers of queries on the RHS (ANDed
    together).
 
- - Write docs/urls.rst - content in there currently is worthless, needs
-   rewriting from scratch.  Must describe all possible urls, the expected
-   content type and parameters, and the possible normal return types.  In
-   particular, details about how methods which queue tasks will report high
-   load on the queues, an no space on the queues.
-
  - Test passing double values (both positive and negative) to timestamp and
    double fields.
 
  - Python client could do with testing for expired checkpoints.
 
- - Collection names should not be allowed to contain ":/\." or tab characters.
+ - Collection names should not be allowed to contain ":/\.," or tab characters.
    Validation should be performed in handlers to return clear error messages,
    and also in CollectionPool to ensure internal calls obey the restrictions too.
 
