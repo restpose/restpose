@@ -658,9 +658,9 @@ namespace RestPose {
 	 *  @param doc The document to store terms and values in.
 	 */
 	Xapian::Document process(const Json::Value & value,
-	    const CollectionConfig & collconfig,
-	    std::string & idterm,
-	    IndexingErrors & errors);
+				 const CollectionConfig & collconfig,
+				 std::string & idterm,
+				 IndexingErrors & errors);
 
 	/// Build a Xapian query from a JSON query structure.
 	Xapian::Query build_query(const CollectionConfig & collconfig,
