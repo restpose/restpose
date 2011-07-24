@@ -115,7 +115,7 @@ MetaFieldConfig::indexer() const
 }
 
 Xapian::Query
-MetaFieldConfig::query(const std::string & qtype,
+MetaFieldConfig::query(const string & qtype,
 		       const Json::Value & value) const
 {
     // Ensure we have a JSON array.
@@ -637,13 +637,13 @@ DoubleFieldConfig::query(const string & qtype,
     }
 
     if (!value[0].isConvertibleTo(Json::realValue)) {
-	throw InvalidValueError(std::string("JSON value for double field query (") +
+	throw InvalidValueError(string("JSON value for double field query (") +
 				json_serialise(value[0]) +
 				") was not convertible to a double");
     }
 
     if (!value[1].isConvertibleTo(Json::realValue)) {
-	throw InvalidValueError(std::string("JSON value for double field query (") +
+	throw InvalidValueError(string("JSON value for double field query (") +
 				json_serialise(value[1]) +
 				") was not convertible to a double");
     }
