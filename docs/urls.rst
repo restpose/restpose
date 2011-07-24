@@ -30,6 +30,26 @@ represented as `1`, `true`, `yes` or `on`, and "false" can be represented as
 `0`, `false`, `no` or `off` (with all strings comparisons here being case
 insensitive).
 
+C-style escapes
+---------------
+
+Where non-unicode strings need to be returned, they will be escaped using
+C-style escaping.  More precisely:
+
+ * \\ will be represented as \\\\
+
+ * Tab (hex code 0x09) will be represented as \\t
+
+ * Line feed (hex code 0x0a) will be represented as \\n
+
+ * Carriage return (hex code 0x0d) will be represented as \\r
+
+ * Characters from 0x32 to 0x7f (inclusive) will be represented as
+   themselves.
+
+ * Any other characters will be represented as \\xXX, where XX is the hex
+   representation of the character code.
+
 Error returns
 -------------
 
@@ -91,6 +111,8 @@ Deleting a collection
 Collection configuration
 ------------------------
 
+The collection configuration is represented as a JSON object; for details of its contents, see :ref:`Collection Configuration <coll_config>`.
+
 .. http:get:: /coll/(collection_name)/config
 
    Get the collection configuration.
@@ -100,7 +122,7 @@ Collection configuration
 
    :statuscode 200: Normal response: returns a JSON object representing the
 	       full configuration for the collection.  See :ref:`coll_config`
-	       for  details.
+	       for details.
 
    :statuscode 404: If the collection does not exist.  Returns a standard error object.
 
@@ -111,14 +133,14 @@ Collection configuration
    waited for, and committed using checkpoints in just the same way as for the
    document addition APIs.
 
-   Creates the collection it it didn't exist before the call.
+   Creates the collection if it didn't exist before the call.
 
    :param collection_name: The name of the collection.  May not contain
           ``:/\.`` or tab characters.
 
    :statuscode 202: Normal response: returns a JSON object representing the
 	       full configuration for the collection.  See :ref:`coll_config`
-	       for  details.
+	       for details.
 
 
 Checkpoints
@@ -156,8 +178,10 @@ Checkpoints also do not persist across server restarts.
                False if the checkpoint should not cause a commit.
 
    :statuscode 201: Normal response: returns a JSON object containing a single
-	       item, with a key of `checkid` and a value being a string used to
-	       identify the newly created checkpoint.
+	       item, with a key of ``checkid`` and a value being a string used
+	       to identify the newly created checkpoint.  The ``Location`` HTTP
+	       header will be set to a URL at which the status of the
+	       checkpoint can be accessed.
 
 .. http:get:: /coll/(collection_name)/checkpoint/(checkpoint_id)
 
@@ -195,48 +219,122 @@ Checkpoints also do not persist across server restarts.
 Documents
 ---------
 
-FIXME - after this point, details of calls need to be added.
-
 .. http:get:: /coll/(collection_name)/type/(type)/id/(id)
 
-   Get a document of given ID and type.
+   Get the stored information about the document of given ID and type.
+
+   Note that the information returned is not exactly the same as that supplied
+   when the document was indexed: the returned information depends on the
+   stored fields, but also includes the indexed information about the document.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.`` or tab characters.
+   :param type: The type of the document.
+   :param id: The ID of the document.
+
+   :statuscode 200: Normal response: returns a JSON object representing the
+	       document.  This object will have some or all of the following
+	       properties (properties for which the value would be empty are
+	       omitted).
+
+	       * data: A JSON object holding the stored fields, keyed by field
+		 name. Each value is an array of the values supplied for that
+		 field.  Each item in the array of values may be any JSON
+		 value, depending on what was supplied when indexing the field.
+
+	       * terms: A JSON object holding the terms in the document.  Each
+		 key is the string representation of a term (escaped using
+		 C-style escapes, since terms may be arbitrary binary values),
+		 in which the value is another JSON object with information
+		 about the occurrence of the term:
+		 
+		 * If the within-document-frequency of the term is non-zero,
+		   the `wdf` key will contain the within-document-frequency, as
+		   an integer.
+
+		 * If there are positions stored for the term, the `positions`
+		   key will contain an array of integer positions at which the
+		   term occurs.
+
+	       * values: A JSON object holding the values in the document.  The
+	         keys in this object will be the slot numbers used, and the
+	         values will be a string holding a C-style escaped version of
+	         the data stored in the value slot.
+
+   :statuscode 404: If the collection, type or document ID doesn't exist:
+               returns a standard error object.
 
 .. http:put:: /coll/(collection_name)/type/(type)/id/(id)
 
-   Creates the collection with default settings it it didn't exist before the
+   Create, or update, a document with the given `collection_name`, `type` and
+   `id`.
+
+   Creates the collection with default settings if it didn't exist before the
    call.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.`` or tab characters.
+   :param type: The type of the document.
+   :param id: The ID of the document.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
 
 .. http:delete:: /coll/(collection_name)/type/(type)/id/(id)
 
-To be added in future:
+   Delete a document from a collection.
 
-Insert a JSON document, calculating ID and type from contents.
- 
- POST /coll/<collection name>
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.`` or tab characters.
+   :param type: The type of the document.
+   :param id: The ID of the document.
 
-Insert a raw Xapian document, 
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
 
- POST /coll/<collection name/xapdoc
-
- POST /coll/<collection name>
- POST /coll/<collection name>/pipe/<pipe name>
-
-Classifying the language of a piece of text.
-
- POST /coll/<collection name>/pipe/<pipe name>
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
 
 Performing a search
 -------------------
 
+Searches are performed by sending a JSON search structure in the request body.
+This may be done using a :http:method:`GET` request, but will usually be done
+with a :http:method:`POST` request, since not all software supports sending a
+body as part of a `GET` request.
+
 .. http:get:: /coll/(collection_name)/type/(type)/search
 .. http:post:: /coll/(collection_name)/type/(type)/search
 
-   Search is sent in the body; see search_json.rst for details.
+   Search for documents in a collection, and with a given document type.
+
+   The search is sent as a JSON structure in the request body: see the
+   :ref:`searches` section for details on the search structure.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.`` or tab characters.
+   :param type: The type of the documents to search for.
+
+   :statuscode 200: Returns the result of running the search, as a JSON
+	       structure.  See the :ref:`search_results` section for details on
+	       the search result structure.
+
+   :statuscode 404: If the collection is not found.
+
 
 Getting the status of the server
 ================================
 
 .. http:get:: /status
+
+   Gets details of the status of the server.
 
 Root and static files
 =====================
