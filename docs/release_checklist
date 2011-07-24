@@ -1,0 +1,20 @@
+Before release.
+
+ - update version number in configure.ac to remove "dev"
+
+ - check all tests run
+
+ - check installation works
+   - check static file path when installed, and default datadir when installed
+
+ - check python client tests work running against installed server
+
+ - build tarballs, with make distcheck.
+
+ - commit and push version with "dev" removed from configure.ac
+
+ - tag in git, and push tag
+
+ - upload tarballs
+
+ - update version number in configure.ac to be the next release number, with "dev" appended.
