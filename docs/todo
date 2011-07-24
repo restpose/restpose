@@ -4,6 +4,11 @@ TODO
 Before an initial release
 -------------------------
 
+ - Make searches across all types in a collection work.
+
+ - Make searches across a single type return total_docs equal to the number of
+   docs of that type, not the number of docs in the collection.
+
  - Change filter query syntax to simply be another query operator, and like
    AND_NOT and AND_MAYBE allow arbitrary numbers of queries on the RHS (ANDed
    together).
@@ -11,11 +16,20 @@ Before an initial release
  - Test passing double values (both positive and negative) to timestamp and
    double fields.
 
- - Python client could do with testing for expired checkpoints.
-
  - Collection names should not be allowed to contain ":/\.," or tab characters.
    Validation should be performed in handlers to return clear error messages,
    and also in CollectionPool to ensure internal calls obey the restrictions too.
+
+ - Type names: should not be allowed to contain tab characters.  Perhaps
+   restrict to the same set of allowed characters as collection names, to allow
+   for nicer syntax in future.
+
+ - Python client:
+   - rework the way in which queries are built.
+   - document how to build and run searches (both doing the search explicitly,
+     and implicitly by slicing, iteration or subscription).
+   - testing for expired checkpoints.
+   - clean up all todos in python client documentation.
 
  - Make logging do writes asynchronously.  (Currently, a log call acquires the
    logger mutex, then does the write, blocking all other threads.  Instead, log
@@ -33,8 +47,6 @@ Before an initial release
 
  - If the client doesn't send a Host header, we need to synthesise one so that
    Location headers in responses are valid.
-
- - Make searches across all types in a collection work.
 
  - Consider reorganising the search result format, so that it contains a
    section holding the parameters supplied when running the search, rather
