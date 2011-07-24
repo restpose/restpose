@@ -209,6 +209,20 @@ class CollectionConfig {
     Schema * set_schema(const std::string & type,
 			const Schema & schema);
 
+    /** Start iterating over the schemas in the collection.
+     */
+    std::map<std::string, Schema *>::const_iterator schema_begin() const
+    {
+	return types.begin();
+    }
+
+    /** End iterator for the schemas in the collection.
+     */
+    std::map<std::string, Schema *>::const_iterator schema_end() const
+    {
+	return types.end();
+    }
+
     /** Get an input pipe.
      *
      *  Raises an exception if the pipe is not known.
