@@ -276,10 +276,15 @@ class Collection {
      */
     uint64_t doc_count() const;
 
-    /** Perform a search.
+    /** Perform a search, within a particular document type.
      */
     void perform_search(const Json::Value & search,
 			const std::string & doc_type,
+			Json::Value & results) const;
+
+    /** Perform a search.
+     */
+    void perform_search(const Json::Value & search,
 			Json::Value & results) const;
 
     /** Get a set of stored fields from a Xapian document.

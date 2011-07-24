@@ -443,6 +443,7 @@ Collection::perform_search(const Json::Value & search,
     if (!group.is_open()) {
 	throw InvalidStateError("Collection must be open to perform search");
     }
+    results = Json::objectValue;
     const Schema * schema = config.get_schema(doc_type);
     if (schema == NULL) {
 	Schema tmp(doc_type);
@@ -450,6 +451,17 @@ Collection::perform_search(const Json::Value & search,
     } else {
 	schema->perform_search(config, get_db(), search, results);
     }
+}
+
+void
+Collection::perform_search(const Json::Value & search,
+			   Json::Value & results) const
+{
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to perform search");
+    }
+    results = Json::objectValue;
+    (void)search; // FIXME
 }
 
 void

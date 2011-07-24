@@ -1500,7 +1500,6 @@ Schema::perform_search(const CollectionConfig & collconfig,
 		       const Json::Value & search,
 		       Json::Value & results) const
 {
-    results = Json::objectValue;
     json_check_object(search, "search");
     bool verbose = json_get_bool(search, "verbose", false);
 
