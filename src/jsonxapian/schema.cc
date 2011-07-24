@@ -1637,22 +1637,6 @@ Schema::perform_search(const CollectionConfig & collconfig,
 }
 
 void
-Schema::perform_search(const CollectionConfig & collconfig,
-		       const Xapian::Database & db,
-		       const string & search_str,
-		       Json::Value & results) const
-{
-    Json::Reader reader;
-    Json::Value search;
-    bool ok = reader.parse(search_str, search, false);
-    if (!ok) {
-	throw InvalidValueError("Invalid JSON supplied for search: " +
-				reader.getFormatedErrorMessages());
-    }
-    perform_search(collconfig, db, search, results);
-}
-
-void
 Schema::display_doc(const Xapian::Document & doc,
 		    const Json::Value & fieldlist,
 		    Json::Value & result) const

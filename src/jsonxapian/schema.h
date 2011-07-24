@@ -678,13 +678,6 @@ namespace RestPose {
 			    const Json::Value & search,
 			    Json::Value & results) const;
 
-	/** Perform a search, given a JSON encoded search.
-	 */
-	void perform_search(const CollectionConfig & collconfig,
-			    const Xapian::Database & db,
-			    const std::string & search_str,
-			    Json::Value & results) const;
-
 	/** Get a set of stored fields from a Xapian document.
 	 */
 	void display_doc(const Xapian::Document & doc,
