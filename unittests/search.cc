@@ -38,6 +38,7 @@ using namespace std;
 TEST(SearchIntegerExactFields)
 {
     CollectionConfig config("test"); // dummy config, used for testing.
+    Json::Value tmp;
     config.set_default();
     Schema s("testtype");
     s.set("id", new IDFieldConfig(""));
@@ -55,7 +56,6 @@ TEST(SearchIntegerExactFields)
 	IndexingErrors errors;
 	Xapian::Document doc(s.process(value, config, idterm, errors));
 	CHECK_EQUAL(0u, errors.errors.size());
-	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},"
 		     "\"terms\":{\"\\\\t\\\\t32\":{},"
 		                "\"intid\\\\t18446744073709551615\":{},"
@@ -72,7 +72,6 @@ TEST(SearchIntegerExactFields)
 	IndexingErrors errors;
 	Xapian::Document doc(s.process(value, config, idterm, errors));
 	CHECK_EQUAL(0u, errors.errors.size());
-	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"intid\":[31]},"
 		     "\"terms\":{\"\\\\t\\\\t18446744073709551615\":{},"
 				"\"intid\\\\t31\":{},"
@@ -86,7 +85,7 @@ TEST(SearchIntegerExactFields)
     {
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[\"31\"]]}}";
-	s.perform_search(config, db, search_str, search_results);
+	s.perform_search(config, db, json_unserialise(search_str, tmp), search_results);
 	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size_requested\":10,\"total_docs\":2}",
 		    json_serialise(search_results));
     }
@@ -95,7 +94,7 @@ TEST(SearchIntegerExactFields)
     {
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[\"32\"]]}}";
-	s.perform_search(config, db, search_str, search_results);
+	s.perform_search(config, db, json_unserialise(search_str, tmp), search_results);
 	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size_requested\":10,\"total_docs\":2}",
 		    json_serialise(search_results));
     }
@@ -104,7 +103,7 @@ TEST(SearchIntegerExactFields)
     {
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[32]]}}";
-	s.perform_search(config, db, search_str, search_results);
+	s.perform_search(config, db, json_unserialise(search_str, tmp), search_results);
 	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size_requested\":10,\"total_docs\":2}",
 		    json_serialise(search_results));
     }
@@ -113,7 +112,7 @@ TEST(SearchIntegerExactFields)
     {
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"id\",\"is\",[18446744073709551615]]}}";
-	s.perform_search(config, db, search_str, search_results);
+	s.perform_search(config, db, json_unserialise(search_str, tmp), search_results);
 	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[{\"intid\":[31]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size_requested\":10,\"total_docs\":2}",
 		    json_serialise(search_results));
     }
@@ -122,7 +121,7 @@ TEST(SearchIntegerExactFields)
     {
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"intid\",\"is\",[\"18446744073709551615\"]]}}";
-	s.perform_search(config, db, search_str, search_results);
+	s.perform_search(config, db, json_unserialise(search_str, tmp), search_results);
 	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[{\"intid\":[18446744073709551615]}],\"matches_estimated\":1,\"matches_lower_bound\":1,\"matches_upper_bound\":1,\"size_requested\":10,\"total_docs\":2}",
 		    json_serialise(search_results));
     }
@@ -131,7 +130,7 @@ TEST(SearchIntegerExactFields)
     {
 	Json::Value search_results(Json::objectValue);
 	string search_str = "{\"query\":{\"field\":[\"intid\",\"is\",[\"18446744073709551614\"]]}}";
-	s.perform_search(config, db, search_str, search_results);
+	s.perform_search(config, db, json_unserialise(search_str, tmp), search_results);
 	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size_requested\":10,\"total_docs\":2}",
 		    json_serialise(search_results));
     }
