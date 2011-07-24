@@ -142,8 +142,12 @@ Handler *
 SearchHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
-    string doc_type = path_params[1];
-    return new SearchHandler(coll_name, doc_type);
+    if (path_params.size() == 1) {
+	return new SearchHandler(coll_name, string());
+    } else {
+	string doc_type = path_params[1];
+	return new SearchHandler(coll_name, doc_type);
+    }
 }
 
 Queue::QueueState

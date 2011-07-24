@@ -60,6 +60,7 @@ setup_routes(Router & router)
 
     // Search
     router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
+    router.add("/coll/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
 
     // Set a handler for anything else to return 404.
     router.set_default(new NotFoundHandlerFactory);
