@@ -1,3 +1,5 @@
+.. _searches:
+
 ========
 Searches
 ========
@@ -264,3 +266,35 @@ Alternately, the sort order can be set to be relevance order (which is the defau
     ]
 
 At present, the list of sort orders may only contain exactly one item.
+
+.. _search_results:
+
+Search results
+==============
+
+Search results are returned as a JSON object, with the following properties.
+
+ * ``from``: (int) The `from` value used when performing the search.
+
+ * ``size_requested``: (int) The `size` value used when performing the search.
+
+ * ``check_at_least``: (int) The `check_at_least` value used when performing
+   the search.
+
+ * ``total_docs``: (int) The total number of documents searched through.
+
+ * ``matches_lower_bound``: (int) A lower bound on the number of matching
+   documents.  This will be precise if `check_at_least` was -1, or was high
+   enough to ensure that all matches were checked.
+
+ * ``matches_estimated``: (int) An estimate on the number of matching
+   documents.  This will be precise if `check_at_least` was -1, or was high
+   enough to ensure that all matches were checked.
+
+ * ``matches_upper_bound``: (int) An upper bound on the number of matching
+   documents.  This will be precise if `check_at_least` was -1, or was high
+   enough to ensure that all matches were checked.
+
+ * ``items``: (array) An array of results from searching.  Each result is a
+   object, keyed by fieldname, holding the stored fields for that result.  The
+   search may limit which fields are returned.
