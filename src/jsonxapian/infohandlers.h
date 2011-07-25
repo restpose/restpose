@@ -33,7 +33,6 @@ class Database;
 }
 
 namespace RestPose {
-class Schema;
 
 class InfoHandler {
   public:
@@ -62,7 +61,6 @@ class InfoHandlers {
     void add_handler(const Json::Value & params,
 		     Xapian::Enquire & enq,
 		     const Xapian::Database * db,
-		     const Schema * schema,
 		     Xapian::doccount & check_at_least);
 };
 

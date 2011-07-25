@@ -52,7 +52,6 @@ BaseOccurInfoHandler::write_results(Json::Value & results,
 OccurInfoHandler::OccurInfoHandler(const Json::Value & params,
 				   Xapian::Enquire & enq,
 				   const Xapian::Database * db_,
-				   const Schema *,
 				   Xapian::doccount & check_at_least)
 	: BaseOccurInfoHandler(db_)
 {
@@ -84,7 +83,6 @@ OccurInfoHandler::OccurInfoHandler(const Json::Value & params,
 CoOccurInfoHandler::CoOccurInfoHandler(const Json::Value & params,
 				       Xapian::Enquire & enq,
 				       const Xapian::Database * db_,
-				       const Schema *,
 				       Xapian::doccount & check_at_least)
 	: BaseOccurInfoHandler(db_)
 {

@@ -54,7 +54,6 @@ class OccurInfoHandler : public BaseOccurInfoHandler {
     OccurInfoHandler(const Json::Value & params,
 		     Xapian::Enquire & enq,
 		     const Xapian::Database * db_,
-		     const Schema * schema,
 		     Xapian::doccount & check_at_least);
 
 };
@@ -64,7 +63,6 @@ class CoOccurInfoHandler : public BaseOccurInfoHandler {
     CoOccurInfoHandler(const Json::Value & params,
 		       Xapian::Enquire & enq,
 		       const Xapian::Database * db_,
-		       const Schema * schema,
 		       Xapian::doccount & check_at_least);
 };
 
