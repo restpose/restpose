@@ -467,7 +467,7 @@ Collection::perform_search(const Json::Value & search,
 	builder = auto_ptr<QueryBuilder>(new CollectionQueryBuilder(this));
     } else {
 	builder = auto_ptr<QueryBuilder>(
-	    new DocumentTypeQueryBuilder(this, config.get_schema(doc_type)));
+		new DocumentTypeQueryBuilder(config.get_schema(doc_type)));
     }
 
     results = Json::objectValue;
