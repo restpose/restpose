@@ -25,6 +25,7 @@
 #ifndef RESTPOSE_INCLUDED_DOCDATA_H
 #define RESTPOSE_INCLUDED_DOCDATA_H
 
+#include "json/value.h"
 #include <string>
 #include <map>
 
@@ -76,6 +77,11 @@ namespace RestPose {
 	/** Unserialise the document data from a string produced by
 	 *  serialise(). */
 	void unserialise(const std::string &s);
+
+	/** Output the document data in display form.
+	 */
+	Json::Value & to_display(const Json::Value & fieldlist,
+				 Json::Value & result) const;
     };
 };
 

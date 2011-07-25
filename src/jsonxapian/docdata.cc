@@ -26,8 +26,10 @@
 
 #include "docdata.h"
 #include "serialise.h"
+#include "utils/jsonutils.h"
 
 using namespace RestPose;
+using namespace std;
 
 std::string
 DocumentData::serialise() const
@@ -69,4 +71,37 @@ DocumentData::unserialise(const std::string &s)
 	ptr += len;
 	fields[field] = value;
     }
+}
+
+Json::Value &
+DocumentData::to_display(const Json::Value & fieldlist,
+			 Json::Value & result) const
+{
+    result = Json::objectValue;
+    if (fieldlist.isNull()) {
+	// Return all fields.
+	for (std::map<std::string, std::string>::const_iterator
+	     i = fields.begin(); i != fields.end(); ++i) {
+	    if (!i->second.empty()) {
+		Json::Value tmp;
+		result[i->first] = json_unserialise(i->second, tmp);
+	    }
+	}
+    } else {
+	// Return fields in fieldlist
+	for (Json::Value::const_iterator fiter = fieldlist.begin();
+	     fiter != fieldlist.end();
+	     ++fiter) {
+	    string fieldname((*fiter).asString());
+	    std::map<std::string, std::string>::const_iterator
+		    i = fields.find(fieldname);
+	    if (i != fields.end()) {
+		if (!i->second.empty()) {
+		    Json::Value tmp;
+		    result[fieldname] = json_unserialise(i->second, tmp);
+		}
+	    }
+	}
+    }
+    return result;
 }
