@@ -87,7 +87,6 @@ namespace RestPose {
      *  the whole collection.
      */
     class DocumentTypeQueryBuilder : public QueryBuilder {
-	const Collection * coll;
 	const Schema * schema;
 
 	/** Build a query for a particular field.
@@ -97,7 +96,7 @@ namespace RestPose {
 				  const Json::Value & queryparams) const;
 
       public:
-	DocumentTypeQueryBuilder(const Collection * coll_, const Schema * schema_);
+	DocumentTypeQueryBuilder(const Schema * schema_);
 
 	Xapian::Query build(const CollectionConfig & collconfig,
 			    const Json::Value & jsonquery) const;

@@ -289,10 +289,8 @@ CollectionQueryBuilder::build(const CollectionConfig & collconfig,
 }
 
 
-DocumentTypeQueryBuilder::DocumentTypeQueryBuilder(const Collection * coll_,
-						   const Schema * schema_)
-	: coll(coll_),
-	  schema(schema_)
+DocumentTypeQueryBuilder::DocumentTypeQueryBuilder(const Schema * schema_)
+	: schema(schema_)
 {
 }
 
