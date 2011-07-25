@@ -15,7 +15,6 @@ restpose_LDADD = \
  libjsonmanip.a \
  libngramcat.a \
  libcjktokenizer.a \
- libjsoncpp.a \
  liblogger.a \
  libdbgroup.a \
  libutils.a \
@@ -23,5 +22,6 @@ restpose_LDADD = \
  libxapiancommon.a \
  libmongocdriver.a \
  libcli.a \
+ libjsoncpp.a \
  libs/libmicrohttpd/src/daemon/libmicrohttpd.la \
  $(XAPIAN_LIBS)
