@@ -37,7 +37,6 @@ using namespace std;
 
 Xapian::Query
 QueryBuilder::build_query(const CollectionConfig & collconfig,
-			  const Xapian::Database & db,
 			  const Json::Value & jsonquery) const
 {
     if (jsonquery.isNull()) {
@@ -126,11 +125,11 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	if (primary.isNull()) {
 	    xprimary = Xapian::Query::MatchAll;
 	} else {
-	    xprimary = build_query(collconfig, db, primary);
+	    xprimary = build_query(collconfig, primary);
 	}
 
 	const Json::Value & filter = jsonquery["filter"];
-	Xapian::Query xfilter(build_query(collconfig, db, filter));
+	Xapian::Query xfilter(build_query(collconfig, filter));
 
 	return Xapian::Query(Xapian::Query::OP_FILTER, xprimary, xfilter);
     }
@@ -146,7 +145,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(collconfig, db, *i));
+	    queries.push_back(build_query(collconfig, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND,
 			     queries.begin(), queries.end());
@@ -163,7 +162,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(collconfig, db, *i));
+	    queries.push_back(build_query(collconfig, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_OR,
 			     queries.begin(), queries.end());
@@ -180,7 +179,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(collconfig, db, *i));
+	    queries.push_back(build_query(collconfig, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_XOR,
 			     queries.begin(), queries.end());
@@ -197,14 +196,14 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	}
 
 	Json::Value::const_iterator i = queryparams.begin();
-	Xapian::Query posquery(build_query(collconfig, db, *i));
+	Xapian::Query posquery(build_query(collconfig, *i));
 	++i;
 
 	vector<Xapian::Query> negqueries;
 	negqueries.reserve(queryparams.size() - 1);
 
 	for (; i != queryparams.end(); ++i) {
-	    negqueries.push_back(build_query(collconfig, db, *i));
+	    negqueries.push_back(build_query(collconfig, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND_NOT,
 			     posquery,
@@ -223,14 +222,14 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	}
 
 	Json::Value::const_iterator i = queryparams.begin();
-	Xapian::Query mainquery(build_query(collconfig, db, *i));
+	Xapian::Query mainquery(build_query(collconfig, *i));
 	++i;
 
 	vector<Xapian::Query> maybequeries;
 	maybequeries.reserve(queryparams.size() - 1);
 
 	for (; i != queryparams.end(); ++i) {
-	    maybequeries.push_back(build_query(collconfig, db, *i));
+	    maybequeries.push_back(build_query(collconfig, *i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND_MAYBE,
 			     mainquery,
@@ -247,15 +246,16 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	if (!queryparams.isMember("query")) {
 	    throw InvalidValueError("Scale query must contain a query member");
 	}
-	Xapian::Query subquery = build_query(collconfig, db, queryparams["query"]);
+	Xapian::Query subquery = build_query(collconfig, queryparams["query"]);
 	return Xapian::Query(Xapian::Query::OP_SCALE_WEIGHT, subquery,
 	    json_get_double_member(queryparams, "factor", 0.0));
     }
 
-    throw InvalidValueError("Invalid query specification - no known members in query object");
+    throw InvalidValueError("Invalid query specification - no known members in query object (" + json_serialise(jsonquery) + ")");
 }
 
-CollectionQueryBuilder::CollectionQueryBuilder(Collection * coll_)
+
+CollectionQueryBuilder::CollectionQueryBuilder(const Collection * coll_)
 	: coll(coll_)
 {
 }
@@ -277,15 +277,20 @@ CollectionQueryBuilder::field_query(const std::string & fieldname,
 	}
     }
 
-    if (queries.empty()) {
-	return Xapian::Query::MatchNothing;
-    }
     return Xapian::Query(Xapian::Query::OP_OR,
 			 queries.begin(), queries.end());
 }
 
-DocumentTypeQueryBuilder::DocumentTypeQueryBuilder(Collection * coll_,
-						   Schema * schema_)
+Xapian::Query
+CollectionQueryBuilder::build(const CollectionConfig & collconfig,
+			      const Json::Value & jsonquery) const
+{
+    return build_query(collconfig, jsonquery);
+}
+
+
+DocumentTypeQueryBuilder::DocumentTypeQueryBuilder(const Collection * coll_,
+						   const Schema * schema_)
 	: coll(coll_),
 	  schema(schema_)
 {
@@ -296,12 +301,33 @@ DocumentTypeQueryBuilder::field_query(const std::string & fieldname,
 				      const std::string & querytype,
 				      const Json::Value & queryparams) const
 {
-    if (schema == NULL) {
-	return Xapian::Query::MatchNothing;
-    }
+    // Schema cannot be NULL, because this is checked in build().
     const FieldConfig * config = schema->get(fieldname);
     if (config == NULL) {
 	return Xapian::Query::MatchNothing;
     }
     return config->query(querytype, queryparams);
+}
+
+Xapian::Query
+DocumentTypeQueryBuilder::build(const CollectionConfig & collconfig,
+				const Json::Value & jsonquery) const
+{
+    if (schema == NULL) {
+	// Will happen if no documents have been added yet with this type, so
+	// this isn't an error.
+	return Xapian::Query::MatchNothing;
+    }
+
+    // Filter to return only documents of this type.
+    const FieldConfig * typeconfig = schema->get(collconfig.get_type_field());
+    if (typeconfig == NULL) {
+	// Should only happen if there isn't a type field, so a type-specific
+	// search should return nothing.
+	return Xapian::Query::MatchNothing;
+    }
+    Xapian::Query type_query(typeconfig->query("is", schema->get_doctype()));
+
+    return Xapian::Query(Xapian::Query::OP_FILTER,
+			 build_query(collconfig, jsonquery), type_query);
 }

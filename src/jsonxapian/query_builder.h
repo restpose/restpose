@@ -39,11 +39,10 @@ namespace RestPose {
      *  to build the leaf queries.
      */
     class QueryBuilder {
-      public:
+      protected:
 	/** Build a query from a JSON query specification.
 	 */
 	Xapian::Query build_query(const CollectionConfig & collconfig,
-				  const Xapian::Database & db,
 				  const Json::Value & jsonquery) const;
 
 	/** Build a query for a particular field.
@@ -53,6 +52,11 @@ namespace RestPose {
 			    const std::string & querytype,
 			    const Json::Value & queryparams) const = 0;
 
+      public:
+	/** Build a query from a JSON query specification.
+	 */
+	virtual Xapian::Query build(const CollectionConfig & collconfig,
+				    const Json::Value & jsonquery) const = 0;
     };
 
     /** A query builder for searches across a whole collection.
@@ -60,15 +64,21 @@ namespace RestPose {
      *  Implements leaf queries which search the whole collection.
      */
     class CollectionQueryBuilder : public QueryBuilder {
-	Collection * coll;
-      public:
-	CollectionQueryBuilder(Collection * coll_);
+	const Collection * coll;
 
 	/** Build a query for a particular field.
 	 */
 	Xapian::Query field_query(const std::string & fieldname,
 				  const std::string & querytype,
 				  const Json::Value & queryparams) const;
+
+      public:
+	CollectionQueryBuilder(const Collection * coll_);
+
+	/** Build a query from a JSON query specification.
+	 */
+	Xapian::Query build(const CollectionConfig & collconfig,
+			    const Json::Value & jsonquery) const;
     };
 
     /** A query builder for searching a particular document type.
@@ -77,16 +87,20 @@ namespace RestPose {
      *  the whole collection.
      */
     class DocumentTypeQueryBuilder : public QueryBuilder {
-	Collection * coll;
-	Schema * schema;
-      public:
-	DocumentTypeQueryBuilder(Collection * coll_, Schema * schema_);
+	const Collection * coll;
+	const Schema * schema;
 
 	/** Build a query for a particular field.
 	 */
 	Xapian::Query field_query(const std::string & fieldname,
 				  const std::string & querytype,
 				  const Json::Value & queryparams) const;
+
+      public:
+	DocumentTypeQueryBuilder(const Collection * coll_, const Schema * schema_);
+
+	Xapian::Query build(const CollectionConfig & collconfig,
+			    const Json::Value & jsonquery) const;
     };
 };
 
