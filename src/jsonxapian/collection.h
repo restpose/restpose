@@ -282,11 +282,6 @@ class Collection {
 			const std::string & doc_type,
 			Json::Value & results) const;
 
-    /** Perform a search.
-     */
-    void perform_search(const Json::Value & search,
-			Json::Value & results) const;
-
     /** Get a set of stored fields from a Xapian document.
      */
     void get_doc_fields(const Xapian::Document & doc,

@@ -25,16 +25,19 @@
 #include <config.h>
 #include "collection.h"
 
-#include <xapian.h>
+#include "infohandlers.h"
 #include "jsonxapian/doctojson.h"
 #include "jsonxapian/indexing.h"
 #include "jsonxapian/pipe.h"
+#include "jsonxapian/query_builder.h"
 #include "logger/logger.h"
+#include <memory>
 #include "str.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 #include "utils/stringutils.h"
 #include <vector>
+#include <xapian.h>
 
 using namespace std;
 using namespace RestPose;
@@ -443,25 +446,139 @@ Collection::perform_search(const Json::Value & search,
     if (!group.is_open()) {
 	throw InvalidStateError("Collection must be open to perform search");
     }
-    results = Json::objectValue;
-    const Schema * schema = config.get_schema(doc_type);
-    if (schema == NULL) {
-	Schema tmp(doc_type);
-	tmp.perform_search(config, get_db(), search, results);
-    } else {
-	schema->perform_search(config, get_db(), search, results);
-    }
-}
+    bool verbose = json_get_bool(search, "verbose", false);
 
-void
-Collection::perform_search(const Json::Value & search,
-			   Json::Value & results) const
-{
-    if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to perform search");
+    // Get the list of fields to return, and check it's a list of strings.
+    const Json::Value & fieldlist = search["display"];
+    if (!fieldlist.isNull()) {
+	json_check_array(fieldlist, "list of fields to display");
+	for (Json::Value::const_iterator fiter = fieldlist.begin();
+	     fiter != fieldlist.end();
+	     ++fiter) {
+	    if (!(*fiter).isString()) {
+		throw InvalidValueError(
+			"Item in display field list was not a string");
+	    }
+	}
     }
+
+    auto_ptr<QueryBuilder> builder;
+    if (doc_type.empty()) {
+	builder = auto_ptr<QueryBuilder>(new CollectionQueryBuilder(this));
+    } else {
+	builder = auto_ptr<QueryBuilder>(
+	    new DocumentTypeQueryBuilder(this, config.get_schema(doc_type)));
+    }
+
     results = Json::objectValue;
-    (void)search; // FIXME
+    Xapian::Query query(builder->build(config, search["query"]));
+
+    Xapian::Database db(get_db());
+
+    Xapian::doccount total_docs, from, size, check_at_least;
+    total_docs = db.get_doccount(); // FIXME - get from builder
+    from = json_get_uint64_member(search, "from", Json::Value::maxUInt, 0);
+
+    if (search["size"] == -1) {
+	size = total_docs;
+    } else {
+	size = json_get_uint64_member(search, "size", Json::Value::maxUInt, 10);
+    }
+
+    if (search["check_at_least"] == -1) {
+	check_at_least = total_docs;
+    } else {
+	check_at_least = json_get_uint64_member(search, "check_at_least",
+						Json::Value::maxUInt, 0);
+    }
+
+    Xapian::Enquire enq(db);
+    enq.set_query(query);
+    enq.set_weighting_scheme(Xapian::BoolWeight());
+
+    InfoHandlers info_handlers;
+    if (search.isMember("info")) {
+	const Json::Value & info = search["info"];
+	json_check_array(info, "list of info items to gather");
+	for (Json::Value::const_iterator i = info.begin();
+	     i != info.end(); ++i) {
+	    info_handlers.add_handler(*i, enq, &db, check_at_least);
+	}
+    }
+
+    // Internal document IDs are not under the user's control, so set this
+    // option for potential (though probably slight) performance increases.
+    enq.set_docid_order(enq.DONT_CARE);
+
+    if (search.isMember("order_by")) {
+	const Json::Value & order_by = search["order_by"];
+	json_check_array(order_by, "list of ordering items");
+	if (order_by.size() != 1) {
+	    throw InvalidValueError("Invalid order_by array - must contain exactly 1 item");
+	}
+	const Json::Value & order_by_item = order_by[0];
+	json_check_object(order_by_item, "ordering item");
+	if (order_by_item.isMember("field")) {
+	    // Order by a field.  The field must have a slot associated with
+	    // it, holding the sortable values.
+	    string fieldname = json_get_string_member(order_by_item, "field",
+						      string());
+	    // If the fieldname is not known, ignore.  Otherwise, get the slot
+	    // number, and set the sort order on the enquire object.
+	    Xapian::valueno slot = config.sort_slot(fieldname);
+	    if (slot == Xapian::BAD_VALUENO) {
+		throw InvalidValueError("Sort field is not configured "
+		  "appropriately (does not have a sortable slot associated)");
+	    }
+	    bool ascending = json_get_bool(order_by_item, "ascending", true);
+	    enq.set_sort_by_value(slot, !ascending);
+	} else if (order_by_item.isMember("score")) {
+	    // Order by the weights calculated in the query tree.
+	    if (order_by_item["score"] != "weight") {
+		throw InvalidValueError("Invalid score specification (only "
+					"allowed value is \"weight\")");
+	    }
+	    if (json_get_bool(order_by_item, "ascending", false)) {
+		throw InvalidValueError("Ascending order is not allowed when "
+					"ordering by weight");
+	    }
+	    enq.set_sort_by_relevance();
+	} else {
+	    throw InvalidValueError("Invalid order_by item - neither contains "
+				    "\"field\" or \"score\" member");
+	}
+    }
+
+    Xapian::MSet mset(enq.get_mset(from, size, check_at_least));
+
+    // Write the results
+    info_handlers.write_results(results, mset);
+    results["total_docs"] = total_docs;
+    results["from"] = from;
+    results["size_requested"] = size;
+    results["check_at_least"] = check_at_least;
+    results["matches_lower_bound"] = mset.get_matches_lower_bound();
+    results["matches_estimated"] = mset.get_matches_estimated();
+    results["matches_upper_bound"] = mset.get_matches_upper_bound();
+    Json::Value & items = results["items"] = Json::arrayValue;
+    for (Xapian::MSetIterator i = mset.begin(); i != mset.end(); ++i) {
+	Xapian::Document doc(i.get_document());
+	DocumentData docdata;
+	docdata.unserialise(doc.get_data());
+	Json::Value tmp;
+	items.append(docdata.to_display(fieldlist, tmp));
+    }
+    if (verbose) {
+	// Give debugging details about the search executed.
+	// Note - we can't just include query.get_description() in the output,
+	// because this isn't always a valid unicode string, so we escape it
+	// with hexesc.
+	results["query_description"] = hexesc(query.get_description());
+
+	// Also include the serialised form, since this can be usefully
+	// unserialised to build testcases to demonstrate problems.
+	results["query_serialised"] = hexesc(query.serialise());
+    }
 }
 
 void
