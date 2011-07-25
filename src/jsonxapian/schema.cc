@@ -1546,7 +1546,7 @@ Schema::perform_search(const CollectionConfig & collconfig,
 	json_check_array(info, "list of info items to gather");
 	for (Json::Value::const_iterator i = info.begin();
 	     i != info.end(); ++i) {
-	    info_handlers.add_handler(*i, enq, &db, this, check_at_least);
+	    info_handlers.add_handler(*i, enq, &db, check_at_least);
 	}
     }
 
@@ -1644,7 +1644,6 @@ Schema::display_doc(const Xapian::Document & doc,
     result = Json::objectValue;
     DocumentData docdata;
     docdata.unserialise(doc.get_data());
-    Json::Reader reader;
     for (Json::Value::const_iterator fiter = fieldlist.begin();
 	 fiter != fieldlist.end();
 	 ++fiter) {
@@ -1654,13 +1653,8 @@ Schema::display_doc(const Xapian::Document & doc,
 	string fieldname((*fiter).asString());
 	string val(docdata.get(fieldname));
 	if (!val.empty()) {
-	    Json::Value fieldval;
-	    bool ok = reader.parse(val, fieldval, false);
-	    if (!ok) {
-		throw InvalidValueError("Invalid JSON found in document: " +
-					reader.getFormatedErrorMessages());
-	    }
-	    result[fieldname] = fieldval;
+	    Json::Value tmp;
+	    result[fieldname] = json_unserialise(val, tmp);
 	}
     }
 }
