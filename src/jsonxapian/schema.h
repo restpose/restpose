@@ -620,6 +620,8 @@ namespace RestPose {
 	/// Initialise the schema from a JSON object.
 	void from_json(const Json::Value & value);
 
+	const std::string & get_doctype() const { return doc_type; }
+
 	/** Merge settings from another schema.
 	 *
 	 *  Raises an exception if any incompatible changes to a field's
