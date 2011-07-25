@@ -664,21 +664,9 @@ namespace RestPose {
 				 std::string & idterm,
 				 IndexingErrors & errors);
 
-	/// Build a Xapian query from a JSON query structure.
-	Xapian::Query build_query(const CollectionConfig & collconfig,
-				  const Xapian::Database & db,
-				  const Json::Value & query) const;
-
 	/// Get the list of fields to return, from a search
 	void get_fieldlist(Json::Value & result,
 			   const Json::Value & search) const;
-
-	/** Perform a search.
-	 */
-	void perform_search(const CollectionConfig & collconfig,
-			    const Xapian::Database & db,
-			    const Json::Value & search,
-			    Json::Value & results) const;
 
 	/** Get a set of stored fields from a Xapian document.
 	 */
