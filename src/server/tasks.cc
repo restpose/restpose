@@ -70,16 +70,14 @@ StaticFileTask::perform(RestPose::Collection *)
     resulthandle.set_ready();
 }
 
-
 void
 PerformSearchTask::perform(RestPose::Collection * collection)
 {
     Json::Value result(Json::objectValue);
+    collection->perform_search(search, doc_type, result);
     if (doc_type.empty()) {
-	collection->perform_search(search, result);
 	LOG_DEBUG("searched collection '" + collection->get_name() + "'");
     } else {
-	collection->perform_search(search, doc_type, result);
 	LOG_DEBUG("searched collection '" + collection->get_name() +
 		  "' within type '" + doc_type + "'");
     }
