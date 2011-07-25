@@ -393,6 +393,28 @@ CollectionConfig::set_schema(const string & type,
     return schemaptr;
 }
 
+Xapian::valueno
+CollectionConfig::sort_slot(const std::string & fieldname) const
+{
+    Xapian::valueno result(Xapian::BAD_VALUENO);
+    for (std::map<std::string, Schema *>::const_iterator
+	 i = types.begin(); i != types.end(); ++i) {
+	const FieldConfig * config = i->second->get(fieldname);
+	if (config != NULL) {
+	    Xapian::valueno slot(config->sort_slot());
+	    if (slot != Xapian::BAD_VALUENO) {
+		if (result == Xapian::BAD_VALUENO) {
+		    result = slot;
+		} else if (result != slot) {
+		    throw InvalidValueError("Inconsistent slot numbers for "
+			"different types for sorting by fieldname");
+		}
+	    }
+	}
+    }
+    return result;
+}
+
 const Pipe &
 CollectionConfig::get_pipe(const string & pipe_name) const
 {

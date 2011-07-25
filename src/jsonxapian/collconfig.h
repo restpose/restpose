@@ -223,6 +223,14 @@ class CollectionConfig {
 	return types.end();
     }
 
+    /** Get a slot number for sorting results based on a given field.
+     *
+     *  If there are conflicting slot numbers for the field, this raises an
+     *  InvalidValueError.  If there are no slot numbers stored, this returns
+     *  BAD_VALUENO.
+     */
+    Xapian::valueno sort_slot(const std::string & fieldname) const;
+
     /** Get an input pipe.
      *
      *  Raises an exception if the pipe is not known.
