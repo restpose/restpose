@@ -4,14 +4,17 @@ TODO
 Before an initial release
 -------------------------
 
- - Make searches across all types in a collection work.
-
  - Make searches across a single type return total_docs equal to the number of
    docs of that type, not the number of docs in the collection.
 
  - Change filter query syntax to simply be another query operator, and like
    AND_NOT and AND_MAYBE allow arbitrary numbers of queries on the RHS (ANDed
    together).
+
+ - Consider reorganising the search result format, so that it contains a
+   section holding the parameters supplied when running the search, rather
+   than having them mixed into the search results.  Also, add the actual
+   search that was supplied, perhaps?
 
  - Test passing double values (both positive and negative) to timestamp and
    double fields.
@@ -24,17 +27,15 @@ Before an initial release
    restrict to the same set of allowed characters as collection names, to allow
    for nicer syntax in future.
 
+ - ID fields: should they be allowed to contain special characters.  In
+   particular, test with /, whether we're going to allow it or not.
+
  - Python client:
    - rework the way in which queries are built.
    - document how to build and run searches (both doing the search explicitly,
      and implicitly by slicing, iteration or subscription).
    - testing for expired checkpoints.
    - clean up all todos in python client documentation.
-
- - Make logging do writes asynchronously.  (Currently, a log call acquires the
-   logger mutex, then does the write, blocking all other threads.  Instead, log
-   messages should be added to a queue, and a logger thread should write them
-   to disk, syslog, or whatever the appropriate target is.)
 
  - General documentation review and tidyup.
 
@@ -45,16 +46,23 @@ Before an initial release
  - Rename "prefix" to something less implementation-specific?  "group"?  Define
    group shortnames somewhere special?
 
+Next release
+------------
+
+ - Make logging do writes asynchronously.  (Currently, a log call acquires the
+   logger mutex, then does the write, blocking all other threads.  Instead, log
+   messages should be added to a queue, and a logger thread should write them
+   to disk, syslog, or whatever the appropriate target is.)
+
  - If the client doesn't send a Host header, we need to synthesise one so that
    Location headers in responses are valid.
 
- - Consider reorganising the search result format, so that it contains a
-   section holding the parameters supplied when running the search, rather
-   than having them mixed into the search results.  Also, add the actual
-   search that was supplied, perhaps?
 
-Future
-------
+Further future
+--------------
+
+ - More options about where to log to (logging to files, syslog, support for
+   log rotation setups).
 
  - Needs to be possible to long-poll for checkpoints when waiting for them to
    be reached.  Probably with a timeout, defaulting to 30 seconds.
