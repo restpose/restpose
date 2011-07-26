@@ -101,6 +101,9 @@ class Collection {
     const CollectionConfig & get_config() const {
 	return config;
     }
+    CollectionConfig & get_config() {
+	return config;
+    }
 
     /** Open the collection for writing.
      */
