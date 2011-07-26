@@ -27,8 +27,11 @@
 
 #include "diritor.h"
 #include "safeerrno.h"
+#include "safesysstat.h"
 #include "safeunistd.h"
+#include <sys/types.h>
 #include "utils/rsperrors.h"
+#include "utils.h"
 
 using namespace RestPose;
 using namespace std;
@@ -36,19 +39,35 @@ using namespace std;
 void
 rmdir_recursive(const string & dirname)
 {
-    DirectoryIterator iter(false);
-    iter.start(dirname);
-    while (iter.next()) {
-	string path = dirname + "/" + iter.leafname();
-	if (iter.get_type() == iter.DIRECTORY) {
-	    rmdir_recursive(path);
-	} else {
-	    if (unlink(path.c_str())) {
-		throw SysError("unlink(\"" + path + "\") failed", errno);
-	    }
+    struct stat sbuf;
+    if (stat(dirname.c_str(), &sbuf) != 0) {
+	if (errno == ENOENT) return;
+	throw SysError("Can't stat \"" + dirname + "\"", errno);
+    }
+    if (!S_ISDIR(sbuf.st_mode)) {
+	if (unlink(dirname.c_str())) {
+	    throw SysError("unlink(\"" + dirname + "\") failed", errno);
 	}
     }
-    if (rmdir(dirname.c_str())) {
-	throw SysError("rmdir(\"" + dirname + "\") failed", errno);
+
+    try {
+	DirectoryIterator iter(false);
+	iter.start(dirname);
+	while (iter.next()) {
+	    string path = dirname + "/" + iter.leafname();
+	    if (iter.get_type() == iter.DIRECTORY) {
+		rmdir_recursive(path);
+	    } else {
+		if (unlink(path.c_str())) {
+		    throw SysError("unlink(\"" + path + "\") failed", errno);
+		}
+	    }
+	}
+	if (rmdir(dirname.c_str())) {
+	    throw SysError("rmdir(\"" + dirname + "\") failed", errno);
+	}
+    } catch(const std::string & e) {
+	// DirectoryIterator raises string exceptions
+	throw SysError(e, 0);
     }
 }
