@@ -27,6 +27,7 @@
 
 #include "jsonxapian/collection.h"
 #include "jsonxapian/schema.h"
+#include "logger/logger.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 #include <vector>
@@ -90,7 +91,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	string fieldname = queryparams[Json::UInt(0u)].asString();
 	string querytype = queryparams[Json::UInt(1u)].asString();
-	return field_query(fieldname, querytype, queryparams[2u]);
+	return field_query(collconfig, fieldname, querytype, queryparams[2u]);
     }
 
     if (jsonquery.isMember("meta")) {
@@ -111,7 +112,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	string fieldname = collconfig.get_meta_field();
 	string querytype = queryparams[Json::UInt(0u)].asString();
-	return field_query(fieldname, querytype, queryparams[1u]);
+	return field_query(collconfig, fieldname, querytype, queryparams[1u]);
     }
 
     if (jsonquery.isMember("filter")) {
@@ -255,19 +256,18 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 }
 
 
-CollectionQueryBuilder::CollectionQueryBuilder(const Collection * coll_)
-	: coll(coll_)
+CollectionQueryBuilder::CollectionQueryBuilder()
 {
 }
 
 Xapian::Query
-CollectionQueryBuilder::field_query(const std::string & fieldname,
+CollectionQueryBuilder::field_query(const CollectionConfig & collconfig,
+				    const std::string & fieldname,
 				    const std::string & querytype,
 				    const Json::Value & queryparams) const
 {
     vector<Xapian::Query> queries;
 
-    const CollectionConfig & collconfig(coll->get_config());
     for (map<string, Schema *>::const_iterator i = collconfig.schema_begin();
 	 i != collconfig.schema_end(); ++i)
     {
@@ -295,7 +295,8 @@ DocumentTypeQueryBuilder::DocumentTypeQueryBuilder(const Schema * schema_)
 }
 
 Xapian::Query
-DocumentTypeQueryBuilder::field_query(const std::string & fieldname,
+DocumentTypeQueryBuilder::field_query(const CollectionConfig &,
+				      const std::string & fieldname,
 				      const std::string & querytype,
 				      const Json::Value & queryparams) const
 {

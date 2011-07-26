@@ -48,7 +48,8 @@ namespace RestPose {
 	/** Build a query for a particular field.
 	 */
 	virtual Xapian::Query
-		field_query(const std::string & fieldname,
+		field_query(const CollectionConfig & collconfig,
+			    const std::string & fieldname,
 			    const std::string & querytype,
 			    const Json::Value & queryparams) const = 0;
 
@@ -64,16 +65,15 @@ namespace RestPose {
      *  Implements leaf queries which search the whole collection.
      */
     class CollectionQueryBuilder : public QueryBuilder {
-	const Collection * coll;
-
 	/** Build a query for a particular field.
 	 */
-	Xapian::Query field_query(const std::string & fieldname,
+	Xapian::Query field_query(const CollectionConfig & collconfig,
+				  const std::string & fieldname,
 				  const std::string & querytype,
 				  const Json::Value & queryparams) const;
 
       public:
-	CollectionQueryBuilder(const Collection * coll_);
+	CollectionQueryBuilder();
 
 	/** Build a query from a JSON query specification.
 	 */
@@ -91,7 +91,8 @@ namespace RestPose {
 
 	/** Build a query for a particular field.
 	 */
-	Xapian::Query field_query(const std::string & fieldname,
+	Xapian::Query field_query(const CollectionConfig & collconfig,
+				  const std::string & fieldname,
 				  const std::string & querytype,
 				  const Json::Value & queryparams) const;
 
