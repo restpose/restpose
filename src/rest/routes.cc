@@ -58,6 +58,10 @@ setup_routes(Router & router)
     router.add("/coll/?/type/?/id/?", HTTP_DELETE, new DeleteDocumentHandlerFactory);
     router.add("/coll/?/type/?/id/?", HTTP_GETHEAD, new GetDocumentHandlerFactory);
 
+    router.add("/coll/?/type/?", HTTP_POST, new IndexDocumentTypeHandlerFactory);
+    router.add("/coll/?/id/?", HTTP_POST, new IndexDocumentIdHandlerFactory);
+    router.add("/coll/?", HTTP_POST, new IndexDocumentNoTypeIdHandlerFactory);
+
     // Search
     router.add("/coll/?/type/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);
     router.add("/coll/?/search", HTTP_GETHEAD | HTTP_POST, new SearchHandlerFactory);

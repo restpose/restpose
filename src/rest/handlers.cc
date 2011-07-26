@@ -100,6 +100,35 @@ IndexDocumentHandler::enqueue(ConnectionInfo &,
 }
 
 Handler *
+IndexDocumentTypeHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
+{
+    string coll_name = path_params[0];
+    string doc_type = path_params[1];
+    LOG_INFO("IndexDocumentTypeHandler called for '" + coll_name + "' type='" + doc_type + "'");
+    return new IndexDocumentHandler(coll_name, doc_type, string());
+}
+
+Handler *
+IndexDocumentIdHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
+{
+    string coll_name = path_params[0];
+    string doc_id = path_params[1];
+    LOG_INFO("IndexDocumentIdHandler called for '" + coll_name + "' id='" + doc_id + "'");
+    return new IndexDocumentHandler(coll_name, string(), doc_id);
+}
+
+Handler *
+IndexDocumentNoTypeIdHandlerFactory::create(
+	const std::vector<std::string> & path_params) const
+{
+    string coll_name = path_params[0];
+    LOG_INFO("IndexDocumentNoTypeIdHandler called for '" + coll_name + "'");
+    return new IndexDocumentHandler(coll_name, string(), string());
+}
+
+Handler *
 DeleteDocumentHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {

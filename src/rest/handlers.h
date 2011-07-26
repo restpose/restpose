@@ -82,6 +82,21 @@ class IndexDocumentHandler : public NoWaitQueuedHandler {
 			      const Json::Value & body);
 };
 
+class IndexDocumentTypeHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
+class IndexDocumentIdHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
+class IndexDocumentNoTypeIdHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
 
 class DeleteDocumentHandlerFactory : public HandlerFactory {
   public:
