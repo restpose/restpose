@@ -6,7 +6,7 @@ environment which supports making HTTP requests, it will often be more
 convenient to use a dedicated client, to provide tighter and smoother
 integration into your chosen lanugae.
 
-This section lists the languages for which clients are currently available::
+This section lists the languages for which clients are currently available:
 
  * Python.  http://github.com/rboulton/restpose-py/  This is an "official"
    client, maintained by the RestPose team.  It is released whenever a new
