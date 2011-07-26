@@ -12,6 +12,7 @@ Contents:
    categorisation.rst
    urls.rst
    search_json.rst
+   clients.rst
 
 Indices and tables
 ==================
