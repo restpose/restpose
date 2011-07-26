@@ -28,6 +28,7 @@
 #include "jsonxapian/collconfig.h"
 #include "jsonxapian/doctojson.h"
 #include "jsonxapian/indexing.h"
+#include "jsonxapian/query_builder.h"
 #include "jsonxapian/schema.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
@@ -310,6 +311,7 @@ TEST(IntegerExactFields)
 TEST(DoubleFields)
 {
     CollectionConfig config("test"); // dummy config, used for testing.
+    config.set_default();
     Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("num", new DoubleFieldConfig(7, "num"));
@@ -336,9 +338,12 @@ TEST(DoubleFields)
     }
 
     Xapian::Database db = Xapian::InMemory::open();
-    Xapian::Query q = s.build_query(config, db, json_unserialise("{\"field\": [\"num\", \"range\", [-1, 1]]}", tmp));
+    config.set_schema("test", s);
+    CollectionQueryBuilder builder;
+
+    Xapian::Query q = builder.build(config, json_unserialise("{\"field\": [\"num\", \"range\", [-1, 1]]}", tmp));
     CHECK_EQUAL("Xapian::Query(VALUE_RANGE 7 ^ \xa0)", q.get_description());
-    q = s.build_query(config, db, json_unserialise("{\"field\": [\"num\", \"range\", [0, 1]]}", tmp));
+    q = builder.build(config, json_unserialise("{\"field\": [\"num\", \"range\", [0, 1]]}", tmp));
     CHECK_EQUAL("Xapian::Query(VALUE_RANGE 7 \x80 \xa0)", q.get_description());
 }
 
