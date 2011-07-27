@@ -115,26 +115,6 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	return field_query(collconfig, fieldname, querytype, queryparams[1u]);
     }
 
-    if (jsonquery.isMember("filter")) {
-	if ((jsonquery.isMember("query") && jsonquery.size() != 2) ||
-	    (!jsonquery.isMember("query") && jsonquery.size() != 1)) {
-	    throw InvalidValueError("Filter query must contain only filter and query members");
-	}
-
-	Xapian::Query xprimary;
-	const Json::Value & primary = jsonquery["query"];
-	if (primary.isNull()) {
-	    xprimary = Xapian::Query::MatchAll;
-	} else {
-	    xprimary = build_query(collconfig, primary);
-	}
-
-	const Json::Value & filter = jsonquery["filter"];
-	Xapian::Query xfilter(build_query(collconfig, filter));
-
-	return Xapian::Query(Xapian::Query::OP_FILTER, xprimary, xfilter);
-    }
-
     if (jsonquery.isMember("and")) {
 	if (jsonquery.size() != 1) {
 	    throw InvalidValueError("AND query must contain exactly one member");
@@ -236,6 +216,32 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 			     mainquery,
 			     Xapian::Query(Xapian::Query::OP_OR,
 					   maybequeries.begin(), maybequeries.end()));
+    }
+
+    if (jsonquery.isMember("filter")) {
+	if (jsonquery.size() != 1) {
+	    throw InvalidValueError("FILTER query must contain exactly one member");
+	}
+	const Json::Value & queryparams = jsonquery["filter"];
+	json_check_array(queryparams, "FILTER search parameters");
+	if (queryparams.size() < 2) {
+	    throw InvalidValueError("FILTER query must contain at least two subqueries");
+	}
+
+	Json::Value::const_iterator i = queryparams.begin();
+	Xapian::Query mainquery(build_query(collconfig, *i));
+	++i;
+
+	vector<Xapian::Query> filterqueries;
+	filterqueries.reserve(queryparams.size() - 1);
+
+	for (; i != queryparams.end(); ++i) {
+	    filterqueries.push_back(build_query(collconfig, *i));
+	}
+	return Xapian::Query(Xapian::Query::OP_FILTER,
+			     mainquery,
+			     Xapian::Query(Xapian::Query::OP_AND,
+					   filterqueries.begin(), filterqueries.end()));
     }
 
     if (jsonquery.isMember("scale")) {

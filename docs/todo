@@ -4,10 +4,6 @@ TODO
 Before an initial release
 -------------------------
 
- - Change filter query syntax to simply be another query operator, and like
-   AND_NOT and AND_MAYBE allow arbitrary numbers of queries on the RHS (ANDed
-   together).
-
  - Consider reorganising the search result format, so that it contains a
    section holding the parameters supplied when running the search, rather
    than having them mixed into the search results.  Also, add the actual
