@@ -34,7 +34,6 @@ Before an initial release
    - rework the way in which queries are built.
    - document how to build and run searches (both doing the search explicitly,
      and implicitly by slicing, iteration or subscription).
-   - testing for expired checkpoints.
    - clean up all todos in python client documentation.
 
  - General documentation review and tidyup.
