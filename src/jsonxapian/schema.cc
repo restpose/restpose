@@ -571,10 +571,9 @@ Xapian::Query
 TextFieldConfig::query_parse(const Json::Value & qparams) const
 {
     string text;
-    string op;
+    string op("and");
     if (qparams.isString()) {
 	text = qparams.asString();
-	op = "and";
     } else {
 	if (!qparams.isObject()) {
 	    throw InvalidValueError("Invalid value for text field query - "
