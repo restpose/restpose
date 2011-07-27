@@ -1,6 +1,10 @@
 Before release.
 
+ - review README files in restpose and restpose-py.
+
  - update version number in configure.ac to remove "dev"
+
+ - update version number in restpose-py/restpose/version.py to remove "dev"
 
  - check all tests run
 
@@ -11,10 +15,11 @@ Before release.
 
  - build tarballs, with make distcheck.
 
- - commit and push version with "dev" removed from configure.ac
+ - commit and push versions of restpose and restpose-py with "dev" removed from configure.ac
 
  - tag in git, and push tag
 
  - upload tarballs
 
- - update version number in configure.ac to be the next release number, with "dev" appended.
+ - update version number in configure.ac and restpose-py/restpose/version.py to
+   be the next release number, with "dev" appended.  commit this.
