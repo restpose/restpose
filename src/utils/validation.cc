@@ -46,6 +46,7 @@ validate_collname(const string & value)
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in collection name";
 	}
     }
+    return string();
 }
 
 string
@@ -63,6 +64,7 @@ validate_doc_type(const string & value)
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in document type";
 	}
     }
+    return string();
 }
 
 string
@@ -80,4 +82,5 @@ validate_doc_id(const string & value)
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in document ID";
 	}
     }
+    return string();
 }
