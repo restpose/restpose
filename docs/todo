@@ -12,17 +12,6 @@ Before an initial release
  - Test passing double values (both positive and negative) to timestamp and
    double fields.
 
- - Collection names should not be allowed to contain ":/\.," or tab characters.
-   Validation should be performed in handlers to return clear error messages,
-   and also in CollectionPool to ensure internal calls obey the restrictions too.
-
- - Type names: should not be allowed to contain tab characters.  Perhaps
-   restrict to the same set of allowed characters as collection names, to allow
-   for nicer syntax in future.
-
- - ID fields: should they be allowed to contain special characters.  In
-   particular, test with /, whether we're going to allow it or not.
-
  - Make query_phrase support window parameter, for phrase size.
 
  - Python client:
