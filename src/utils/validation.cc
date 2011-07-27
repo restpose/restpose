@@ -49,6 +49,15 @@ validate_collname(const string & value)
     return string();
 }
 
+void
+validate_collname_throw(const string & value)
+{
+    string error = validate_collname(value);
+    if (!error.empty()) {
+	throw InvalidValueError(error);
+    }
+}
+
 string
 validate_doc_type(const string & value)
 {

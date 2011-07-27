@@ -32,6 +32,12 @@
  */
 std::string validate_collname(const std::string & value);
 
+/** Check if a collection name is valid.
+ *
+ *  Raises InvalidValueError if the name is not valid.
+ */
+void validate_collname_throw(const std::string & value);
+
 /** Check if a document type is valid.
  *
  *  Returns an error message if the type is not valid.
