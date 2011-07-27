@@ -39,6 +39,13 @@ A set of *Pipes*
    some point in the near future by an alternative approach, such as Lua
    scripting.
 
+Collections are identified by name, which is assumed to be a UTF-8 encoded
+value when referred to in URIs, and is not allowed to contain the following
+characters:
+
+ * "Control" characters: ie, characters in the range 0 to 31.
+ * ``:``, ``/``, ``\``, ``.``, ``,``
+
 ---------
 Documents
 ---------
@@ -64,6 +71,12 @@ IDs are specific to a particular type of document - ie, two documents may exist
 in the collection with the same ID if they have differing types.  In other
 words, to uniquely reference a document in a collection, you need to use a
 combination of the type and the document ID.
+
+Document IDs and type names are assumed to be UTF-8 encoded values when
+referred to in URIs, and are not allowed to contain the following characters:
+
+ * "Control" characters: ie, characters in the range 0 to 31.
+ * ``:``, ``/``, ``\``, ``.``, ``,``
 
 -----------------
 Types and Schemas
