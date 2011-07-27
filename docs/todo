@@ -9,17 +9,17 @@ Before an initial release
    than having them mixed into the search results.  Also, add the actual
    search that was supplied, perhaps?
 
- - Test passing double values (both positive and negative) to timestamp and
-   double fields.
-
- - Make query_phrase support window parameter, for phrase size.
-
  - Python client:
    - rework the way in which queries are built.
    - document how to build and run searches (both doing the search explicitly,
      and implicitly by slicing, iteration or subscription).
    - clean up all todos in python client documentation.
    - uncomment the test of setting window size in query_text.
+
+ - Make query_phrase support window parameter, for phrase size.
+
+ - Test passing double values (both positive and negative) to timestamp and
+   double fields.
 
  - General documentation review and tidyup.
 
