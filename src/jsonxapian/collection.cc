@@ -476,7 +476,7 @@ Collection::perform_search(const Json::Value & search,
     Xapian::Database db(get_db());
 
     Xapian::doccount total_docs, from, size, check_at_least;
-    total_docs = db.get_doccount(); // FIXME - get from builder
+    total_docs = builder->total_docs(config, db);
     from = json_get_uint64_member(search, "from", Json::Value::maxUInt, 0);
 
     if (search["size"] == -1) {

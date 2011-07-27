@@ -58,6 +58,13 @@ namespace RestPose {
 	 */
 	virtual Xapian::Query build(const CollectionConfig & collconfig,
 				    const Json::Value & jsonquery) const = 0;
+
+	/** Get the total number of documents searched in the database
+	 *  specified by queries built by this builder.
+	 */
+	virtual Xapian::doccount
+		total_docs(const CollectionConfig & collconfig,
+			   const Xapian::Database & db) const = 0;
     };
 
     /** A query builder for searches across a whole collection.
@@ -79,6 +86,9 @@ namespace RestPose {
 	 */
 	Xapian::Query build(const CollectionConfig & collconfig,
 			    const Json::Value & jsonquery) const;
+
+	Xapian::doccount total_docs(const CollectionConfig & collconfig,
+				    const Xapian::Database & db) const;
     };
 
     /** A query builder for searching a particular document type.
@@ -101,6 +111,9 @@ namespace RestPose {
 
 	Xapian::Query build(const CollectionConfig & collconfig,
 			    const Json::Value & jsonquery) const;
+
+	Xapian::doccount total_docs(const CollectionConfig & collconfig,
+				    const Xapian::Database & db) const;
     };
 };
 

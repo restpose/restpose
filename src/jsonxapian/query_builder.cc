@@ -288,6 +288,13 @@ CollectionQueryBuilder::build(const CollectionConfig & collconfig,
     return build_query(collconfig, jsonquery);
 }
 
+Xapian::doccount
+CollectionQueryBuilder::total_docs(const CollectionConfig &,
+				   const Xapian::Database & db) const
+{
+    return db.get_doccount();
+}
+
 
 DocumentTypeQueryBuilder::DocumentTypeQueryBuilder(const Schema * schema_)
 	: schema(schema_)
@@ -329,4 +336,28 @@ DocumentTypeQueryBuilder::build(const CollectionConfig & collconfig,
 
     return Xapian::Query(Xapian::Query::OP_FILTER,
 			 build_query(collconfig, jsonquery), type_query);
+}
+
+Xapian::doccount
+DocumentTypeQueryBuilder::total_docs(const CollectionConfig & collconfig,
+				     const Xapian::Database & db) const
+{
+    if (schema == NULL) {
+	return 0u;
+    }
+
+    const FieldConfig * typeconfig = schema->get(collconfig.get_type_field());
+    if (typeconfig == NULL) {
+	// Should only happen if there isn't a type field, so a type-specific
+	// search should return nothing.
+	return 0u;
+    }
+
+    // FIXME - this could be done a bit more efficiently if we could get the
+    // term directly, since we just want to check its frequency.
+    Xapian::Query type_query(typeconfig->query("is", schema->get_doctype()));
+    Xapian::Enquire enq(db);
+    enq.set_query(type_query);
+    Xapian::MSet mset(enq.get_mset(0, 0));
+    return mset.get_matches_upper_bound();
 }
