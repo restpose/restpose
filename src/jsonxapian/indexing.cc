@@ -41,6 +41,7 @@
 #include "jsonxapian/category_hierarchy.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
+#include "utils/validation.h"
 
 using namespace RestPose;
 using namespace std;
@@ -127,6 +128,14 @@ ExactStringIndexer::index(IndexingState & state,
 	if (val.empty()) {
 	    state.field_empty(fieldname);
 	    continue;
+	}
+	if (isid) {
+	    error = validate_doc_id(val);
+	    if (!error.empty()) {
+		state.append_error(fieldname, error);
+		state.errors.total_failure = true;
+		return;
+	    }
 	}
 	state.field_nonempty(fieldname);
 	if (val.size() > max_length) {

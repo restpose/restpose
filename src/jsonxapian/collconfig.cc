@@ -34,6 +34,7 @@
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
+#include "utils/validation.h"
 
 using namespace std;
 using namespace RestPose;
@@ -292,7 +293,12 @@ CollectionConfig::get_or_add_cat_hierarchy(const std::string & hierarchy_name)
 CollectionConfig::CollectionConfig(const string & coll_name_)
 	: coll_name(coll_name_),
 	  changed(false)
-{}
+{
+    string error = validate_collname(coll_name);
+    if (!error.empty()) {
+	throw InvalidValueError(error);
+    }
+}
 
 CollectionConfig::~CollectionConfig()
 {
@@ -755,6 +761,14 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	}
     }
 
+    {
+	string error = validate_doc_type(doc_type_);
+	if (!error.empty()) {
+	    errors.append(id_field, error);
+	    errors.total_failure = true;
+	    return doc;
+	}
+    }
     Schema * schema = get_schema(doc_type_);
     if (schema == NULL) {
 	Schema newschema(doc_type_);
