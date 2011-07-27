@@ -12,9 +12,6 @@ Before an initial release
 
  - General documentation review and tidyup.
 
- - Rename "prefix" to something less implementation-specific?  "group"?  Define
-   group shortnames somewhere special?
-
 Next release
 ------------
 
@@ -37,6 +34,10 @@ Next release
 Further future
 --------------
 
+ - Allow Occur and CoOccur handlers to be given a group name, instead of a prefix.
+
+ - Add faceting support.
+
  - More options about where to log to (logging to files, syslog, support for
    log rotation setups).
 
@@ -55,9 +56,7 @@ Further future
 
  - Add geospatial index support.
 
- - Add faceting support.
-
- - Add sort_by support.
+ - Add sort_by support for multiple keys.
 
  - Add collapse support.
 

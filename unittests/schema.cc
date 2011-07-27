@@ -64,8 +64,9 @@ TEST(SchemaParams)
 		"\"id\":{\"max_length\":64,"
 		        "\"store_field\":\"\","
 		        "\"too_long_action\":\"error\",\"type\":\"id\"},"
-		"\"url\":{\"max_length\":120,"
-		         "\"prefix\":\"url\","
+		"\"url\":{"
+		         "\"group\":\"url\","
+			 "\"max_length\":120,"
 		         "\"store_field\":\"url\","
 		         "\"too_long_action\":\"hash\","
 			 "\"type\":\"exact\","
@@ -220,7 +221,7 @@ TEST(IntegerExactFields)
     Schema s2("");
     s2.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
 
-    CHECK_EQUAL("{\"fields\":{\"intid\":{\"max_length\":30,\"prefix\":\"intid\",\"store_field\":\"intid\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}},\"patterns\":[]}",
+    CHECK_EQUAL("{\"fields\":{\"intid\":{\"group\":\"intid\",\"max_length\":30,\"store_field\":\"intid\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
@@ -411,7 +412,7 @@ TEST(CategoryFields)
     Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("cat", new CategoryFieldConfig("cat", 30, ExactFieldConfig::TOOLONG_ERROR, "category"));
-    CHECK_EQUAL("{\"fields\":{\"cat\":{\"max_length\":30,\"prefix\":\"cat\",\"store_field\":\"category\",\"too_long_action\":\"error\",\"type\":\"cat\"}},\"patterns\":[]}",
+    CHECK_EQUAL("{\"fields\":{\"cat\":{\"group\":\"cat\",\"max_length\":30,\"store_field\":\"category\",\"too_long_action\":\"error\",\"type\":\"cat\"}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
@@ -483,7 +484,7 @@ TEST(EnglishStemmedFields)
     Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("text", new TextFieldConfig("t", "text", "stem_en"));
-    CHECK_EQUAL("{\"fields\":{\"text\":{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}},\"patterns\":[]}",
+    CHECK_EQUAL("{\"fields\":{\"text\":{\"group\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");
@@ -521,7 +522,7 @@ TEST(CJKFields)
     Json::Value tmp, tmp2;
     Schema s2("");
     s2.set("text", new TextFieldConfig("t", "text", "cjk"));
-    CHECK_EQUAL("{\"fields\":{\"text\":{\"prefix\":\"t\",\"processor\":\"cjk\",\"store_field\":\"text\",\"type\":\"text\"}},\"patterns\":[]}",
+    CHECK_EQUAL("{\"fields\":{\"text\":{\"group\":\"t\",\"processor\":\"cjk\",\"store_field\":\"text\",\"type\":\"text\"}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");

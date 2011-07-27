@@ -76,7 +76,7 @@ class Collection {
 
     /** Update documents which are in the list of modified categories.
      */
-    void update_modified_categories(const std::string & prefix,
+    void update_modified_categories(const std::string & group,
 				    const CategoryHierarchy & hierarchy,
 				    const Categories & modified);
 

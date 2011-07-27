@@ -43,22 +43,22 @@ using namespace RestPose;
 #define DEFAULT_TYPE_SCHEMA \
 "\"default_type\":{" \
   "\"patterns\":[" \
-    "[\"*_text\",{\"prefix\":\"t*\",\"processor\":\"stem_en\",\"store_field\":\"*_text\",\"type\":\"text\"}]," \
-    "[\"text\",{\"prefix\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}]," \
+    "[\"*_text\",{\"group\":\"t*\",\"processor\":\"stem_en\",\"store_field\":\"*_text\",\"type\":\"text\"}]," \
+    "[\"text\",{\"group\":\"t\",\"processor\":\"stem_en\",\"store_field\":\"text\",\"type\":\"text\"}]," \
     "[\"*_num\",{\"slot\":\"n*\",\"store_field\":\"*_num\",\"type\":\"double\"}]," \
     "[\"num\",{\"slot\":\"n\",\"store_field\":\"num\",\"type\":\"double\"}]," \
     "[\"*_time\",{\"slot\":\"d*\",\"store_field\":\"*_time\",\"type\":\"timestamp\"}]," \
     "[\"time\",{\"slot\":\"d\",\"store_field\":\"time\",\"type\":\"timestamp\"}]," \
-    "[\"*_tag\",{\"max_length\":100,\"prefix\":\"g*\",\"store_field\":\"*_tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"tag\",{\"max_length\":100,\"prefix\":\"g\",\"store_field\":\"tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"*_url\",{\"max_length\":100,\"prefix\":\"u*\",\"store_field\":\"*_url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"url\",{\"max_length\":100,\"prefix\":\"u\",\"store_field\":\"url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"*_cat\",{\"max_length\":32,\"prefix\":\"c*\",\"store_field\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
-    "[\"cat\",{\"max_length\":32,\"prefix\":\"c\",\"store_field\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"*_tag\",{\"group\":\"g*\",\"max_length\":100,\"store_field\":\"*_tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"tag\",{\"group\":\"g\",\"max_length\":100,\"store_field\":\"tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"*_url\",{\"group\":\"u*\",\"max_length\":100,\"store_field\":\"*_url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"url\",{\"group\":\"u\",\"max_length\":100,\"store_field\":\"url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"*_cat\",{\"group\":\"c*\",\"max_length\":32,\"store_field\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"cat\",{\"group\":\"c\",\"max_length\":32,\"store_field\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
     "[\"id\",{\"store_field\":\"id\",\"type\":\"id\"}]," \
-    "[\"type\",{\"prefix\":\"!\",\"store_field\":\"type\",\"type\":\"exact\"}]," \
-    "[\"_meta\",{\"prefix\":\"#\",\"slot\":0,\"type\":\"meta\"}]," \
-    "[\"*\",{\"prefix\":\"t\",\"store_field\":\"*\",\"type\":\"text\"}]" \
+    "[\"type\",{\"group\":\"!\",\"store_field\":\"type\",\"type\":\"exact\"}]," \
+    "[\"_meta\",{\"group\":\"#\",\"slot\":0,\"type\":\"meta\"}]," \
+    "[\"*\",{\"group\":\"t\",\"store_field\":\"*\",\"type\":\"text\"}]" \
   "]" \
 "}"
 
@@ -431,7 +431,7 @@ TEST(CollectionCategory)
 		"\"categories\":{\"foo\":{}},"
 		"\"format\": 3,"
 		"\"types\":{\"default\":{\"fields\":{"
-		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"cat\",\"prefix\":\"foo\"},"
+		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"cat\",\"group\":\"foo\"},"
 		  "\"id\":{\"max_length\":64,"
 			  "\"store_field\":\"\","
 			  "\"too_long_action\":\"error\",\"type\":\"id\"}"
@@ -444,8 +444,9 @@ TEST(CollectionCategory)
 		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{\"default\":{\"fields\":{"
-		  "\"foo\":{\"max_length\":64,"
-			   "\"prefix\":\"foo\","
+		  "\"foo\":{"
+			   "\"group\":\"foo\","
+			   "\"max_length\":64,"
 			   "\"store_field\":\"foo\","
 			   "\"too_long_action\":\"error\","
 			   "\"type\":\"cat\"},"
@@ -466,8 +467,9 @@ TEST(CollectionCategory)
 		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{\"default\":{\"fields\":{"
-		  "\"foo\":{\"max_length\":64,"
-			   "\"prefix\":\"foo\","
+		  "\"foo\":{"
+			   "\"group\":\"foo\","
+			   "\"max_length\":64,"
 			   "\"store_field\":\"foo\","
 			   "\"too_long_action\":\"error\","
 			   "\"type\":\"cat\"},"

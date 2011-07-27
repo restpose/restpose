@@ -114,21 +114,21 @@ Collection::write_config()
 }
 
 void
-Collection::update_modified_categories(const string & prefix,
+Collection::update_modified_categories(const string & group_name,
 				       const CategoryHierarchy & hierarchy,
 				       const Categories & modified)
 {
-    // Find all documents with terms of the form prefix + "C" + cat where cat
+    // Find all documents with terms of the form group_name + "C" + cat where cat
     // is any of the categories in modified.  For each of these documents, read
-    // in the list of terms of form prefix + "C" + *, build the appropriate
+    // in the list of terms of form group_name + "C" + *, build the appropriate
     // list of ancestor categories using the hierarchy, and set the list of
-    // terms of form prefix + "A" to the ancestors.
+    // terms of form group_name + "A" to the ancestors.
 
     LOG_DEBUG("updating " + str(modified.size()) +
-	      " modified categories for prefix: " + prefix);
+	      " modified categories for group: " + group_name);
 
-    string cat_prefix = prefix + "C";
-    string ancestor_prefix = prefix + "A";
+    string cat_prefix = group_name + "C";
+    string ancestor_prefix = group_name + "A";
 
     Xapian::Database db = group.get_db();
     vector<Xapian::PostingIterator> iters;

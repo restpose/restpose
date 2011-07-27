@@ -91,13 +91,13 @@ FieldConfig::~FieldConfig()
 MetaFieldConfig::MetaFieldConfig(const Json::Value & value)
 {
     json_check_object(value, "field configuration");
-    prefix = json_get_string_member(value, "prefix", string());
+    prefix = json_get_string_member(value, "group", string());
     if (prefix.empty()) {
-	throw InvalidValueError("Field configuration argument \"prefix\""
+	throw InvalidValueError("Field configuration argument \"group\""
 				" may not be empty");
     }
     if (prefix.find('\t') != string::npos) {
-	throw InvalidValueError("Field configuration argument \"prefix\""
+	throw InvalidValueError("Field configuration argument \"group\""
 				" contains invalid character \\t");
     }
     prefix.append("\t");
@@ -187,7 +187,7 @@ void
 MetaFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "meta";
-    value["prefix"] = prefix.substr(0, prefix.size() - 1);
+    value["group"] = prefix.substr(0, prefix.size() - 1);
     slot.to_json(value["slot"]);
 }
 
@@ -313,13 +313,13 @@ ExactFieldConfig::ExactFieldConfig(const Json::Value & value)
 {
     // MaxLenFieldConfig constructor has already checked that value is an
     // object.
-    prefix = json_get_string_member(value, "prefix", string());
+    prefix = json_get_string_member(value, "group", string());
     if (prefix.empty()) {
-	throw InvalidValueError("Field configuration argument \"prefix\""
+	throw InvalidValueError("Field configuration argument \"group\""
 				" may not be empty");
     }
     if (prefix.find('\t') != string::npos) {
-	throw InvalidValueError("Field configuration argument \"prefix\""
+	throw InvalidValueError("Field configuration argument \"group\""
 				" contains invalid character \\t");
     }
     prefix.append("\t");
@@ -382,7 +382,7 @@ ExactFieldConfig::to_json(Json::Value & value) const
 {
     MaxLenFieldConfig::to_json(value);
     value["type"] = "exact";
-    value["prefix"] = prefix.substr(0, prefix.size() - 1);
+    value["group"] = prefix.substr(0, prefix.size() - 1);
     value["store_field"] = store_field;
     value["wdfinc"] = wdfinc;
 }
@@ -393,13 +393,13 @@ ExactFieldConfig::~ExactFieldConfig()
 TextFieldConfig::TextFieldConfig(const Json::Value & value)
 {
     json_check_object(value, "schema object");
-    prefix = json_get_string_member(value, "prefix", string());
+    prefix = json_get_string_member(value, "group", string());
     if (prefix.empty()) {
-	throw InvalidValueError("Field configuration argument \"prefix\""
+	throw InvalidValueError("Field configuration argument \"group\""
 				" may not be empty");
     }
     if (prefix.find('\t') != string::npos) {
-	throw InvalidValueError("Field configuration argument \"prefix\""
+	throw InvalidValueError("Field configuration argument \"group\""
 				" contains invalid character \\t");
     }
     prefix.append("\t");
@@ -600,7 +600,7 @@ void
 TextFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "text";
-    value["prefix"] = prefix.substr(0, prefix.size() - 1);
+    value["group"] = prefix.substr(0, prefix.size() - 1);
     value["store_field"] = store_field;
     value["processor"] = processor;
 }
@@ -757,13 +757,13 @@ CategoryFieldConfig::CategoryFieldConfig(const Json::Value & value)
 {
     // MaxLenFieldConfig constructor has already checked that value is an
     // object.
-    prefix = json_get_string_member(value, "prefix", string());
+    prefix = json_get_string_member(value, "group", string());
     if (prefix.empty()) {
-	throw InvalidValueError("Field configuration argument \"prefix\""
+	throw InvalidValueError("Field configuration argument \"group\""
 				" may not be empty");
     }
     if (prefix.find('\t') != string::npos) {
-	throw InvalidValueError("Field configuration argument \"prefix\""
+	throw InvalidValueError("Field configuration argument \"group\""
 				" contains invalid character \\t");
     }
     hierarchy_name = prefix;
@@ -853,7 +853,7 @@ CategoryFieldConfig::to_json(Json::Value & value) const
 {
     MaxLenFieldConfig::to_json(value);
     value["type"] = "cat";
-    value["prefix"] = prefix.substr(0, prefix.size() - 1);
+    value["group"] = prefix.substr(0, prefix.size() - 1);
     value["store_field"] = store_field;
 }
 
