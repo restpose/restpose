@@ -35,6 +35,7 @@
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
 #include "utils/stringutils.h"
+#include "utils/validation.h"
 
 using namespace std;
 using namespace RestPose;
@@ -73,6 +74,11 @@ StaticFileTask::perform(RestPose::Collection *)
 void
 PerformSearchTask::perform(RestPose::Collection * collection)
 {
+    string error = validate_doc_type(doc_type);
+    if (!error.empty()) {
+	resulthandle.failed(error, 400);
+    }
+
     Json::Value result(Json::objectValue);
     collection->perform_search(search, doc_type, result);
     if (doc_type.empty()) {
@@ -88,14 +94,17 @@ PerformSearchTask::perform(RestPose::Collection * collection)
 void
 GetDocumentTask::perform(RestPose::Collection * collection)
 {
+    string error = validate_doc_type(doc_type);
+    if (!error.empty()) {
+	resulthandle.failed(error, 400);
+    }
+
     Json::Value result(Json::objectValue);
     collection->get_document(doc_type, doc_id, result);
     LOG_DEBUG("GetDocument '" + doc_id + "' from '" + collection->get_name() + "'");
     if (result.isNull()) {
-	result = Json::objectValue;
-	result["err"] = "No document found of type \"" + doc_type +
-		"\" and id \"" + doc_id + "\"";
-	resulthandle.failed(result, 404);
+	resulthandle.failed("No document found of type \"" + doc_type +
+			    "\" and id \"" + doc_id + "\"", 404);
     } else {
 	resulthandle.response().set(result, 200);
 	resulthandle.set_ready();
@@ -248,6 +257,17 @@ DeleteDocumentTask::perform_task(const string & coll_name,
 				 RestPose::Collection * & collection,
 				 TaskManager * taskman)
 {
+    string error = validate_doc_type(doc_type);
+    if (error.empty()) {
+	error = validate_doc_id(doc_id);
+    }
+    if (!error.empty()) {
+	LOG_ERROR(error);
+	taskman->get_checkpoints().append_error(coll_name, error,
+						doc_type, doc_id);
+	throw InvalidValueError(error);
+    }
+
     LOG_INFO("DeleteDocument type='" + doc_type +
 	     "' id='" + doc_id +
 	     "' in '" + coll_name + "'");
@@ -299,8 +319,8 @@ DeleteCollectionTask::perform_task(const string & coll_name,
 
 void
 DeleteCollectionTask::info(string & description,
-			 string & doc_type_ret,
-			 string & doc_id_ret) const
+			   string & doc_type_ret,
+			   string & doc_id_ret) const
 {
     description = "Delete collection";
     doc_type_ret.resize(0);

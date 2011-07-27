@@ -29,6 +29,7 @@
 #include "httpserver/httpserver.h"
 #include "httpserver/response.h"
 #include "server/task_manager.h"
+#include "utils/validation.h"
 
 using namespace std;
 using namespace RestPose;
@@ -37,6 +38,7 @@ Handler *
 CollCreateCheckpointHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     return new CollCreateCheckpointHandler(coll_name);
 }
 
@@ -80,6 +82,7 @@ Handler *
 CollGetCheckpointsHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     return new CollGetCheckpointsHandler(coll_name);
 }
 
@@ -96,6 +99,7 @@ Handler *
 CollGetCheckpointHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     string checkid = path_params[1];
     return new CollGetCheckpointHandler(coll_name, checkid);
 }

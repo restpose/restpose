@@ -238,29 +238,21 @@ SearchThread::run()
 	    rotask->perform(collection);
 	} catch(const RestPose::Error & e) {
 	    LOG_ERROR("Readonly task failed with", e);
-	    Json::Value result(Json::objectValue);
-	    result["err"] = e.what();
-	    rotask->resulthandle.failed(result, 500);
+	    rotask->resulthandle.failed(e.what(), 500);
 	} catch(const Xapian::DatabaseOpeningError & e) {
 	    LOG_ERROR("Readonly task failed with", e);
-	    Json::Value result(Json::objectValue);
 	    if (coll_name_ptr != NULL && !pool.exists(*coll_name_ptr)) {
-		result["err"] = "No collection of name \"" +
-			*coll_name_ptr + "\" exists";
+	    	rotask->resulthandle.failed("No collection of name \"" +
+					    *coll_name_ptr + "\" exists", 404);
 	    } else {
-		result["err"] = e.get_description();
+	    	rotask->resulthandle.failed(e.get_description(), 404);
 	    }
-	    rotask->resulthandle.failed(result, 404);
 	} catch(const Xapian::Error & e) {
 	    LOG_ERROR("Readonly task failed with", e);
-	    Json::Value result(Json::objectValue);
-	    result["err"] = e.get_description();
-	    rotask->resulthandle.failed(result, 500);
+	    rotask->resulthandle.failed(e.get_description(), 500);
 	} catch(const std::bad_alloc & e) {
 	    LOG_ERROR("Readonly task failed with", e);
-	    Json::Value result(Json::objectValue);
-	    result["err"] = "out of memory";
-	    rotask->resulthandle.failed(result, 503);
+	    rotask->resulthandle.failed("out of memory", 503);
 	}
     }
 }

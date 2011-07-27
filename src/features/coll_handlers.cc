@@ -27,6 +27,7 @@
 
 #include "features/coll_tasks.h"
 #include "server/task_manager.h"
+#include "utils/validation.h"
 
 using namespace std;
 using namespace RestPose;
@@ -52,6 +53,7 @@ CollInfoHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     return new CollInfoHandler(coll_name);
 }
 
@@ -69,6 +71,7 @@ CollGetConfigHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     return new CollGetConfigHandler(coll_name);
 }
 
@@ -85,6 +88,7 @@ CollSetConfigHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     return new CollSetConfigHandler(coll_name);
 }
 

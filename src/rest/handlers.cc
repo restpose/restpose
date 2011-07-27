@@ -31,6 +31,7 @@
 #include "server/task_manager.h"
 #include "server/tasks.h"
 #include "utils/jsonutils.h"
+#include "utils/validation.h"
 
 using namespace std;
 using namespace RestPose;
@@ -84,6 +85,7 @@ IndexDocumentHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     string doc_type = path_params[1];
     string doc_id = path_params[2];
     LOG_INFO("IndexDocumentHandler called for '" + coll_name + "' type='" + doc_type + "' id='" + doc_id + "'");
@@ -104,6 +106,7 @@ IndexDocumentTypeHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     string doc_type = path_params[1];
     LOG_INFO("IndexDocumentTypeHandler called for '" + coll_name + "' type='" + doc_type + "'");
     return new IndexDocumentHandler(coll_name, doc_type, string());
@@ -114,6 +117,7 @@ IndexDocumentIdHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     string doc_id = path_params[1];
     LOG_INFO("IndexDocumentIdHandler called for '" + coll_name + "' id='" + doc_id + "'");
     return new IndexDocumentHandler(coll_name, string(), doc_id);
@@ -124,6 +128,7 @@ IndexDocumentNoTypeIdHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     LOG_INFO("IndexDocumentNoTypeIdHandler called for '" + coll_name + "'");
     return new IndexDocumentHandler(coll_name, string(), string());
 }
@@ -134,6 +139,7 @@ DeleteDocumentHandlerFactory::create(
 {
     LOG_INFO("DeleteDocumentHandler called");
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     string doc_type = path_params[1];
     string doc_id = path_params[2];
     return new DeleteDocumentHandler(coll_name, doc_type, doc_id);
@@ -155,6 +161,7 @@ CollDeleteHandlerFactory::create(
 {
     LOG_INFO("CollDeleteHandler called");
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     return new CollDeleteHandler(coll_name);
 }
 
@@ -171,6 +178,7 @@ Handler *
 SearchHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     if (path_params.size() == 1) {
 	return new SearchHandler(coll_name, string());
     } else {
@@ -191,6 +199,7 @@ Handler *
 GetDocumentHandlerFactory::create(const std::vector<std::string> & path_params) const
 {
     string coll_name = path_params[0];
+    validate_collname_throw(coll_name);
     string doc_type = path_params[1];
     string doc_id = path_params[2];
     return new GetDocumentHandler(coll_name, doc_type, doc_id);

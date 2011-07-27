@@ -92,9 +92,7 @@ QueuedHandler::handle(ConnectionInfo & conn)
 		json_unserialise(uploaded_data, body);
 	    } catch(InvalidValueError & e) {
 		LOG_ERROR(string("Invalid JSON supplied in request body: ") + e.what());
-		Json::Value result(Json::objectValue);
-		result["err"] = e.what();
-		resulthandle.failed(result, 400);
+		resulthandle.failed(e.what(), 400);
 		conn.respond(resulthandle);
 		return;
 	    }

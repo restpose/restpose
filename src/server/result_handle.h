@@ -81,7 +81,18 @@ class ResultHandle {
      *
      *  After this point, the preparing thread must not access response().
      */
-    void failed(const Json::Value & body, int status_code = 200);
+    void failed_json(const Json::Value & body, int status_code = 200);
+
+    /** Report a failure in a standard format.
+     *
+     *  As failed_json(), but returns a standard JSON body, allowing the caller
+     *  to set the message in it.
+     */
+    void failed(const std::string & err, int status_code = 200) {
+	Json::Value result(Json::objectValue);
+	result["err"] = err;
+	failed_json(result, status_code);
+    }
 };
 
 }

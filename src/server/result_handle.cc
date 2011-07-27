@@ -116,7 +116,7 @@ ResultHandle::is_ready() const {
 }
 
 void
-ResultHandle::failed(const Json::Value & body, int status_code)
+ResultHandle::failed_json(const Json::Value & body, int status_code)
 {
     ContextLocker lock(internal->mutex);
     if (!internal->is_ready) {
