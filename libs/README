@@ -1,5 +1,14 @@
 Dependency libraries:
 
- - jsoncpp 0.5.0: downloaded from http://downloads.sourceforge.net/project/jsoncpp/jsoncpp/0.5.0/jsoncpp-src-0.5.0.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fjsoncpp%2F&ts=1283175966&use_mirror=sunet
+ - cjk-tokenizer: Routines for tokenising CJK text.  Copied from
+   http://code.google.com/p/cjk-tokenizer/
+ - jsoncpp 0.5.0: downloaded from
+   http://downloads.sourceforge.net/project/jsoncpp/jsoncpp/0.5.0/jsoncpp-src-0.5.0.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fjsoncpp%2F&ts=1283175966&use_mirror=sunet
+ - libmicrohttpd: Downloaded from http://www.gnu.org/s/libmicrohttpd/.
+ - lua: A lua interpreter: currently unused.
+ - mongo-c-driver: Downloaded from
+   https://github.com/mongodb/mongo-c-driver
+ - unittest-cpp: Downloaded from
+   https://unittest-cpp.svn.sourceforge.net/svnroot/unittest-cpp
  - xapiancommon: Some routines ripped from Xapian, that aren't exposed in
    Xapian's API.
