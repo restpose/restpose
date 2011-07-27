@@ -62,6 +62,8 @@ Further future
 
  - Add ability to set weighting scheme / parameters.
 
+ - Add ability to set wdfinc for text fields.
+
  - Add interface for classifying a language.
 
  - Python bindings - add an easy way to be notified of the queries performed in
