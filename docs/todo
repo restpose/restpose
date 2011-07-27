@@ -30,11 +30,14 @@ Before an initial release
  - ID fields: should they be allowed to contain special characters.  In
    particular, test with /, whether we're going to allow it or not.
 
+ - Make query_phrase support window parameter, for phrase size.
+
  - Python client:
    - rework the way in which queries are built.
    - document how to build and run searches (both doing the search explicitly,
      and implicitly by slicing, iteration or subscription).
    - clean up all todos in python client documentation.
+   - uncomment the test of setting window size in query_text.
 
  - General documentation review and tidyup.
 
