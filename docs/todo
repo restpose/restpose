@@ -4,9 +4,6 @@ TODO
 Before an initial release
 -------------------------
 
- - Make searches across a single type return total_docs equal to the number of
-   docs of that type, not the number of docs in the collection.
-
  - Change filter query syntax to simply be another query operator, and like
    AND_NOT and AND_MAYBE allow arbitrary numbers of queries on the RHS (ANDed
    together).
