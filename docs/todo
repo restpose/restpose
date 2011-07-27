@@ -4,34 +4,26 @@ TODO
 Before an initial release
 -------------------------
 
- - Consider reorganising the search result format, so that it contains a
-   section holding the parameters supplied when running the search, rather
-   than having them mixed into the search results.  Also, add the actual
-   search that was supplied, perhaps?
-
  - Python client:
    - rework the way in which queries are built.
    - document how to build and run searches (both doing the search explicitly,
      and implicitly by slicing, iteration or subscription).
    - clean up all todos in python client documentation.
-   - uncomment the test of setting window size in query_text.
-
- - Make query_phrase support window parameter, for phrase size.
-
- - Test passing double values (both positive and negative) to timestamp and
-   double fields.
 
  - General documentation review and tidyup.
-
- - Update libs/README
-
- - Update README
 
  - Rename "prefix" to something less implementation-specific?  "group"?  Define
    group shortnames somewhere special?
 
 Next release
 ------------
+
+ - Test passing double values (both positive and negative) to timestamp and
+   double fields.
+
+ - Make query_phrase support window parameter, for phrase size.
+
+   - Python client: uncomment the test of setting window size in query_text.
 
  - Make logging do writes asynchronously.  (Currently, a log call acquires the
    logger mutex, then does the write, blocking all other threads.  Instead, log
