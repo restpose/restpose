@@ -161,14 +161,24 @@ NoWaitQueuedHandler::handle(ConnectionInfo & conn)
 	json_unserialise(uploaded_data, body);
     }
 
-    Queue::QueueState state = enqueue(conn, body);
+    Queue::QueueState state;
+    try {
+	state = enqueue(conn, body);
+    } catch (const InvalidValueError & e) {
+	LOG_ERROR(string("Error queueing task: ") + e.what());
+	Json::Value result(Json::objectValue);
+	result["err"] = e.what();
+	conn.respond(400, json_serialise(result), "application/json");
+	return;
+    }
     if (handle_queue_push_fail(state, conn)) {
 	return;
     }
+
+    // Return HTTP Accepted status code
+    // FIXME - this response should really include a pointer to a status
+    // monitor, or something similar.
     if (state == Queue::LOW_SPACE) {
-	// Return HTTP Accepted status code
-	// FIXME - this response should really include a pointer to a status
-	// monitor, or something similar.
 	conn.respond(202, "{\"high_load\":1}", "application/json");
     } else {
 	conn.respond(202, "{}", "application/json");
