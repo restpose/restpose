@@ -29,11 +29,12 @@
 #include "utils/stringutils.h"
 
 using namespace RestPose;
+using namespace std;
 
-void
-validate_collname(const std::string & value)
+string
+validate_collname(const string & value)
 {
-    for (std::string::size_type i = 0; i != value.size(); ++i) {
+    for (string::size_type i = 0; i != value.size(); ++i) {
 	unsigned char ch = value[i];
 	switch (ch) {
 	    case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
@@ -42,19 +43,15 @@ validate_collname(const std::string & value)
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
 	    case '.': case ',':
-		throw InvalidValueError("Invalid character (" + hexesc(value.substr(i, 1)) + ") in collection name");
+		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in collection name";
 	}
     }
 }
 
-/** Check if a document type is valid.
- *
- *  Raises InvalidValueError if the type is not valid.
- */
-void
-validate_doc_type(const std::string & value)
+string
+validate_doc_type(const string & value)
 {
-    for (std::string::size_type i = 0; i != value.size(); ++i) {
+    for (string::size_type i = 0; i != value.size(); ++i) {
 	unsigned char ch = value[i];
 	switch (ch) {
 	    case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
@@ -63,19 +60,15 @@ validate_doc_type(const std::string & value)
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
 	    case '.': case ',':
-		throw InvalidValueError("Invalid character (" + hexesc(value.substr(i, 1)) + ") in document type");
+		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in document type";
 	}
     }
 }
 
-/** Check if a document ID is valid.
- *
- *  Raises InvalidValueError if the ID is not valid.
- */
-void
-validate_doc_id(const std::string & value)
+string
+validate_doc_id(const string & value)
 {
-    for (std::string::size_type i = 0; i != value.size(); ++i) {
+    for (string::size_type i = 0; i != value.size(); ++i) {
 	unsigned char ch = value[i];
 	switch (ch) {
 	    case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
@@ -84,8 +77,7 @@ validate_doc_id(const std::string & value)
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
 	    case '.': case ',':
-		throw InvalidValueError("Invalid character (" + hexesc(value.substr(i, 1)) + ") in document ID");
+		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in document ID";
 	}
     }
 }
-

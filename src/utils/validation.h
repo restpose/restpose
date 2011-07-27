@@ -28,20 +28,20 @@
 
 /** Check if a collection name is valid.
  *
- *  Raises InvalidValueError if the name is not valid.
+ *  Returns an error message if the name is not valid.
  */
-void validate_collname(const std::string & value);
+std::string validate_collname(const std::string & value);
 
 /** Check if a document type is valid.
  *
- *  Raises InvalidValueError if the type is not valid.
+ *  Returns an error message if the type is not valid.
  */
-void validate_doc_type(const std::string & value);
+std::string validate_doc_type(const std::string & value);
 
 /** Check if a document ID is valid.
  *
- *  Raises InvalidValueError if the ID is not valid.
+ *  Returns an error message if the ID is not valid.
  */
-void validate_doc_id(const std::string & value);
+std::string validate_doc_id(const std::string & value);
 
 #endif /* RESTPOSE_INCLUDED_VALIDATION_H */
