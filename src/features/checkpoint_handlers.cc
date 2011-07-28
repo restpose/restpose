@@ -68,7 +68,7 @@ CollCreateCheckpointHandler::enqueue(ConnectionInfo & conn,
     string checkid;
     bool do_commit = conn.get_uri_arg_bool("commit", true);
     Queue::QueueState state = create_checkpoint(taskman, coll_name, checkid,
-						do_commit, true);
+						do_commit, false);
     Json::Value result(Json::objectValue);
     result["checkid"] = checkid;
     resulthandle.response().set(result, 201);

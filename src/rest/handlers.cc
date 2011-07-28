@@ -98,7 +98,7 @@ IndexDocumentHandler::enqueue(ConnectionInfo &,
 {
     return taskman->queue_processing(coll_name,
 	new ProcessorProcessDocumentTask(doc_type, doc_id, body),
-	true);
+	false);
 }
 
 Handler *
@@ -151,7 +151,7 @@ DeleteDocumentHandler::enqueue(ConnectionInfo &,
 {
     return taskman->queue_processing(coll_name,
 	new DelayedIndexingTask(new DeleteDocumentTask(doc_type, doc_id)),
-	true);
+	false);
 }
 
 
@@ -170,7 +170,7 @@ CollDeleteHandler::enqueue(ConnectionInfo &, const Json::Value &)
 {
     return taskman->queue_processing(coll_name,
 	new DeleteCollectionProcessingTask,
-	true);
+	false);
 }
 
 
