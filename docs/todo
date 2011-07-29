@@ -34,6 +34,9 @@ Next release
 Further future
 --------------
 
+ - Allow a name to be associated with a search (or perhaps a list of names),
+   which will be recorded in logs for later analysis.
+
  - Allow Occur and CoOccur handlers to be given a group name, instead of a prefix.
 
  - Add faceting support.
