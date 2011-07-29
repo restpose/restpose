@@ -4,6 +4,10 @@ TODO
 Before an initial release
 -------------------------
 
+ - Add URLs and tasks for setting and updating category parent-child
+   relationships.
+    - Python client: add query types for searching category.
+
  - Python client:
    - rework the way in which queries are built.
    - document how to build and run searches (both doing the search explicitly,
