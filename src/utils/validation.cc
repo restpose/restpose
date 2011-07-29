@@ -42,7 +42,7 @@ validate_collname(const string & value)
 	    case 15: case 16: case 17: case 18: case 19: case 20: case 21:
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
-	    case '.': case ',':
+	    case '.': case ',': case '[': case ']': case '{': case '}':
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in collection name";
 	}
     }
@@ -69,7 +69,7 @@ validate_doc_type(const string & value)
 	    case 15: case 16: case 17: case 18: case 19: case 20: case 21:
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
-	    case '.': case ',':
+	    case '.': case ',': case '[': case ']': case '{': case '}':
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in document type";
 	}
     }
@@ -87,7 +87,7 @@ validate_doc_id(const string & value)
 	    case 15: case 16: case 17: case 18: case 19: case 20: case 21:
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
-	    case '.': case ',':
+	    case '.': case ',': case '[': case ']': case '{': case '}':
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in document ID";
 	}
     }

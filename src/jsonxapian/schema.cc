@@ -845,7 +845,6 @@ CategoryFieldConfig::query(const string & qtype,
 	}
     }
     return Xapian::Query(Xapian::Query::OP_OR, terms.begin(), terms.end());
-
 }
 
 void

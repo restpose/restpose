@@ -44,7 +44,7 @@ value when referred to in URIs, and is not allowed to contain the following
 characters:
 
  * "Control" characters: ie, characters in the range 0 to 31.
- * ``:``, ``/``, ``\``, ``.``, ``,``
+ * ``:``, ``/``, ``\``, ``.``, ``,``, ``[``, ``]``, ``{``, ``}``
 
 ---------
 Documents
@@ -76,7 +76,7 @@ Document IDs and type names are assumed to be UTF-8 encoded values when
 referred to in URIs, and are not allowed to contain the following characters:
 
  * "Control" characters: ie, characters in the range 0 to 31.
- * ``:``, ``/``, ``\``, ``.``, ``,``
+ * ``:``, ``/``, ``\``, ``.``, ``,``, ``[``, ``]``, ``{``, ``}``
 
 -----------------
 Types and Schemas
