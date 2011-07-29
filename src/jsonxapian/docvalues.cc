@@ -54,3 +54,39 @@ DocumentValue::unserialise(const string & s)
 	values.insert(insertpos, string(pos, len));
     }
 }
+
+
+void
+DocumentValues::add(Xapian::valueno slot, const std::string & value)
+{
+    DocumentValue * valptr;
+    iterator i = entries.find(slot);
+    if (i == entries.end()) {
+	valptr = &(entries[slot]);
+    } else {
+	valptr = &(i->second);
+    }
+    valptr->add(value);
+}
+
+void
+DocumentValues::remove(Xapian::valueno slot, const std::string & value)
+{
+    iterator i = entries.find(slot);
+    if (i == entries.end()) {
+	return;
+    }
+    DocumentValue & val(i->second);
+    val.remove(value);
+    if (val.empty()) {
+	entries.erase(i);
+    }
+}
+
+void
+DocumentValues::apply(Xapian::Document & doc) const
+{
+    for (const_iterator i = begin(); i != end(); ++i) {
+	doc.add_value(i->first, i->second.serialise());
+    }
+}

@@ -27,6 +27,7 @@
 
 #include <string>
 #include <set>
+#include <xapian.h>
 
 namespace RestPose {
     /** A set of values stored in a document slot.
@@ -41,6 +42,10 @@ namespace RestPose {
 	}
 	const_iterator end() const {
 	    return values.end();
+	}
+
+	bool empty() {
+	    return values.empty();
 	}
 
 	/// Add a value.
@@ -58,6 +63,26 @@ namespace RestPose {
 
 	/** Unserialise the values from a string produced by serialise(). */
 	void unserialise(const std::string &s);
+    };
+
+    class DocumentValues {
+        std::map<Xapian::valueno, DocumentValue> entries;
+      public:
+	typedef std::map<Xapian::valueno, DocumentValue>::const_iterator
+		const_iterator;
+	typedef std::map<Xapian::valueno, DocumentValue>::iterator iterator;
+
+	const_iterator begin() const {
+	    return entries.begin();
+	}
+	const_iterator end() const {
+	    return entries.end();
+	}
+
+	void add(Xapian::valueno slot, const std::string & value);
+	void remove(Xapian::valueno slot, const std::string & value);
+
+	void apply(Xapian::Document & doc) const;
     };
 };
 
