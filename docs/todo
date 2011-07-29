@@ -9,7 +9,6 @@ Before an initial release
     - Python client: add query types for searching category.
 
  - Python client:
-   - rework the way in which queries are built.
    - document how to build and run searches (both doing the search explicitly,
      and implicitly by slicing, iteration or subscription).
    - clean up all todos in python client documentation.
