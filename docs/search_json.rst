@@ -168,7 +168,7 @@ Combining Queries
     }
 
     QUERY = {
-        "not": [QUERY, ...]
+        "and_not": [QUERY, ...]
     }
 
     QUERY = {

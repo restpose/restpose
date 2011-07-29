@@ -166,11 +166,11 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 			     queries.begin(), queries.end());
     }
 
-    if (jsonquery.isMember("not")) {
+    if (jsonquery.isMember("and_not")) {
 	if (jsonquery.size() != 1) {
 	    throw InvalidValueError("NOT query must contain exactly one member");
 	}
-	const Json::Value & queryparams = jsonquery["not"];
+	const Json::Value & queryparams = jsonquery["and_not"];
 	json_check_array(queryparams, "NOT search parameters");
 	if (queryparams.size() < 2) {
 	    throw InvalidValueError("Not query must contain at least two subqueries");
