@@ -1245,6 +1245,7 @@ Schema::process(const Json::Value & value,
     }
 
     state.doc.set_data(state.docdata.serialise());
+    state.docvals.apply(state.doc);
     return state.doc;
 }
 

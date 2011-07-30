@@ -333,7 +333,7 @@ TEST(DoubleFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"num\":[0]},\"values\":{\"7\":\"\\\\x80\"}}",
+	CHECK_EQUAL("{\"data\":{\"num\":[0]},\"values\":{\"7\":\"\\\\x01\\\\x80\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"num\":[0]}");
     }
@@ -371,7 +371,7 @@ TEST(TimestampFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"timestamp\":[1283400000]},\"values\":{\"0\":\"\\\\xe0\\\\\\\\\\\\xc7\\\\xf2\\\\x14\"}}",
+	CHECK_EQUAL("{\"data\":{\"timestamp\":[1283400000]},\"values\":{\"0\":\"\\\\x05\\\\xe0\\\\\\\\\\\\xc7\\\\xf2\\\\x14\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"timestamp\":[1283400000]}");
     }
@@ -400,7 +400,7 @@ TEST(DateFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"date2\":[\"2010-06-08\"]},\"values\":{\"0\":\"\\\\xcf\\\\xda&(\"}}",
+	CHECK_EQUAL("{\"data\":{\"date2\":[\"2010-06-08\"]},\"values\":{\"0\":\"\\\\x04\\\\xcf\\\\xda&(\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL("{\"date2\":[\"2010-06-08\"]}", s.display_doc_as_string(doc));
     }

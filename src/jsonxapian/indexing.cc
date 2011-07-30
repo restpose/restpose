@@ -202,8 +202,8 @@ DoubleIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	} else if ((*i).isConvertibleTo(Json::realValue)) {
 	    state.field_nonempty(fieldname);
-	    state.doc.add_value(slot,
-				Xapian::sortable_serialise((*i).asDouble()));
+	    state.docvals.add(slot,
+			      Xapian::sortable_serialise((*i).asDouble()));
 	} else {
 	    state.append_error(fieldname, "Double field must be numeric");
 	}
@@ -229,8 +229,8 @@ TimeStampIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	} else if ((*i).isConvertibleTo(Json::realValue)) {
 	    state.field_nonempty(fieldname);
-	    state.doc.add_value(slot,
-				Xapian::sortable_serialise((*i).asDouble()));
+	    state.docvals.add(slot,
+			      Xapian::sortable_serialise((*i).asDouble()));
 	} else {
 	    state.append_error(fieldname, "Timestamp field must be numeric");
 	}
@@ -260,7 +260,7 @@ DateIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	} else {
 	    state.field_nonempty(fieldname);
-	    state.doc.add_value(slot, parsed);
+	    state.docvals.add(slot, parsed);
 	}
     }
 
