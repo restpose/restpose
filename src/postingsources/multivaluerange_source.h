@@ -26,6 +26,7 @@
 #define RESTPOSE_INCLUDED_MULTIVALUERANGE_SOURCE_H
 
 #include <xapian.h>
+#include "jsonxapian/docvalues.h"
 
 namespace RestPose {
 
@@ -38,9 +39,13 @@ namespace RestPose {
 	Xapian::doccount termfreq_est;
 	Xapian::doccount termfreq_max;
 	Xapian::weight wt;
+	std::string start_val;
+	std::string end_val;
       public:
 	MultiValueRangeSource(Xapian::valueno slot_,
-			      Xapian::weight wt_);
+			      Xapian::weight wt_,
+			      const std::string & start_val_,
+			      const std::string & end_val_);
 
 	Xapian::doccount get_termfreq_min() const {
 	    return termfreq_min;

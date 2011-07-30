@@ -30,9 +30,13 @@ using namespace RestPose;
 using namespace std;
 
 MultiValueRangeSource::MultiValueRangeSource(Xapian::valueno slot_,
-					     Xapian::weight wt_)
+					     Xapian::weight wt_,
+					     const string & start_val_,
+					     const string & end_val_)
 	: slot(slot_),
-	  wt(wt_)
+	  wt(wt_),
+	  start_val(start_val_),
+	  end_val(end_val_)
 {
 }
 
@@ -114,7 +118,7 @@ MultiValueRangeSource::at_end() const
 Xapian::PostingSource *
 MultiValueRangeSource::clone() const
 {
-    return new MultiValueRangeSource(slot, wt);
+    return new MultiValueRangeSource(slot, wt, start_val, end_val);
 }
 
 string
@@ -126,7 +130,10 @@ MultiValueRangeSource::name() const
 string
 MultiValueRangeSource::serialise() const
 {
-    return encode_length(slot) + Xapian::sortable_serialise(wt);
+    return encode_length(slot) +
+	    encode_length(start_val.size()) + start_val +
+	    encode_length(end_val.size()) + end_val +
+	    Xapian::sortable_serialise(wt);
 }
 
 Xapian::PostingSource *
@@ -136,12 +143,18 @@ MultiValueRangeSource::unserialise(const string &s) const
     const char * end = p + s.size();
 
     Xapian::valueno new_slot = decode_length(&p, end, false);
+    size_t start_len = decode_length(&p, end, true);
+    string new_start_val(p, start_len);
+    p += start_len;
+    size_t end_len = decode_length(&p, end, true);
+    string new_end_val(p, end_len);
+    p += end_len;
     Xapian::weight new_wt = Xapian::sortable_unserialise(string(p, end - p));
     if (p != end) {
 	throw Xapian::NetworkError("Bad serialised MultiValueRangeSource");
     }
 
-    return new MultiValueRangeSource(new_slot, new_wt);
+    return new MultiValueRangeSource(new_slot, new_wt, new_start_val, new_end_val);
 }
 
 void
@@ -161,7 +174,13 @@ MultiValueRangeSource::init(const Xapian::Database & db_)
 bool
 MultiValueRangeSource::check_range(const std::string & value) const
 {
-    // FIXME - implement
-    (void)value;
-    return true;
+    DocumentValue parsedval;
+    parsedval.unserialise(value);
+    for (DocumentValue::const_iterator i = parsedval.begin();
+	 i != parsedval.end();
+	 ++i) {
+	if (start_val <= *i && *i <= end_val)
+	    return true;
+    }
+    return false;
 }
