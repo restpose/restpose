@@ -30,6 +30,7 @@ include src/jsonmanip/Makefile.mk
 include src/jsonxapian/Makefile.mk
 include src/logger/Makefile.mk
 include src/matchspies/Makefile.mk
+include src/postingsources/Makefile.mk
 include src/ngramcat/Makefile.mk
 include src/rest/Makefile.mk
 include src/server/Makefile.mk
