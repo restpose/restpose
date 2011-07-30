@@ -52,6 +52,7 @@ DocumentValue::unserialise(const string & s)
 	set<string>::iterator insertpos = values.end();
 	--insertpos;
 	values.insert(insertpos, string(pos, len));
+	pos += len;
     }
 }
 
