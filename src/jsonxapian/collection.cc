@@ -32,6 +32,7 @@
 #include "jsonxapian/query_builder.h"
 #include "logger/logger.h"
 #include <memory>
+#include "postingsources/multivalue_keymaker.h"
 #include "str.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
@@ -509,6 +510,7 @@ Collection::perform_search(const Json::Value & search,
     // Internal document IDs are not under the user's control, so set this
     // option for potential (though probably slight) performance increases.
     enq.set_docid_order(enq.DONT_CARE);
+    auto_ptr<Xapian::KeyMaker> sorter;
 
     if (search.isMember("order_by")) {
 	const Json::Value & order_by = search["order_by"];
@@ -532,6 +534,8 @@ Collection::perform_search(const Json::Value & search,
 	    }
 	    bool ascending = json_get_bool(order_by_item, "ascending", true);
 	    enq.set_sort_by_value(slot, !ascending);
+	    sorter = auto_ptr<Xapian::KeyMaker>(new MultiValueKeyMaker(slot));
+	    enq.set_sort_by_key_then_relevance(sorter.get(), !ascending);
 	} else if (order_by_item.isMember("score")) {
 	    // Order by the weights calculated in the query tree.
 	    if (order_by_item["score"] != "weight") {

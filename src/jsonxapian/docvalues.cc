@@ -49,9 +49,13 @@ DocumentValue::unserialise(const string & s)
     const char * endpos = pos + s.size();
     while (pos != endpos) {
 	size_t len = decode_length(&pos, endpos, true);
-	set<string>::iterator insertpos = values.end();
-	--insertpos;
-	values.insert(insertpos, string(pos, len));
+	if (values.empty()) {
+	    values.insert(string(pos, len));
+	} else {
+	    set<string>::iterator insertpos = values.end();
+	    --insertpos;
+	    values.insert(insertpos, string(pos, len));
+	}
 	pos += len;
     }
 }

@@ -36,6 +36,7 @@
 #include "jsonxapian/indexing.h"
 #include "logger/logger.h"
 #include <memory>
+#include "postingsources/multivaluerange_source.h"
 #include "slotname.h"
 #include <string>
 #include "utils/jsonutils.h"
@@ -649,7 +650,9 @@ DoubleFieldConfig::query(const string & qtype,
 
     string start = Xapian::sortable_serialise(value[0u].asDouble());
     string end = Xapian::sortable_serialise(value[1u].asDouble());
-    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
+
+    MultiValueRangeSource source(slot.get(), 1.0, start, end);
+    return Xapian::Query(&source);
 }
 
 void
@@ -691,7 +694,9 @@ TimestampFieldConfig::query(const string & qtype,
     }
     string start = Xapian::sortable_serialise(json_get_uint64(value[Json::UInt(0u)]));
     string end = Xapian::sortable_serialise(json_get_uint64(value[1u]));
-    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
+
+    MultiValueRangeSource source(slot.get(), 1.0, start, end);
+    return Xapian::Query(&source);
 }
 
 void
@@ -740,7 +745,9 @@ DateFieldConfig::query(const string & qtype,
     if (!error.empty()) {
 	throw InvalidValueError(error);
     }
-    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
+
+    MultiValueRangeSource source(slot.get(), 1.0, start, end);
+    return Xapian::Query(&source);
 }
 
 void
