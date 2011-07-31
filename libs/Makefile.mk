@@ -20,6 +20,12 @@ libjsoncpp_a_SOURCES = \
  libs/jsoncpp/src/lib_json/json_reader.cpp \
  libs/jsoncpp/src/lib_json/json_value.cpp \
  libs/jsoncpp/src/lib_json/json_writer.cpp
+EXTRA_DIST += \
+ libs/jsoncpp/AUTHORS \
+ libs/jsoncpp/LICENSE \
+ libs/jsoncpp/NEWS.txt \
+ libs/jsoncpp/README.txt \
+ libs/jsoncpp/version
 
 # CJK tokenizer
 noinst_LIBRARIES += libcjktokenizer.a
@@ -31,6 +37,9 @@ noinst_HEADERS += \
 libcjktokenizer_a_SOURCES = \
  libs/cjk-tokenizer/cjk-tokenizer/cjk-tokenizer.cc \
  libs/cjk-tokenizer/cjk-tokenizer/cjk-hanconvert.cc
+EXTRA_DIST += \
+ libs/cjk-tokenizer/LICENSE \
+ libs/cjk-tokenizer/README.rst
 
 # Files from xapian-core/common.
 noinst_LIBRARIES += libxapiancommon.a
@@ -71,6 +80,9 @@ libxapiancommon_a_SOURCES += \
  libs/xapiancommon/win32_uuid.cc
 AM_LDFLAGS += -lrpcrt4
 endif
+
+EXTRA_DIST += \
+ libs/xapiancommon/README
 
 # UnitTest++
 noinst_LIBRARIES += libunittestpp.a
@@ -121,6 +133,9 @@ libunittestpp_a_SOURCES = \
  libs/unittest-cpp/UnitTest++/src/CurrentTest.cpp \
  libs/unittest-cpp/UnitTest++/src/Posix/SignalTranslator.cpp \
  libs/unittest-cpp/UnitTest++/src/Posix/TimeHelpers.cpp
+EXTRA_DIST += \
+ libs/unittest-cpp/UnitTest++/COPYING \
+ libs/unittest-cpp/UnitTest++/README
 
 # MicroHttpd
 INCLUDES += \
@@ -145,3 +160,7 @@ libmongocdriver_a_SOURCES = \
  libs/mongo-c-driver/src/md5.c \
  libs/mongo-c-driver/src/mongo.c \
  libs/mongo-c-driver/src/numbers.c
+EXTRA_DIST += \
+ libs/mongo-c-driver/APACHE-2.0.txt \
+ libs/mongo-c-driver/HISTORY.md \
+ libs/mongo-c-driver/README.md
