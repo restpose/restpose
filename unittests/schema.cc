@@ -343,9 +343,9 @@ TEST(DoubleFields)
     CollectionQueryBuilder builder;
 
     Xapian::Query q = builder.build(config, json_unserialise("{\"field\": [\"num\", \"range\", [-1, 1]]}", tmp));
-    CHECK_EQUAL("Xapian::Query(VALUE_RANGE 7 ^ \xa0)", q.get_description());
+    CHECK_EQUAL("Xapian::Query(PostingSource(MultiValueRangeSource(7, 1, ^, \\xa0)))", q.get_description());
     q = builder.build(config, json_unserialise("{\"field\": [\"num\", \"range\", [0, 1]]}", tmp));
-    CHECK_EQUAL("Xapian::Query(VALUE_RANGE 7 \x80 \xa0)", q.get_description());
+    CHECK_EQUAL("Xapian::Query(PostingSource(MultiValueRangeSource(7, 1, \\x80, \\xa0)))", q.get_description());
 }
 
 TEST(TimestampFields)

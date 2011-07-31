@@ -35,6 +35,7 @@ unittest_LDADD = \
  libjsoncpp.a \
  libunittestpp.a \
  liblogger.a \
+ libpostingsources.a \
  libmatchspies.a \
  libxapiancommon.a \
  libs/libmicrohttpd/src/daemon/libmicrohttpd.la \
