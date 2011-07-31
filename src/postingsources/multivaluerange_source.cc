@@ -25,6 +25,8 @@
 #include <config.h>
 #include "multivaluerange_source.h"
 #include "serialise.h"
+#include "str.h"
+#include "utils/stringutils.h"
 
 using namespace RestPose;
 using namespace std;
@@ -171,16 +173,28 @@ MultiValueRangeSource::init(const Xapian::Database & db_)
     termfreq_est = termfreq_max / 2.0;
 }
 
+string
+MultiValueRangeSource::get_description() const
+{
+    return string("MultiValueRangeSource(") +
+	    str(slot) + ", " +
+	    str(wt) + ", " +
+	    hexesc(start_val) + ", " +
+	    hexesc(end_val) + ")";
+}
+
 bool
 MultiValueRangeSource::check_range(const std::string & value) const
 {
-    DocumentValue parsedval;
-    parsedval.unserialise(value);
-    for (DocumentValue::const_iterator i = parsedval.begin();
-	 i != parsedval.end();
-	 ++i) {
-	if (start_val <= *i && *i <= end_val)
+    const char * pos = value.data();
+    const char * endpos = pos + value.size();
+    while (pos != endpos) {
+	size_t len = decode_length(&pos, endpos, true);
+	string val(pos, len);
+
+	if (start_val <= val && val <= end_val)
 	    return true;
+	pos += len;
     }
     return false;
 }

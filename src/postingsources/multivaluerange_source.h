@@ -26,7 +26,6 @@
 #define RESTPOSE_INCLUDED_MULTIVALUERANGE_SOURCE_H
 
 #include <xapian.h>
-#include "jsonxapian/docvalues.h"
 
 namespace RestPose {
 
@@ -69,6 +68,7 @@ namespace RestPose {
 	std::string serialise() const;
 	Xapian::PostingSource * unserialise(const std::string &s) const;
 	void init(const Xapian::Database & db);
+	std::string get_description() const;
 
 	/** Check if a the value matches the range.
 	 */
