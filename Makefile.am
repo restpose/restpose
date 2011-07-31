@@ -44,5 +44,4 @@ DISTCHECK_CONFIGURE_FLAGS = "XAPIAN_CONFIG=$(XAPIAN_CONFIG)"
 EXTRA_DIST += \
  examples/lang_guess_model.json \
  examples/schema.json \
- scripts/get_wikipedia_sample_text \
- scripts/ma_index
+ scripts/get_wikipedia_sample_text
