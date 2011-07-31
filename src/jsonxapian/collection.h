@@ -38,7 +38,7 @@ class TaskManager;
 
 namespace RestPose {
 
-class Pipe;
+struct Pipe;
 
 class Collection {
     /** The configuration used for this collection.

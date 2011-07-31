@@ -36,8 +36,8 @@ class TaskManager;
 namespace RestPose {
 
 class Categoriser;
-class IndexingErrors;
-class Pipe;
+struct IndexingErrors;
+struct Pipe;
 class Schema;
 
 /** All the configuration of the collection.

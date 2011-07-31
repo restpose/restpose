@@ -36,7 +36,7 @@ namespace RestPose {
     // Forward declaration
     class CollectionConfig;
     class FieldIndexer;
-    class IndexingErrors;
+    struct IndexingErrors;
 
     /** The configuration for an individual field in the schema.
      */
