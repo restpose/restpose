@@ -4,11 +4,6 @@ TODO
 Before an initial release
 -------------------------
 
- - Implement and use range check for multivalue slots.
-
- - Implement key generator for sorting, which gets first value from multivalue
-   slots.
-
  - Python client:
    - document how to build and run searches (both doing the search explicitly,
      and implicitly by slicing, iteration or subscription).
@@ -42,6 +37,15 @@ Next release
 Further future
 --------------
 
+ - Sorting:
+   - Add control of the behaviour of missing entries when sorting (ie, should
+     missing mean sort at end, or sort at start).
+
+   - Allow sorting by items other than the first in a slot. (eg, by the item at
+     index N, and support negative subscripting).
+
+   - Add sort_by support for multiple keys.
+
  - Allow a name to be associated with a search (or perhaps a list of names),
    which will be recorded in logs for later analysis.
 
@@ -66,8 +70,6 @@ Further future
    be a setting to define the spacing.
 
  - Add geospatial index support.
-
- - Add sort_by support for multiple keys.
 
  - Add collapse support.
 
