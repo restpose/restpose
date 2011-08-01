@@ -285,6 +285,71 @@ Documents
 		 which they're sending documents is ``high_load`` messages
 		 persist.
 
+.. http:post:: /coll/(collection_name)/type/(type)
+
+   Create, or update, a document with the given `collection_name` and `type`.
+   The id of the document will be read from the document body, from the field
+   configured in the collection configuration for storing IDs (by default,
+   this is `id`).
+
+   Creates the collection with default settings if it didn't exist before the
+   call.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param type: The type of the document.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+.. http:post:: /coll/(collection_name)/id/(id)
+
+   Create, or update, a document with the given `collection_name` and `id`.
+   The type of the document will be read from the document body, from the
+   field configured in the collection configuration for storing types (by
+   default, this is `type`).
+
+   Creates the collection with default settings if it didn't exist before the
+   call.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param id: The ID of the document.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+.. http:post:: /coll/(collection_name)
+
+   Create, or update, a document in the collection `collection_name`.  The
+   type and ID of the document will be read from the document body, from the
+   fields configured in the collection configuration for storing types and
+   IDs (by default, these are `type` and `id`).
+
+   Creates the collection with default settings if it didn't exist before the
+   call.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
 .. http:delete:: /coll/(collection_name)/type/(type)/id/(id)
 
    Delete a document from a collection.
@@ -309,6 +374,25 @@ Searches are performed by sending a JSON search structure in the request body.
 This may be done using a :http:method:`GET` request, but will usually be done
 with a :http:method:`POST` request, since not all software supports sending a
 body as part of a `GET` request.
+
+
+.. http:get:: /coll/(collection_name)/search
+.. http:post:: /coll/(collection_name)/search
+
+   Search for documents in a collection, across all document types.
+
+   The search is sent as a JSON structure in the request body: see the
+   :ref:`searches` section for details on the search structure.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+
+   :statuscode 200: Returns the result of running the search, as a JSON
+	       structure.  See the :ref:`search_results` section for details on
+	       the search result structure.
+
+   :statuscode 404: If the collection is not found.
+
 
 .. http:get:: /coll/(collection_name)/type/(type)/search
 .. http:post:: /coll/(collection_name)/type/(type)/search
