@@ -14,6 +14,14 @@ Before an initial release
 Next release
 ------------
 
+ - Document categorisers
+
+ - Document category hierarchies
+
+ - Implement and document orderingings.
+
+ - Document pipes.  Improve efficiency of pipes by reducing copying of results.
+
  - Add URLs and tasks for setting and updating category parent-child
    relationships.
     - Python client: add query types for searching category.
