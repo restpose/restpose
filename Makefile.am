@@ -10,6 +10,7 @@ bin_PROGRAMS =
 check_PROGRAMS =
 TESTS =
 EXTRA_DIST =
+nobase_dist_pkgdata_DATA =
 
 AM_LDFLAGS = $(NO_UNDEFINED)
 
@@ -45,3 +46,11 @@ EXTRA_DIST += \
  examples/lang_guess_model.json \
  examples/schema.json \
  scripts/get_wikipedia_sample_text
+
+nobase_dist_pkgdata_DATA += \
+ static/index.html \
+ static/static/browse/browse.js \
+ static/static/browse/index.html \
+ static/static/lib/jquery-1.6.1.min.js \
+ static/static/status/index.html \
+ static/static/status/status.js
