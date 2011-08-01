@@ -259,9 +259,9 @@ Ignore fields
 (`type` = `ignore`)
 
 Ignore fields are completely ignored.  They may be defined to prevent the
-default action for unknown fields being performed on them.
-
-.. todo: check that the behaviour for an ignore field which has a store_field parameter is sensible, and document it.
+default action for unknown fields being performed on them.  Note that this
+field type does not support the `store_field` parameter; the contents of an
+ignored field will never be stored.
 
 ID fields
 ---------
@@ -399,7 +399,7 @@ Categorisers
 Category Hierarchies
 --------------------
 
-.. todo: implement and document category hierarchies
+.. todo: document category hierarchies
 
 ---------
 Orderings
