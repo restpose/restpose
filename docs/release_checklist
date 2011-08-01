@@ -1,6 +1,6 @@
 Before release.
 
- - review README files in restpose and restpose-py.
+ - review README files in restpose and restpose-py.  Update version numbers.
 
  - update version number in configure.ac to remove "dev"
 
