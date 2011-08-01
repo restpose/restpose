@@ -9,8 +9,6 @@ Before an initial release
      and implicitly by slicing, iteration or subscription).
    - clean up all todos in python client documentation.
 
- - General documentation review and tidyup.
-
 Next release
 ------------
 
