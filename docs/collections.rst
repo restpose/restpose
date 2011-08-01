@@ -78,6 +78,8 @@ referred to in URIs, and are not allowed to contain the following characters:
  * "Control" characters: ie, characters in the range 0 to 31.
  * ``:``, ``/``, ``\``, ``.``, ``,``, ``[``, ``]``, ``{``, ``}``
 
+.. _types_and_schemas:
+
 -----------------
 Types and Schemas
 -----------------
@@ -91,14 +93,14 @@ Each type is described by a schema, which consists of several properties and
 governs the way in which search and indexing is performed:
 
 *fields*
-    A description of the configuration for each known `field type`_.
+    A description of the configuration for each known `field_type`_.
 *patterns*
     A list of `patterns`_ to apply, in order, to unknown fields.
 
 The collection configuration contains a section which defines which fields are
 used to hold identifiers for document ids and document types.
 
-.. _field type:
+.. _field_type:
 
 Field types
 ===========
