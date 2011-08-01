@@ -17,7 +17,8 @@ Before release.
 
  - build tarballs, with make distcheck.
 
- - commit and push versions of restpose and restpose-py with "dev" removed from configure.ac
+ - commit and push versions of restpose and restpose-py with "dev" removed from
+   configure.ac
 
  - tag in git, and push tag
 
@@ -25,3 +26,8 @@ Before release.
 
  - update version number in configure.ac and restpose-py/restpose/version.py to
    be the next release number, with "dev" appended.  commit this.
+
+ - update freshmeat
+
+ - hit hammer for all versions on readthedocs, to get the navigation links
+   updated correctly.
