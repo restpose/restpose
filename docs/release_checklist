@@ -1,5 +1,7 @@
 Before release.
 
+ - update NEWS and ChangeLog with details of changes since last release.
+
  - review README files in restpose and restpose-py.  Update version numbers.
 
  - update version number in configure.ac to remove "dev"
