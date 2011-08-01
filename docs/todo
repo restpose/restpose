@@ -29,6 +29,12 @@ Next release
  - Test passing double values (both positive and negative) to timestamp and
    double fields.
 
+ - Make query_parse support configuration of the flags in use.  Document the
+   flags available.
+
+ - Make query_parse (optionally) handle parse errors by attempting a re-parse
+   with some flags dropped, and finally fall back to query_phrase.
+
  - Make query_phrase support window parameter, for phrase size.
 
    - Python client: uncomment the test of setting window size in query_text.
