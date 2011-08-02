@@ -8,6 +8,8 @@ Before release.
 
  - update version number in restpose-py/restpose/version.py to remove "dev"
 
+ - review restpose-py/setup.py - in particular, check classifiers still correct.
+
  - check all tests run
 
  - check installation works
@@ -22,7 +24,20 @@ Before release.
 
  - tag in git, and push tag
 
+   For python::
+
+       git tag -a -m "0.7.0 release" r0.7.0
+       git push --tags
+
  - upload tarballs
+
+   For server, upload manually to github
+
+   For python::
+
+       python setup.py sdist register upload
+       (cd docs && make html)
+       python setup.py upload_docs --upload-dir docs/build/html/
 
  - update version number in configure.ac and restpose-py/restpose/version.py to
    be the next release number, with "dev" appended.  commit this.
