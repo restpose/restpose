@@ -1,6 +1,22 @@
 TODO
 ====
 
+ - Add URLs and tasks for setting and updating category parent-child
+   relationships.
+    - Python client: add query types for searching category.
+
+ - Test that all category URLs behave as documented (especially with regards to
+   404 status when collections, etc, don't exist).
+
+ - Make query_phrase support window parameter, for phrase size.
+
+   - Python client: uncomment the test of setting window size in query_text.
+
+ - Make logging do writes asynchronously.  (Currently, a log call acquires the
+   logger mutex, then does the write, blocking all other threads.  Instead, log
+   messages should be added to a queue, and a logger thread should write them
+   to disk, syslog, or whatever the appropriate target is.)
+
 Next release
 ------------
 
@@ -14,10 +30,6 @@ Next release
 
  - Document pipes.  Improve efficiency of pipes by reducing copying of results.
 
- - Add URLs and tasks for setting and updating category parent-child
-   relationships.
-    - Python client: add query types for searching category.
-
  - Test passing double values (both positive and negative) to timestamp and
    double fields.
 
@@ -26,15 +38,6 @@ Next release
 
  - Make query_parse (optionally) handle parse errors by attempting a re-parse
    with some flags dropped, and finally fall back to query_phrase.
-
- - Make query_phrase support window parameter, for phrase size.
-
-   - Python client: uncomment the test of setting window size in query_text.
-
- - Make logging do writes asynchronously.  (Currently, a log call acquires the
-   logger mutex, then does the write, blocking all other threads.  Instead, log
-   messages should be added to a queue, and a logger thread should write them
-   to disk, syslog, or whatever the appropriate target is.)
 
  - If the client doesn't send a Host header, we need to synthesise one so that
    Location headers in responses are valid.
