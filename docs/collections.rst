@@ -205,8 +205,16 @@ Category fields
 
 Category fields are somewhat similar to exact fields, but in addition a
 hierarchy of field values can be defined.  Searches can then be used to find
-all documents in which a value in a document is an ancestor of the search
+all documents in which a value in a document is a descendent of the search
 value.
+
+They have one additional parameter: the "hierarchy" parameter, which is the
+name of the category hierarchy used by the field.  This allows multiple
+independent fields to make use of the same category hierarchy.
+
+In order to work correctly, it is advisable to ensure that the term `group`
+used for a category field is not shared with any other fields which use a
+different hierarchy, or which are not category fields.
 
 Each field value may be given one or more parents.  It is also possible for a
 parent to have multiple child values.  It is an error to attempt to set up
