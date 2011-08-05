@@ -216,6 +216,72 @@ Checkpoints also do not persist across server restarts.
 	       * `errors`: An array of errors.  If very many errors have
 		 occurred, only the top few will be returned.
 
+Categories
+----------
+
+.. http:get:: /coll/(collection_name)/category
+
+   Get a list of all category hierarchies available in the collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+
+   :statuscode 200: Returns a JSON array of strings, holding the names of the
+               category hierarchies in the collection.
+
+   :statuscode 404: If the collection does not exist.
+
+.. http:get:: /coll/(collection_name)/category/(hierarchy_name)
+
+   Get details of the named hierarchy in the collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param hierarchy_name: The name of the hierarchy.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 200: Returns a JSON object representing the contents of the
+               hierarchy, mapping from category ID to an array of parent IDs.
+
+   :statuscode 404: If the collection or hierarchy do not exist.
+
+.. http:get:: /coll/(collection_name)/category/(hierarchy_name)/id/(cat_id)
+
+   Get details of a category in a named hierarchy in the collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param hierarchy_name: The name of the hierarchy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+
+   :statuscode 200: Returns a JSON object representing the contents of the
+               hierarchy, mapping from category ID to an array of parent IDs.
+
+   :statuscode 404: If the collection, hierarchy or category do not exist.
+
+.. http:get:: /coll/(collection_name)/category/(hierarchy_name)/id/(cat_id)/parent/(parent_id)
+
+   Check if a category has a given parent, in the named hierarchy in the
+   collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param hierarchy_name: The name of the hierarchy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+   :param parent_id: The ID of the parent category.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 200: Returns an empty JSON object if the parent supplied is a
+               parent of the category supplier.
+
+   :statuscode 404: If the collection, hierarchy or category or parent do not
+               exist, or the parent is not a parent of the category.
+
+
 Documents
 ---------
 
