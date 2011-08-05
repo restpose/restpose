@@ -115,9 +115,9 @@ Collection::write_config()
 }
 
 void
-Collection::update_modified_categories(const string & group_name,
-				       const CategoryHierarchy & hierarchy,
-				       const Categories & modified)
+Collection::update_modified_categories_group(const string & group_name,
+					     const CategoryHierarchy & hierarchy,
+					     const Categories & modified)
 {
     // Find all documents with terms of the form group_name + "C" + cat where cat
     // is any of the categories in modified.  For each of these documents, read
@@ -222,6 +222,25 @@ Collection::update_modified_categories(const string & group_name,
     }
 }
 
+void
+Collection::update_modified_categories(const string & hierarchy_name,
+				       const CategoryHierarchy & hierarchy,
+				       const Categories & modified)
+{
+    const set<string> & groups =
+	    config.get_category_hierarchy_groups(hierarchy_name);
+
+    /* Note; when there are many documents in which more than one group uses
+     * the same hierarchy, it would be more efficient to do the update of all
+     * the groups at the same time, rather than one-by-one; we only do it
+     * one-by-one for ease of implementation.
+     */
+    for (set<string>::const_iterator i = groups.begin();
+	 i != groups.end(); ++i) {
+	update_modified_categories_group(*i + "\t", hierarchy, modified);
+    }
+}
+
 Schema &
 Collection::get_schema(const string & type)
 {
@@ -250,7 +269,7 @@ const Pipe &
 Collection::get_pipe(const string & pipe_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
+	throw InvalidStateError("Collection must be open to get pipe");
     }
     return config.get_pipe(pipe_name);
 }
@@ -270,7 +289,7 @@ const Categoriser &
 Collection::get_categoriser(const string & categoriser_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
+	throw InvalidStateError("Collection must be open to get categoriser");
     }
     return config.get_categoriser(categoriser_name);
 }
@@ -290,7 +309,7 @@ const CategoryHierarchy *
 Collection::get_category_hierarchy(const string & category_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
+	throw InvalidStateError("Collection must be open to get category hierarchy");
     }
     return config.get_category_hierarchy(category_name);
 }
@@ -304,6 +323,15 @@ Collection::set_category_hierarchy(const string & category_name,
     }
     config.set_category_hierarchy(category_name, category);
     write_config();
+}
+
+Json::Value &
+Collection::get_category_hierarchy_names(Json::Value & result) const
+{
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to get category hierarchy");
+    }
+    return config.get_category_hierarchy_names(result);
 }
 
 void
@@ -324,7 +352,7 @@ Collection::category_remove(const string & hierarchy_name,
     Categories modified;
     const CategoryHierarchy & hierarchy =
 	    config.category_remove(hierarchy_name, cat_name, modified);
-    update_modified_categories(hierarchy_name + "\t", hierarchy, modified);
+    update_modified_categories(hierarchy_name, hierarchy, modified);
 }
 
 void
@@ -336,7 +364,7 @@ Collection::category_add_parent(const string & hierarchy_name,
     const CategoryHierarchy & hierarchy =
 	    config.category_add_parent(hierarchy_name, child_name,
 				       parent_name, modified);
-    update_modified_categories(hierarchy_name + "\t", hierarchy, modified);
+    update_modified_categories(hierarchy_name, hierarchy, modified);
 }
 
 void
@@ -348,7 +376,7 @@ Collection::category_remove_parent(const string & hierarchy_name,
     const CategoryHierarchy & hierarchy =
 	    config.category_remove_parent(hierarchy_name, child_name,
 					  parent_name, modified);
-    update_modified_categories(hierarchy_name + "\t", hierarchy, modified);
+    update_modified_categories(hierarchy_name, hierarchy, modified);
 }
 
 void

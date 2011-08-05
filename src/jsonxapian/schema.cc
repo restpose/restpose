@@ -37,6 +37,7 @@
 #include "logger/logger.h"
 #include <memory>
 #include "postingsources/multivaluerange_source.h"
+#include <set>
 #include "slotname.h"
 #include <string>
 #include "utils/jsonutils.h"
@@ -47,6 +48,12 @@
 
 using namespace RestPose;
 using namespace std;
+
+void
+FieldConfig::add_group_if_hierarchy(const std::string &,
+				    std::set<std::string> &) const
+{
+}
 
 FieldConfig *
 FieldConfig::from_json(const Json::Value & value,
@@ -773,8 +780,17 @@ CategoryFieldConfig::CategoryFieldConfig(const Json::Value & value)
 	throw InvalidValueError("Field configuration argument \"group\""
 				" contains invalid character \\t");
     }
-    hierarchy_name = prefix;
     prefix.append("\t");
+
+    hierarchy_name = json_get_string_member(value, "hierarchy", string());
+    if (hierarchy_name.empty()) {
+	throw InvalidValueError("Field configuration argument \"hierarchy\""
+				" may not be empty");
+    }
+    if (hierarchy_name.find('\t') != string::npos) {
+	throw InvalidValueError("Field configuration argument \"hierarchy\""
+				" contains invalid character \\t");
+    }
 
     store_field = json_get_string_member(value, "store_field", string());
 }
@@ -855,11 +871,21 @@ CategoryFieldConfig::query(const string & qtype,
 }
 
 void
+CategoryFieldConfig::add_group_if_hierarchy(const string & hierarchy_name_,
+					    set<string> & result) const
+{
+    if (hierarchy_name == hierarchy_name_) {
+	result.insert(prefix.substr(0, prefix.size() - 1));
+    }
+}
+
+void
 CategoryFieldConfig::to_json(Json::Value & value) const
 {
     MaxLenFieldConfig::to_json(value);
     value["type"] = "cat";
     value["group"] = prefix.substr(0, prefix.size() - 1);
+    value["hierarchy"] = hierarchy_name;
     value["store_field"] = store_field;
 }
 
@@ -1192,6 +1218,18 @@ Schema::set(const string & fieldname, FieldConfig * config)
     ret = fields.insert(item);
     delete(ret.first->second);
     ret.first->second = configptr.release();
+}
+
+void
+Schema::get_category_hierarchy_groups(const string & hierarchy_name,
+				      std::set<string> & result) const
+{
+    // iterate through fields, looking for category fields which have hierarchy
+    // equal to hierarchy_name, and add the groups of these to the result.
+    for (map<string, FieldConfig *>::const_iterator i = fields.begin();
+	 i != fields.end(); ++i) {
+	i->second->add_group_if_hierarchy(hierarchy_name, result);
+    }
 }
 
 Xapian::Document

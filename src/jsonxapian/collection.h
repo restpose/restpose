@@ -74,9 +74,16 @@ class Collection {
      */
     void write_config();
 
+    /** Update documents which are in the list of modified categories in this
+     *  group.
+     */
+    void update_modified_categories_group(const std::string & group,
+					  const CategoryHierarchy & hierarchy,
+					  const Categories & modified);
+
     /** Update documents which are in the list of modified categories.
      */
-    void update_modified_categories(const std::string & group,
+    void update_modified_categories(const std::string & hierarchy_name,
 				    const CategoryHierarchy & hierarchy,
 				    const Categories & modified);
 
@@ -201,6 +208,13 @@ class Collection {
      */
     void set_category_hierarchy(const std::string & hierarchy_name,
 				const CategoryHierarchy & category);
+
+    /** Get a list of the category hierarchies.
+     *
+     *  @param result A reference to a value which will be set to an array of
+     *  category names.
+     */
+    Json::Value & get_category_hierarchy_names(Json::Value & result) const;
 
     void category_add(const std::string & hierarchy_name,
 		      const std::string & cat_name);

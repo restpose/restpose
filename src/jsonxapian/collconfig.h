@@ -72,6 +72,9 @@ class CollectionConfig {
     /// Named category hierarchies.
     std::map<std::string, CategoryHierarchy *> categories;
 
+    /// Map from hierarchy name to groups using that hierarchy.
+    mutable std::map<std::string, std::set<std::string> > group_hierarchies;
+
     /// Flag to track whether the collection configuration has been changed.
     bool changed;
 
@@ -280,6 +283,18 @@ class CollectionConfig {
      */
     void set_category_hierarchy(const std::string & hierarchy_name,
 				const CategoryHierarchy & category);
+
+    /** Get a list of the category hierarchies.
+     *
+     *  @param result A reference to a value which will be set to an array of
+     *  category names.
+     */
+    Json::Value & get_category_hierarchy_names(Json::Value & result) const;
+
+    /** Get the groups which use a category hierarchy.
+     */
+    const std::set<std::string> & get_category_hierarchy_groups
+	    (const std::string & hierarchy_name) const;
 
     const CategoryHierarchy & category_add(
 	const std::string & hierarchy_name,

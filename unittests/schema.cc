@@ -411,8 +411,8 @@ TEST(CategoryFields)
     CollectionConfig config("test"); // dummy config, used for testing.
     Json::Value tmp, tmp2;
     Schema s2("");
-    s2.set("cat", new CategoryFieldConfig("cat", 30, ExactFieldConfig::TOOLONG_ERROR, "category"));
-    CHECK_EQUAL("{\"fields\":{\"cat\":{\"group\":\"cat\",\"max_length\":30,\"store_field\":\"category\",\"too_long_action\":\"error\",\"type\":\"cat\"}},\"patterns\":[]}",
+    s2.set("cat", new CategoryFieldConfig("cat", "cat1", 30, ExactFieldConfig::TOOLONG_ERROR, "category"));
+    CHECK_EQUAL("{\"fields\":{\"cat\":{\"group\":\"cat\",\"hierarchy\":\"cat1\",\"max_length\":30,\"store_field\":\"category\",\"too_long_action\":\"error\",\"type\":\"cat\"}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");

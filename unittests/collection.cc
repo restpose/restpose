@@ -53,8 +53,8 @@ using namespace RestPose;
     "[\"tag\",{\"group\":\"g\",\"max_length\":100,\"store_field\":\"tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
     "[\"*_url\",{\"group\":\"u*\",\"max_length\":100,\"store_field\":\"*_url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
     "[\"url\",{\"group\":\"u\",\"max_length\":100,\"store_field\":\"url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"*_cat\",{\"group\":\"c*\",\"max_length\":32,\"store_field\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
-    "[\"cat\",{\"group\":\"c\",\"max_length\":32,\"store_field\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"*_cat\",{\"group\":\"c*\",\"hierarchy\":\"*_cat\",\"max_length\":32,\"store_field\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"cat\",{\"group\":\"c\",\"hierarchy\":\"cat\",\"max_length\":32,\"store_field\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
     "[\"id\",{\"store_field\":\"id\",\"type\":\"id\"}]," \
     "[\"type\",{\"group\":\"!\",\"store_field\":\"type\",\"type\":\"exact\"}]," \
     "[\"_meta\",{\"group\":\"#\",\"slot\":0,\"type\":\"meta\"}]," \
@@ -428,17 +428,17 @@ TEST(CollectionCategory)
     Collection * c = pool.get_writable("default");
 
     c->from_json(json_unserialise("{"
-		"\"categories\":{\"foo\":{}},"
+		"\"categories\":{\"Foo\":{}},"
 		"\"format\": 3,"
 		"\"types\":{\"default\":{\"fields\":{"
-		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"cat\",\"group\":\"foo\"},"
+		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"cat\",\"group\":\"foo\",\"hierarchy\":\"Foo\"},"
 		  "\"id\":{\"max_length\":64,"
 			  "\"store_field\":\"\","
 			  "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		  "}}}"
 	"}", tmp));
     CHECK_EQUAL("{"
-		"\"categories\":{\"foo\":{}},"
+		"\"categories\":{\"Foo\":{}},"
 		DEFAULT_TYPE_SCHEMA ","
 		"\"format\":3,"
 		"\"pipes\":{\"default\":{}},"
@@ -446,6 +446,7 @@ TEST(CollectionCategory)
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"foo\":{"
 			   "\"group\":\"foo\","
+			   "\"hierarchy\":\"Foo\","
 			   "\"max_length\":64,"
 			   "\"store_field\":\"foo\","
 			   "\"too_long_action\":\"error\","
@@ -456,12 +457,12 @@ TEST(CollectionCategory)
 		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
-    CategoryHierarchy h = *(c->get_category_hierarchy("foo"));
+    CategoryHierarchy h = *(c->get_category_hierarchy("Foo"));
     Categories modified;
     h.add_parent("child", "parent", modified);
-    c->set_category_hierarchy("foo", h);
+    c->set_category_hierarchy("Foo", h);
     CHECK_EQUAL("{"
-		"\"categories\":{\"foo\":{\"child\":[\"parent\"],\"parent\":[]}},"
+		"\"categories\":{\"Foo\":{\"child\":[\"parent\"],\"parent\":[]}},"
 		DEFAULT_TYPE_SCHEMA ","
 		"\"format\":3,"
 		"\"pipes\":{\"default\":{}},"
@@ -469,6 +470,7 @@ TEST(CollectionCategory)
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"foo\":{"
 			   "\"group\":\"foo\","
+			   "\"hierarchy\":\"Foo\","
 			   "\"max_length\":64,"
 			   "\"store_field\":\"foo\","
 			   "\"too_long_action\":\"error\","
@@ -504,17 +506,17 @@ TEST(CollectionCategory)
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));
 
-	c->category_add_parent("foo", "parent", "grand");
+	c->category_add_parent("Foo", "parent", "grand");
 	c->get_document("default", "1", tmp2);
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAgrand\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));
 
-	c->category_remove("foo", "child");
+	c->category_remove("Foo", "child");
 	c->get_document("default", "1", tmp2);
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));
 
-	c->category_add_parent("foo", "child", "parent");
+	c->category_add_parent("Foo", "child", "parent");
 	c->get_document("default", "1", tmp2);
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAgrand\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));

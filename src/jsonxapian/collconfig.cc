@@ -34,6 +34,7 @@
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
+#include "utils/stringutils.h"
 #include "utils/validation.h"
 
 using namespace std;
@@ -123,8 +124,8 @@ CollectionConfig::set_default_schema()
 "    [ \"tag\", { \"type\": \"exact\", \"group\": \"g\", \"store_field\": \"tag\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
 "    [ \"*_url\", { \"type\": \"exact\", \"group\": \"u*\", \"store_field\": \"*_url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
 "    [ \"url\", { \"type\": \"exact\", \"group\": \"u\", \"store_field\": \"url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
-"    [ \"*_cat\", { \"type\": \"cat\", \"group\": \"c*\", \"store_field\": \"*_cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
-"    [ \"cat\", { \"type\": \"cat\", \"group\": \"c\", \"store_field\": \"cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
+"    [ \"*_cat\", { \"type\": \"cat\", \"group\": \"c*\", \"store_field\": \"*_cat\", \"hierarchy\": \"*_cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
+"    [ \"cat\", { \"type\": \"cat\", \"group\": \"c\", \"store_field\": \"cat\", \"hierarchy\": \"cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
 "    [ \"id\", { \"type\": \"id\", \"store_field\": \"id\" } ],"
 "    [ \"type\", { \"type\": \"exact\", \"group\": \"!\", \"store_field\": \"type\" } ],"
 "    [ \"_meta\", { \"type\": \"meta\", \"group\": \"#\", \"slot\": 0 } ],"
@@ -513,6 +514,34 @@ CollectionConfig::set_category_hierarchy(const string & hierarchy_name,
     // Copy the category hierarchy.
     *categoryptr = category;
     changed = true;
+}
+
+Json::Value &
+CollectionConfig::get_category_hierarchy_names(Json::Value & result) const
+{
+    result = Json::arrayValue;
+    for (map<string, CategoryHierarchy *>::const_iterator
+	 i = categories.begin(); i != categories.end(); ++i) {
+	result.append(i->first);
+    }
+    return result;
+}
+
+const set<string> &
+CollectionConfig::get_category_hierarchy_groups(
+	const string & hierarchy_name) const
+{
+    // Currently, the information needed for this isn't updated when things
+    // change, so we just have to iterate through all the types, looking for
+    // uses of the hierarchy.
+    set<string> & result(group_hierarchies[hierarchy_name]);
+    result.clear();
+    for (map<string, Schema *>::const_iterator i = types.begin();
+	 i != types.end(); ++i) {
+	if (i->second == NULL) continue;
+	i->second->get_category_hierarchy_groups(hierarchy_name, result);
+    }
+    return result;
 }
 
 const CategoryHierarchy &
