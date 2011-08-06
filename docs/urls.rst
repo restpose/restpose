@@ -287,6 +287,56 @@ relationships.
    :statuscode 404: If the collection, taxonomy, category or parent do not
                exist, or the parent is not a parent of the category.
 
+.. http:put:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
+
+   Add a parent to a category, creating the collection, taxonomy, category and
+   parent if needed.
+
+   This will also update any documents which need to be updated to ensure that
+   category searches still return the right answers.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+   :param parent_id: The ID of the parent category.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
+
+   Remove a parent from a category.  Will create the collection and taxonomy if
+   they don't already exist.
+
+   This will also update any documents which need to be updated to ensure that
+   category searches still return the right answers.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+   :param parent_id: The ID of the parent category.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
 
 Documents
 ---------
