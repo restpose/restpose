@@ -744,8 +744,51 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
     }
 
     if (doc_id.empty()) {
-	// No document id supplied in URL - assume it's in the document,
-	// or deliberately absent.
+	// No document id supplied in URL - get value from the document.
+	Json::Value & id_obj = doc_obj[id_field];
+	string doc_id_;
+	if (id_obj.isNull()) {
+	    errors.append(id_field,
+			  "No document ID supplied or stored in document.");
+	    errors.total_failure = true;
+	    return doc;
+	}
+	if (id_obj.isArray()) {
+	    if (id_obj.size() == 1) {
+		string error;
+		doc_id_ = json_get_idstyle_value(id_obj[0], error);
+		if (!error.empty()) {
+		    errors.append(id_field, error);
+		    errors.total_failure = true;
+		    return doc;
+		}
+	    } else if (id_obj.size() == 0) {
+		errors.append(id_field,
+			      "No document ID stored in document.");
+		errors.total_failure = true;
+		return doc;
+	    } else {
+		errors.append(id_field,
+			      "Multiple ID values provided - must have only one");
+		errors.total_failure = true;
+		return doc;
+	    }
+	} else {
+	    string error;
+	    doc_id_ = json_get_idstyle_value(id_obj, error);
+	    if (!error.empty()) {
+		errors.append(id_field, error);
+		errors.total_failure = true;
+		return doc;
+	    }
+	}
+
+	string error = validate_doc_id(doc_id_);
+	if (!error.empty()) {
+	    errors.append(id_field, error);
+	    errors.total_failure = true;
+	    return doc;
+	}
     } else {
 	// Document id supplied in URL - check that it isn't different in
 	// document, and set it in the document.
@@ -766,7 +809,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		    }
 		} else if (id_obj.size() > 1) {
 		    errors.append(id_field,
-				  "Multiple document ids stored in document.");
+				  "Multiple ID values provided - must have only one");
 		    errors.total_failure = true;
 		    return doc;
 		}
@@ -788,12 +831,18 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		return doc;
 	    }
 	}
+	string error = validate_doc_id(doc_id);
+	if (!error.empty()) {
+	    errors.append(id_field, error);
+	    errors.total_failure = true;
+	    return doc;
+	}
     }
 
     {
 	string error = validate_doc_type(doc_type_);
 	if (!error.empty()) {
-	    errors.append(id_field, error);
+	    errors.append(type_field, error);
 	    errors.total_failure = true;
 	    return doc;
 	}
