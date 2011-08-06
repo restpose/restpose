@@ -150,18 +150,15 @@ void
 ProcessingCollPutCategoryParentTask::perform(const std::string & coll_name,
 					     TaskManager * taskman)
 {
-    LOG_INFO("PutCategoryParentTask:" + coll_name + "," + hierarchy_name +
-	     "," + cat_id + "," + parent_id);
+    LOG_DEBUG("PutCategoryParentTask:" + coll_name + "," + hierarchy_name +
+	      "," + cat_id + "," + parent_id);
     auto_ptr<CollectionConfig> collconfig(taskman->get_collconfigs()
 					  .get(coll_name));
-    Json::Value tmp;
-    LOG_INFO(json_serialise(collconfig->to_json(tmp)));
     {
 	Categories modified;
 	(void)collconfig->category_add_parent(hierarchy_name, cat_id,
 					      parent_id, modified);
     }
-    LOG_INFO(json_serialise(collconfig->to_json(tmp)));
     taskman->get_collconfigs().set(coll_name, collconfig.release());
     taskman->queue_indexing_from_processing(coll_name,
 	new CollPutCategoryParentTask(hierarchy_name, cat_id, parent_id));
@@ -176,8 +173,6 @@ CollPutCategoryParentTask::perform_task(const std::string & coll_name,
 	collection = taskman->get_collections().get_writable(coll_name);
     }
     collection->category_add_parent(hierarchy_name, cat_id, parent_id);
-    Json::Value tmp;
-    LOG_INFO(json_serialise(collection->to_json(tmp)));
 }
 
 void
