@@ -74,9 +74,12 @@ StaticFileTask::perform(RestPose::Collection *)
 void
 PerformSearchTask::perform(RestPose::Collection * collection)
 {
-    string error = validate_doc_type(doc_type);
-    if (!error.empty()) {
-	resulthandle.failed(error, 400);
+    if (!doc_type.empty()) {
+	string error = validate_doc_type(doc_type);
+	if (!error.empty()) {
+	    resulthandle.failed(error, 400);
+	    return;
+	}
     }
 
     Json::Value result(Json::objectValue);
@@ -95,8 +98,12 @@ void
 GetDocumentTask::perform(RestPose::Collection * collection)
 {
     string error = validate_doc_type(doc_type);
+    if (error.empty()) {
+	error = validate_doc_id(doc_id);
+    }
     if (!error.empty()) {
 	resulthandle.failed(error, 400);
+	return;
     }
 
     Json::Value result(Json::objectValue);
@@ -105,10 +112,10 @@ GetDocumentTask::perform(RestPose::Collection * collection)
     if (result.isNull()) {
 	resulthandle.failed("No document found of type \"" + doc_type +
 			    "\" and id \"" + doc_id + "\"", 404);
-    } else {
-	resulthandle.response().set(result, 200);
-	resulthandle.set_ready();
+	return;
     }
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
 }
 
 
@@ -156,6 +163,7 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     string idterm;
     config->clear_changed();
     IndexingErrors errors;
+    // Validation happens in process_doc
     Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm, errors);
     for (vector<pair<string, string> >::const_iterator
 	 i = errors.errors.begin(); i != errors.errors.end(); ++i) {
