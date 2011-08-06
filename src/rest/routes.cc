@@ -60,9 +60,9 @@ setup_routes(Router & router)
     router.add("/coll/?/category/?/id/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
     router.add("/coll/?/category/?/id/?/parent/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
 
-    /*
-    router.add("/coll/?/category/?/id/?/parent/?", HTTP_PUT, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/category/?/id/?/parent/?", HTTP_PUT, new CollPutCategoryHandlerFactory);
 
+    /*
     router.add("/coll/?/category/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
     router.add("/coll/?/category/?/id/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
     router.add("/coll/?/category/?/id/?/parent/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
