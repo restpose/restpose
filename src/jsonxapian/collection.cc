@@ -343,6 +343,7 @@ Collection::category_add(const string & hierarchy_name,
     // modified either contains the new category, or is empty if the
     // category already existed.  In either case, there are no
     // changes to other categories, so no need to update documents.
+    write_config();
 }
 
 void
@@ -353,6 +354,7 @@ Collection::category_remove(const string & hierarchy_name,
     const CategoryHierarchy & hierarchy =
 	    config.category_remove(hierarchy_name, cat_name, modified);
     update_modified_categories(hierarchy_name, hierarchy, modified);
+    write_config();
 }
 
 void
@@ -365,6 +367,7 @@ Collection::category_add_parent(const string & hierarchy_name,
 	    config.category_add_parent(hierarchy_name, child_name,
 				       parent_name, modified);
     update_modified_categories(hierarchy_name, hierarchy, modified);
+    write_config();
 }
 
 void
@@ -377,6 +380,7 @@ Collection::category_remove_parent(const string & hierarchy_name,
 	    config.category_remove_parent(hierarchy_name, child_name,
 					  parent_name, modified);
     update_modified_categories(hierarchy_name, hierarchy, modified);
+    write_config();
 }
 
 void
