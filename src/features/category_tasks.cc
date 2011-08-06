@@ -187,3 +187,48 @@ CollPutCategoryParentTask::clone() const
 {
     return new CollPutCategoryParentTask(taxonomy_name, cat_id, parent_id);
 }
+
+void
+ProcessingCollDeleteCategoryParentTask::perform(const std::string & coll_name,
+					     TaskManager * taskman)
+{
+    LOG_DEBUG("DeleteCategoryParentTask:" + coll_name + "," + taxonomy_name +
+	      "," + cat_id + "," + parent_id);
+    auto_ptr<CollectionConfig> collconfig(taskman->get_collconfigs()
+					  .get(coll_name));
+    {
+	Categories modified;
+	(void)collconfig->category_remove_parent(taxonomy_name, cat_id,
+						 parent_id, modified);
+    }
+    taskman->get_collconfigs().set(coll_name, collconfig.release());
+    taskman->queue_indexing_from_processing(coll_name,
+	new CollDeleteCategoryParentTask(taxonomy_name, cat_id, parent_id));
+}
+
+void
+CollDeleteCategoryParentTask::perform_task(const std::string & coll_name,
+					   RestPose::Collection * & collection,
+					   TaskManager * taskman)
+{
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
+    collection->category_remove_parent(taxonomy_name, cat_id, parent_id);
+}
+
+void
+CollDeleteCategoryParentTask::info(std::string & description,
+				   std::string & doc_type,
+				   std::string & doc_id) const
+{
+    description = "Removing category parent";
+    doc_type.resize(0);
+    doc_id.resize(0);
+}
+
+IndexingTask *
+CollDeleteCategoryParentTask::clone() const
+{
+    return new CollDeleteCategoryParentTask(taxonomy_name, cat_id, parent_id);
+}

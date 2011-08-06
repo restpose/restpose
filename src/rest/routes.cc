@@ -65,8 +65,8 @@ setup_routes(Router & router)
     /*
     router.add("/coll/?/taxonomy/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
     router.add("/coll/?/taxonomy/?/id/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
-    router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
     */
+    router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
 
     // Documents
     router.add("/coll/?/type/?/id/?", HTTP_PUT, new IndexDocumentHandlerFactory);

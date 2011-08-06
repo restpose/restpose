@@ -92,4 +92,37 @@ class CollPutCategoryHandler : public NoWaitQueuedHandler {
 			      const Json::Value & body);
 };
 
+/** Remove category.
+ *
+ *  Expects 4 path parameters
+ *
+ *   - the collection name
+ *   - the taxonomy name
+ *   - the category id
+ *   - the parent category id
+ */
+class CollDeleteCategoryHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+class CollDeleteCategoryHandler : public NoWaitQueuedHandler {
+    std::string coll_name;
+    std::string taxonomy_name;
+    std::string cat_id;
+    std::string parent_id;
+  public:
+    CollDeleteCategoryHandler(const std::string & coll_name_,
+			      const std::string taxonomy_name_,
+			      const std::string cat_id_,
+			      const std::string parent_id_)
+	    : coll_name(coll_name_),
+	      taxonomy_name(taxonomy_name_),
+	      cat_id(cat_id_),
+	      parent_id(parent_id_)
+    {}
+
+    Queue::QueueState enqueue(ConnectionInfo & conn,
+			      const Json::Value & body);
+};
+
 #endif /* RESTPOSE_INCLUDED_CATEGORY_HANDLERS_H */

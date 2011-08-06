@@ -114,3 +114,30 @@ CollPutCategoryHandler::enqueue(ConnectionInfo &,
 						parent_id),
         true);
 }
+
+Handler *
+CollDeleteCategoryHandlerFactory::create(const vector<string> & path_params) const
+{
+    string coll_name = path_params[0];
+    string taxonomy_name = path_params[1];
+    string cat_id = path_params[2];
+    string parent_id = path_params[3];
+
+    validate_collname_throw(coll_name);
+    validate_catid_throw(taxonomy_name);
+    validate_catid_throw(cat_id);
+    validate_catid_throw(parent_id);
+
+    return new CollDeleteCategoryHandler(coll_name, taxonomy_name, cat_id,
+					 parent_id);
+}
+
+Queue::QueueState
+CollDeleteCategoryHandler::enqueue(ConnectionInfo &,
+				   const Json::Value &)
+{
+    return taskman->queue_processing(coll_name,
+	new ProcessingCollDeleteCategoryParentTask(taxonomy_name, cat_id,
+						   parent_id),
+        true);
+}
