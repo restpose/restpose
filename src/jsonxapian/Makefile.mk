@@ -1,7 +1,7 @@
 noinst_LIBRARIES += libjsonxapian.a
 
 noinst_HEADERS += \
- src/jsonxapian/category_hierarchy.h \
+ src/jsonxapian/taxonomy.h \
  src/jsonxapian/collconfig.h \
  src/jsonxapian/collconfigs.h \
  src/jsonxapian/collection_pool.h \
@@ -18,7 +18,7 @@ noinst_HEADERS += \
  src/jsonxapian/slotname.h
 
 libjsonxapian_a_SOURCES = \
- src/jsonxapian/category_hierarchy.cc \
+ src/jsonxapian/taxonomy.cc \
  src/jsonxapian/collconfig.cc \
  src/jsonxapian/collconfigs.cc \
  src/jsonxapian/collection_pool.cc \

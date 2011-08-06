@@ -39,15 +39,15 @@ Handler *
 CollGetCategoryHandlerFactory::create(const vector<string> & path_params) const
 {
     string coll_name = path_params[0];
-    string hierarchy_name;
+    string taxonomy_name;
     string cat_id;
     string parent_id;
 
     validate_collname_throw(coll_name);
 
     if (path_params.size() >= 2) {
-	hierarchy_name = path_params[1];
-	validate_catid_throw(hierarchy_name);
+	taxonomy_name = path_params[1];
+	validate_catid_throw(taxonomy_name);
     }
     if (path_params.size() >= 3) {
 	cat_id = path_params[2];
@@ -58,7 +58,7 @@ CollGetCategoryHandlerFactory::create(const vector<string> & path_params) const
 	validate_catid_throw(parent_id);
     }
 
-    return new CollGetCategoryHandler(coll_name, hierarchy_name, cat_id,
+    return new CollGetCategoryHandler(coll_name, taxonomy_name, cat_id,
 				      parent_id);
 }
 
@@ -67,22 +67,21 @@ CollGetCategoryHandler::enqueue(ConnectionInfo &,
 				const Json::Value &)
 {
     auto_ptr<ReadonlyTask> task;
-    if (hierarchy_name.empty()) {
+    if (taxonomy_name.empty()) {
 	task = auto_ptr<ReadonlyTask>(
-	    new CollGetCategoryHierarchiesTask(resulthandle, coll_name,
-					       taskman));
+	    new CollGetTaxonomiesTask(resulthandle, coll_name, taskman));
     } else if (cat_id.empty()) {
 	task = auto_ptr<ReadonlyTask>(
-	    new CollGetCategoryHierarchyTask(resulthandle, coll_name,
-					     hierarchy_name, taskman));
+	    new CollGetTaxonomyTask(resulthandle, coll_name,
+				    taxonomy_name, taskman));
     } else if (parent_id.empty()) {
 	task = auto_ptr<ReadonlyTask>(
-	    new CollGetCategoryTask(resulthandle, coll_name, hierarchy_name,
+	    new CollGetCategoryTask(resulthandle, coll_name, taxonomy_name,
 				    cat_id, taskman));
     } else {
 	task = auto_ptr<ReadonlyTask>(
 	    new CollGetCategoryParentTask(resulthandle, coll_name,
-					  hierarchy_name, cat_id, parent_id,
+					  taxonomy_name, cat_id, parent_id,
 					  taskman));
     }
 
@@ -93,16 +92,16 @@ Handler *
 CollPutCategoryHandlerFactory::create(const vector<string> & path_params) const
 {
     string coll_name = path_params[0];
-    string hierarchy_name = path_params[1];
+    string taxonomy_name = path_params[1];
     string cat_id = path_params[2];
     string parent_id = path_params[3];
 
     validate_collname_throw(coll_name);
-    validate_catid_throw(hierarchy_name);
+    validate_catid_throw(taxonomy_name);
     validate_catid_throw(cat_id);
     validate_catid_throw(parent_id);
 
-    return new CollPutCategoryHandler(coll_name, hierarchy_name, cat_id,
+    return new CollPutCategoryHandler(coll_name, taxonomy_name, cat_id,
 				      parent_id);
 }
 
@@ -111,7 +110,7 @@ CollPutCategoryHandler::enqueue(ConnectionInfo &,
 				const Json::Value &)
 {
     return taskman->queue_processing(coll_name,
-	new ProcessingCollPutCategoryParentTask(hierarchy_name, cat_id,
+	new ProcessingCollPutCategoryParentTask(taxonomy_name, cat_id,
 						parent_id),
         true);
 }

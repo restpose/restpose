@@ -25,7 +25,7 @@
 #ifndef RESTPOSE_INCLUDED_COLLCONFIG_H
 #define RESTPOSE_INCLUDED_COLLCONFIG_H
 
-#include "category_hierarchy.h"
+#include "taxonomy.h"
 #include "json/value.h"
 #include <map>
 #include <string>
@@ -69,11 +69,11 @@ class CollectionConfig {
     /// Categorisers, by given name.
     std::map<std::string, Categoriser *> categorisers;
 
-    /// Named category hierarchies.
-    std::map<std::string, CategoryHierarchy *> categories;
+    /// Named taxonomies.
+    std::map<std::string, Taxonomy *> taxonomies;
 
-    /// Map from hierarchy name to groups using that hierarchy.
-    mutable std::map<std::string, std::set<std::string> > group_hierarchies;
+    /// Map from taxonomy name to groups using that taxonomy.
+    mutable std::map<std::string, std::set<std::string> > group_taxonomies;
 
     /// Flag to track whether the collection configuration has been changed.
     bool changed;
@@ -124,11 +124,8 @@ class CollectionConfig {
      */
     void categories_config_from_json(const Json::Value & value);
 
-    /** Get a reference to a category hierarchy, adding it if it doesn't
-     *  already exist.
-     */
-    CategoryHierarchy &
-	    get_or_add_cat_hierarchy(const std::string & hierarchy_name);
+    /// Get a reference to a taxonomy, adding it if it doesn't already exist.
+    Taxonomy & get_or_add_taxonomy(const std::string & taxonomy_name);
 
   public:
     CollectionConfig(const std::string & coll_name_);
@@ -267,50 +264,49 @@ class CollectionConfig {
     void set_categoriser(const std::string & categoriser_name,
 			 const Categoriser & categoriser);
 
-    /** Get a CategoryHierarchy.
+    /** Get a taxonomy.
      *
-     *  Returns NULL if the hierarchy is not known.
+     *  Returns NULL if the taxonomy is not known.
      *
      *  The returned pointer is invalid after modifications have been made
      *  to the collection's categoriser configuration.
      */
-    const CategoryHierarchy *
-	    get_category_hierarchy(const std::string & hierarchy_name) const;
+    const Taxonomy * get_taxonomy(const std::string & taxonomy_name) const;
 
-    /** Set a category hierarchy.
+    /** Set a taxonomy.
      *
-     *  Takes a copy of the supplied category hierarchy.
+     *  Takes a copy of the supplied taxonomy.
      */
-    void set_category_hierarchy(const std::string & hierarchy_name,
-				const CategoryHierarchy & category);
+    void set_taxonomy(const std::string & taxonomy_name,
+		      const Taxonomy & taxonomy);
 
-    /** Get a list of the category hierarchies.
+    /** Get a list of the taxonomies.
      *
      *  @param result A reference to a value which will be set to an array of
      *  category names.
      */
-    Json::Value & get_category_hierarchy_names(Json::Value & result) const;
+    Json::Value & get_taxonomy_names(Json::Value & result) const;
 
-    /** Get the groups which use a category hierarchy.
+    /** Get the groups which use a taxonomy.
      */
-    const std::set<std::string> & get_category_hierarchy_groups
-	    (const std::string & hierarchy_name) const;
+    const std::set<std::string> & get_taxonomy_groups
+	    (const std::string & taxonomy_name) const;
 
-    const CategoryHierarchy & category_add(
-	const std::string & hierarchy_name,
+    const Taxonomy & category_add(
+	const std::string & taxonomy_name,
 	const std::string & cat_name,
 	Categories & modified);
-    const CategoryHierarchy & category_remove(
-	const std::string & hierarchy_name,
+    const Taxonomy & category_remove(
+	const std::string & taxonomy_name,
 	const std::string & cat_name,
 	Categories & modified);
-    const CategoryHierarchy & category_add_parent(
-	const std::string & hierarchy_name,
+    const Taxonomy & category_add_parent(
+	const std::string & taxonomy_name,
 	const std::string & child_name,
 	const std::string & parent_name,
 	Categories & modified);
-    const CategoryHierarchy & category_remove_parent(
-	const std::string & hierarchy_name,
+    const Taxonomy & category_remove_parent(
+	const std::string & taxonomy_name,
 	const std::string & child_name,
 	const std::string & parent_name,
 	Categories & modified);

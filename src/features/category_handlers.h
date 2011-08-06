@@ -31,7 +31,7 @@
  *  Expects 1, 2, 3 or 4 path parameters
  *
  *   - the collection name
- *   - the category hierarchy name
+ *   - the taxonomy name
  *   - the category id
  *   - the parent category id
  */
@@ -41,16 +41,16 @@ class CollGetCategoryHandlerFactory : public HandlerFactory {
 };
 class CollGetCategoryHandler : public QueuedHandler {
     std::string coll_name;
-    std::string hierarchy_name;
+    std::string taxonomy_name;
     std::string cat_id;
     std::string parent_id;
   public:
     CollGetCategoryHandler(const std::string & coll_name_,
-			   const std::string hierarchy_name_,
+			   const std::string taxonomy_name_,
 			   const std::string cat_id_,
 			   const std::string parent_id_)
 	    : coll_name(coll_name_),
-	      hierarchy_name(hierarchy_name_),
+	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      parent_id(parent_id_)
     {}
@@ -64,7 +64,7 @@ class CollGetCategoryHandler : public QueuedHandler {
  *  Expects 4 path parameters
  *
  *   - the collection name
- *   - the category hierarchy name
+ *   - the taxonomy name
  *   - the category id
  *   - the parent category id
  */
@@ -74,16 +74,16 @@ class CollPutCategoryHandlerFactory : public HandlerFactory {
 };
 class CollPutCategoryHandler : public NoWaitQueuedHandler {
     std::string coll_name;
-    std::string hierarchy_name;
+    std::string taxonomy_name;
     std::string cat_id;
     std::string parent_id;
   public:
     CollPutCategoryHandler(const std::string & coll_name_,
-			   const std::string hierarchy_name_,
+			   const std::string taxonomy_name_,
 			   const std::string cat_id_,
 			   const std::string parent_id_)
 	    : coll_name(coll_name_),
-	      hierarchy_name(hierarchy_name_),
+	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      parent_id(parent_id_)
     {}

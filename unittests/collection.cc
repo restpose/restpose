@@ -53,8 +53,8 @@ using namespace RestPose;
     "[\"tag\",{\"group\":\"g\",\"max_length\":100,\"store_field\":\"tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
     "[\"*_url\",{\"group\":\"u*\",\"max_length\":100,\"store_field\":\"*_url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
     "[\"url\",{\"group\":\"u\",\"max_length\":100,\"store_field\":\"url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"*_cat\",{\"group\":\"c*\",\"hierarchy\":\"*_cat\",\"max_length\":32,\"store_field\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
-    "[\"cat\",{\"group\":\"c\",\"hierarchy\":\"cat\",\"max_length\":32,\"store_field\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"*_cat\",{\"group\":\"c*\",\"max_length\":32,\"store_field\":\"*_cat\",\"taxonomy\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"cat\",{\"group\":\"c\",\"max_length\":32,\"store_field\":\"cat\",\"taxonomy\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
     "[\"id\",{\"store_field\":\"id\",\"type\":\"id\"}]," \
     "[\"type\",{\"group\":\"!\",\"store_field\":\"type\",\"type\":\"exact\"}]," \
     "[\"_meta\",{\"group\":\"#\",\"slot\":0,\"type\":\"meta\"}]," \
@@ -418,7 +418,7 @@ TEST(CollectionCategoriser)
 		"}", json_serialise(tmp));
 }
 
-/// Test using a category hierarchy in a collection.
+/// Test using a taxonomy in a collection.
 TEST(CollectionCategory)
 {
     TempDir path("/tmp/jsonxapian");
@@ -428,27 +428,27 @@ TEST(CollectionCategory)
     Collection * c = pool.get_writable("default");
 
     c->from_json(json_unserialise("{"
-		"\"categories\":{\"Foo\":{}},"
+		"\"taxonomies\":{\"Foo\":{}},"
 		"\"format\": 3,"
 		"\"types\":{\"default\":{\"fields\":{"
-		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"cat\",\"group\":\"foo\",\"hierarchy\":\"Foo\"},"
+		  "\"foo\":{\"store_field\":\"foo\",\"type\":\"cat\",\"group\":\"foo\",\"taxonomy\":\"Foo\"},"
 		  "\"id\":{\"max_length\":64,"
 			  "\"store_field\":\"\","
 			  "\"too_long_action\":\"error\",\"type\":\"id\"}"
 		  "}}}"
 	"}", tmp));
     CHECK_EQUAL("{"
-		"\"categories\":{\"Foo\":{}},"
 		DEFAULT_TYPE_SCHEMA ","
 		"\"format\":3,"
 		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
+		"\"taxonomies\":{\"Foo\":{}},"
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"foo\":{"
 			   "\"group\":\"foo\","
-			   "\"hierarchy\":\"Foo\","
 			   "\"max_length\":64,"
 			   "\"store_field\":\"foo\","
+			   "\"taxonomy\":\"Foo\","
 			   "\"too_long_action\":\"error\","
 			   "\"type\":\"cat\"},"
 		  "\"id\":{\"max_length\":64,"
@@ -457,22 +457,22 @@ TEST(CollectionCategory)
 		  "},\"patterns\":[]}}"
 		"}", json_serialise(c->to_json(tmp)));
 
-    CategoryHierarchy h = *(c->get_category_hierarchy("Foo"));
+    Taxonomy h = *(c->get_taxonomy("Foo"));
     Categories modified;
     h.add_parent("child", "parent", modified);
-    c->set_category_hierarchy("Foo", h);
+    c->set_taxonomy("Foo", h);
     CHECK_EQUAL("{"
-		"\"categories\":{\"Foo\":{\"child\":[\"parent\"],\"parent\":[]}},"
 		DEFAULT_TYPE_SCHEMA ","
 		"\"format\":3,"
 		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
+		"\"taxonomies\":{\"Foo\":{\"child\":[\"parent\"],\"parent\":[]}},"
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"foo\":{"
 			   "\"group\":\"foo\","
-			   "\"hierarchy\":\"Foo\","
 			   "\"max_length\":64,"
 			   "\"store_field\":\"foo\","
+			   "\"taxonomy\":\"Foo\","
 			   "\"too_long_action\":\"error\","
 			   "\"type\":\"cat\"},"
 		  "\"id\":{\"max_length\":64,"

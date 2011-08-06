@@ -29,12 +29,12 @@
 
 /** Get the category heirarchy names for a collection.
  */
-class CollGetCategoryHierarchiesTask : public ReadonlyCollTask {
+class CollGetTaxonomiesTask : public ReadonlyCollTask {
     TaskManager * taskman;
   public:
-    CollGetCategoryHierarchiesTask(const RestPose::ResultHandle & resulthandle_,
-				   const std::string & coll_name_,
-				   TaskManager * taskman_)
+    CollGetTaxonomiesTask(const RestPose::ResultHandle & resulthandle_,
+			  const std::string & coll_name_,
+			  TaskManager * taskman_)
 	    : ReadonlyCollTask(resulthandle_, coll_name_),
 	      taskman(taskman_)
     {}
@@ -44,16 +44,16 @@ class CollGetCategoryHierarchiesTask : public ReadonlyCollTask {
 
 /** Get a category heirarchy in a collection.
  */
-class CollGetCategoryHierarchyTask : public ReadonlyCollTask {
-    const std::string hierarchy_name;
+class CollGetTaxonomyTask : public ReadonlyCollTask {
+    const std::string taxonomy_name;
     TaskManager * taskman;
   public:
-    CollGetCategoryHierarchyTask(const RestPose::ResultHandle & resulthandle_,
-				 const std::string & coll_name_,
-				 const std::string & hierarchy_name_,
-				 TaskManager * taskman_)
+    CollGetTaxonomyTask(const RestPose::ResultHandle & resulthandle_,
+			const std::string & coll_name_,
+			const std::string & taxonomy_name_,
+			TaskManager * taskman_)
 	    : ReadonlyCollTask(resulthandle_, coll_name_),
-	      hierarchy_name(hierarchy_name_),
+	      taxonomy_name(taxonomy_name_),
 	      taskman(taskman_)
     {}
 
@@ -63,17 +63,17 @@ class CollGetCategoryHierarchyTask : public ReadonlyCollTask {
 /** Get a category, and its list of parents, in a collection.
  */
 class CollGetCategoryTask : public ReadonlyCollTask {
-    const std::string hierarchy_name;
+    const std::string taxonomy_name;
     const std::string cat_id;
     TaskManager * taskman;
   public:
     CollGetCategoryTask(const RestPose::ResultHandle & resulthandle_,
 			const std::string & coll_name_,
-			const std::string & hierarchy_name_,
+			const std::string & taxonomy_name_,
 			const std::string & cat_id_,
 			TaskManager * taskman_)
 	    : ReadonlyCollTask(resulthandle_, coll_name_),
-	      hierarchy_name(hierarchy_name_),
+	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      taskman(taskman_)
     {}
@@ -84,19 +84,19 @@ class CollGetCategoryTask : public ReadonlyCollTask {
 /** Check if a category has a given parent.
  */
 class CollGetCategoryParentTask : public ReadonlyCollTask {
-    const std::string hierarchy_name;
+    const std::string taxonomy_name;
     const std::string cat_id;
     const std::string parent_id;
     TaskManager * taskman;
   public:
     CollGetCategoryParentTask(const RestPose::ResultHandle & resulthandle_,
 			      const std::string & coll_name_,
-			      const std::string & hierarchy_name_,
+			      const std::string & taxonomy_name_,
 			      const std::string & cat_id_,
 			      const std::string & parent_id_,
 			      TaskManager * taskman_)
 	    : ReadonlyCollTask(resulthandle_, coll_name_),
-	      hierarchy_name(hierarchy_name_),
+	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      parent_id(parent_id_),
 	      taskman(taskman_)
@@ -106,14 +106,14 @@ class CollGetCategoryParentTask : public ReadonlyCollTask {
 };
 
 class ProcessingCollPutCategoryParentTask : public ProcessingTask {
-    const std::string hierarchy_name;
+    const std::string taxonomy_name;
     const std::string cat_id;
     const std::string parent_id;
   public:
-    ProcessingCollPutCategoryParentTask(const std::string & hierarchy_name_,
+    ProcessingCollPutCategoryParentTask(const std::string & taxonomy_name_,
 					const std::string & cat_id_,
 					const std::string & parent_id_)
-	    : hierarchy_name(hierarchy_name_),
+	    : taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      parent_id(parent_id_)
     {}
@@ -123,14 +123,14 @@ class ProcessingCollPutCategoryParentTask : public ProcessingTask {
 };
 
 class CollPutCategoryParentTask : public IndexingTask {
-    const std::string hierarchy_name;
+    const std::string taxonomy_name;
     const std::string cat_id;
     const std::string parent_id;
   public:
-    CollPutCategoryParentTask(const std::string & hierarchy_name_,
+    CollPutCategoryParentTask(const std::string & taxonomy_name_,
 			      const std::string & cat_id_,
 			      const std::string & parent_id_)
-	    : hierarchy_name(hierarchy_name_),
+	    : taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      parent_id(parent_id_)
     {}

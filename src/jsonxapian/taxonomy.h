@@ -1,4 +1,4 @@
-/** @file category_hierarchy.h
+/** @file taxonomy.h
  * @brief A hierarchy of categories.
  */
 /* Copyright (c) 2011 Richard Boulton
@@ -22,8 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef RESTPOSE_INCLUDED_CATEGORY_HIERARCHY_H
-#define RESTPOSE_INCLUDED_CATEGORY_HIERARCHY_H
+#ifndef RESTPOSE_INCLUDED_TAXONOMY_H
+#define RESTPOSE_INCLUDED_TAXONOMY_H
 
 #include "json/value.h"
 #include <map>
@@ -71,7 +71,7 @@ struct Category {
 
 /** The hierarchy of categories.
  */
-class CategoryHierarchy {
+class Taxonomy {
     /// All the categories, by name.
     std::map<std::string, Category> categories;
 
@@ -117,7 +117,7 @@ class CategoryHierarchy {
      */
     Json::Value & to_json(Json::Value & value) const;
 
-    /** Set the hierarchy infromation from a JSON representation.
+    /** Set the hierarchy information from a JSON representation.
      *
      *  Wipes out any previous configuration.
      */
@@ -126,4 +126,4 @@ class CategoryHierarchy {
 
 }
 
-#endif /* RESTPOSE_INCLUDED_CATEGORY_HIERARCHY_H */
+#endif /* RESTPOSE_INCLUDED_TAXONOMY_H */

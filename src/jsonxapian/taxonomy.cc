@@ -1,4 +1,4 @@
-/** @file category_hierarchy.cc
+/** @file taxonomy.cc
  * @brief A hierarchy of categories.
  */
 /* Copyright (c) 2011 Richard Boulton
@@ -23,7 +23,7 @@
  */
 
 #include <config.h>
-#include "category_hierarchy.h"
+#include "taxonomy.h"
 
 #include "logger/logger.h"
 #include "utils/jsonutils.h"
@@ -109,8 +109,7 @@ Category::set_descendants(const Categories & new_descendants,
 
 
 void
-CategoryHierarchy::recalc_ancestors(const string & cat_name,
-				    Categories & modified)
+Taxonomy::recalc_ancestors(const string & cat_name, Categories & modified)
 {
     LOG_DEBUG("Recalculating ancestors of '" + cat_name + "'");
     Categories ancestors;
@@ -131,8 +130,7 @@ CategoryHierarchy::recalc_ancestors(const string & cat_name,
 }
 
 void
-CategoryHierarchy::recalc_descendants(const string & cat_name,
-				      Categories & modified)
+Taxonomy::recalc_descendants(const string & cat_name, Categories & modified)
 {
     LOG_DEBUG("Recalculating descendants of '" + cat_name + "'");
     Categories descendants;
@@ -153,7 +151,7 @@ CategoryHierarchy::recalc_descendants(const string & cat_name,
 }
 
 const Category *
-CategoryHierarchy::find(const std::string & cat_name) const
+Taxonomy::find(const std::string & cat_name) const
 {
     map<string, Category>::const_iterator i = categories.find(cat_name);
     if (i == categories.end()) {
@@ -163,7 +161,7 @@ CategoryHierarchy::find(const std::string & cat_name) const
 }
 
 void
-CategoryHierarchy::add(const string & cat_name, Categories & modified)
+Taxonomy::add(const string & cat_name, Categories & modified)
 {
     if (categories.find(cat_name) == categories.end()) {
 	categories.insert(make_pair(cat_name, Category(cat_name)));
@@ -172,7 +170,7 @@ CategoryHierarchy::add(const string & cat_name, Categories & modified)
 }
 
 void
-CategoryHierarchy::remove(const string & cat_name, Categories & modified)
+Taxonomy::remove(const string & cat_name, Categories & modified)
 {
     map<string, Category>::iterator i = categories.find(cat_name);
     if (i == categories.end()) return;
@@ -218,9 +216,9 @@ CategoryHierarchy::remove(const string & cat_name, Categories & modified)
 }
 
 void
-CategoryHierarchy::add_parent(const string & cat_name,
-			      const string & parent_name,
-			      Categories & modified)
+Taxonomy::add_parent(const string & cat_name,
+		     const string & parent_name,
+		     Categories & modified)
 {
     if (cat_name == parent_name) {
 	throw InvalidValueError("Cannot set category as parent of itself");
@@ -235,17 +233,15 @@ CategoryHierarchy::add_parent(const string & cat_name,
     for (Categories::iterator i = parent.ancestors.begin();
 	 i != parent.ancestors.end(); ++i) {
 	if (cat.descendants.find(*i) != cat.descendants.end()) {
-	    throw InvalidValueError("Attempt to create loop in category "
-				    "hierarchy: '" + parent_name + "' is a "
-				    "descendant of '" + cat_name +
-				    "' - can't add it as a parent");
+	    throw InvalidValueError("Attempt to create loop in taxonomy: '" +
+				    parent_name + "' is a descendant of '" +
+				    cat_name + "' - can't add it as a parent");
 	}
     }
     if (cat.descendants.find(parent_name) != cat.descendants.end()) {
-	throw InvalidValueError("Attempt to create loop in category "
-				"hierarchy: '" + parent_name + "' is a "
-				"descendant of '" + cat_name +
-				"' - can't add it as a parent");
+	throw InvalidValueError("Attempt to create loop in taxonomy: '" +
+				parent_name + "' is a descendant of '" +
+				cat_name + "' - can't add it as a parent");
     }
 
     cat.add_parent(parent_name, modified);
@@ -276,9 +272,9 @@ CategoryHierarchy::add_parent(const string & cat_name,
 }
 
 void
-CategoryHierarchy::remove_parent(const string & cat_name,
-				 const string & parent_name,
-				 Categories & modified)
+Taxonomy::remove_parent(const string & cat_name,
+			const string & parent_name,
+			Categories & modified)
 {
     if (cat_name == parent_name) {
 	return;
@@ -308,7 +304,7 @@ CategoryHierarchy::remove_parent(const string & cat_name,
 }
 
 Json::Value &
-CategoryHierarchy::to_json(Json::Value & value) const
+Taxonomy::to_json(Json::Value & value) const
 {
     value = Json::objectValue;
     for (map<string, Category>::const_iterator i = categories.begin();
@@ -323,10 +319,10 @@ CategoryHierarchy::to_json(Json::Value & value) const
 }
 
 void
-CategoryHierarchy::from_json(const Json::Value & value)
+Taxonomy::from_json(const Json::Value & value)
 {
     categories.clear();
-    json_check_object(value, "category hierarchy");
+    json_check_object(value, "taxonomy");
     Categories modified;
     for (Json::ValueIterator i = value.begin(); i != value.end(); ++i) {
 	string name = i.memberName();

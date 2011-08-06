@@ -116,13 +116,13 @@ Collection::write_config()
 
 void
 Collection::update_modified_categories_group(const string & group_name,
-					     const CategoryHierarchy & hierarchy,
+					     const Taxonomy & taxonomy,
 					     const Categories & modified)
 {
     // Find all documents with terms of the form group_name + "C" + cat where cat
     // is any of the categories in modified.  For each of these documents, read
     // in the list of terms of form group_name + "C" + *, build the appropriate
-    // list of ancestor categories using the hierarchy, and set the list of
+    // list of ancestor categories using the taxonomy, and set the list of
     // terms of form group_name + "A" to the ancestors.
 
     LOG_DEBUG("updating " + str(modified.size()) +
@@ -169,7 +169,7 @@ Collection::update_modified_categories_group(const string & group_name,
 		break;
 	    }
 	    const Category * cat =
-		    hierarchy.find((*ti).substr(cat_prefix.size()));
+		    taxonomy.find((*ti).substr(cat_prefix.size()));
 	    if (cat != NULL) {
 		ancestors.insert(cat->ancestors.begin(),
 				 cat->ancestors.end());
@@ -223,21 +223,21 @@ Collection::update_modified_categories_group(const string & group_name,
 }
 
 void
-Collection::update_modified_categories(const string & hierarchy_name,
-				       const CategoryHierarchy & hierarchy,
+Collection::update_modified_categories(const string & taxonomy_name,
+				       const Taxonomy & taxonomy,
 				       const Categories & modified)
 {
     const set<string> & groups =
-	    config.get_category_hierarchy_groups(hierarchy_name);
+	    config.get_taxonomy_groups(taxonomy_name);
 
     /* Note; when there are many documents in which more than one group uses
-     * the same hierarchy, it would be more efficient to do the update of all
+     * the same taxonomy, it would be more efficient to do the update of all
      * the groups at the same time, rather than one-by-one; we only do it
      * one-by-one for ease of implementation.
      */
     for (set<string>::const_iterator i = groups.begin();
 	 i != groups.end(); ++i) {
-	update_modified_categories_group(*i + "\t", hierarchy, modified);
+	update_modified_categories_group(*i + "\t", taxonomy, modified);
     }
 }
 
@@ -305,41 +305,41 @@ Collection::set_categoriser(const string & categoriser_name,
     write_config();
 }
 
-const CategoryHierarchy *
-Collection::get_category_hierarchy(const string & category_name) const
+const Taxonomy *
+Collection::get_taxonomy(const string & category_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get category hierarchy");
+	throw InvalidStateError("Collection must be open to get taxonomy");
     }
-    return config.get_category_hierarchy(category_name);
+    return config.get_taxonomy(category_name);
 }
 
 void
-Collection::set_category_hierarchy(const string & category_name,
-			 const CategoryHierarchy & category)
+Collection::set_taxonomy(const string & category_name,
+			 const Taxonomy & category)
 {
     if (!group.is_writable()) {
 	throw InvalidStateError("Collection must be open for writing to set category");
     }
-    config.set_category_hierarchy(category_name, category);
+    config.set_taxonomy(category_name, category);
     write_config();
 }
 
 Json::Value &
-Collection::get_category_hierarchy_names(Json::Value & result) const
+Collection::get_taxonomy_names(Json::Value & result) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get category hierarchy");
+	throw InvalidStateError("Collection must be open to get taxonomy");
     }
-    return config.get_category_hierarchy_names(result);
+    return config.get_taxonomy_names(result);
 }
 
 void
-Collection::category_add(const string & hierarchy_name,
+Collection::category_add(const string & taxonomy_name,
 			 const string & cat_name)
 {
     Categories modified;
-    config.category_add(hierarchy_name, cat_name, modified);
+    config.category_add(taxonomy_name, cat_name, modified);
     // modified either contains the new category, or is empty if the
     // category already existed.  In either case, there are no
     // changes to other categories, so no need to update documents.
@@ -347,39 +347,39 @@ Collection::category_add(const string & hierarchy_name,
 }
 
 void
-Collection::category_remove(const string & hierarchy_name,
+Collection::category_remove(const string & taxonomy_name,
 			    const string & cat_name)
 {
     Categories modified;
-    const CategoryHierarchy & hierarchy =
-	    config.category_remove(hierarchy_name, cat_name, modified);
-    update_modified_categories(hierarchy_name, hierarchy, modified);
+    const Taxonomy & taxonomy =
+	    config.category_remove(taxonomy_name, cat_name, modified);
+    update_modified_categories(taxonomy_name, taxonomy, modified);
     write_config();
 }
 
 void
-Collection::category_add_parent(const string & hierarchy_name,
+Collection::category_add_parent(const string & taxonomy_name,
 				const string & child_name,
 				const string & parent_name)
 {
     Categories modified;
-    const CategoryHierarchy & hierarchy =
-	    config.category_add_parent(hierarchy_name, child_name,
+    const Taxonomy & taxonomy =
+	    config.category_add_parent(taxonomy_name, child_name,
 				       parent_name, modified);
-    update_modified_categories(hierarchy_name, hierarchy, modified);
+    update_modified_categories(taxonomy_name, taxonomy, modified);
     write_config();
 }
 
 void
-Collection::category_remove_parent(const string & hierarchy_name,
+Collection::category_remove_parent(const string & taxonomy_name,
 				   const string & child_name,
 				   const string & parent_name)
 {
     Categories modified;
-    const CategoryHierarchy & hierarchy =
-	    config.category_remove_parent(hierarchy_name, child_name,
+    const Taxonomy & taxonomy =
+	    config.category_remove_parent(taxonomy_name, child_name,
 					  parent_name, modified);
-    update_modified_categories(hierarchy_name, hierarchy, modified);
+    update_modified_categories(taxonomy_name, taxonomy, modified);
     write_config();
 }
 

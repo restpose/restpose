@@ -50,8 +50,8 @@ using namespace RestPose;
 using namespace std;
 
 void
-FieldConfig::add_group_if_hierarchy(const std::string &,
-				    std::set<std::string> &) const
+FieldConfig::add_group_if_taxonomy(const std::string &,
+				   std::set<std::string> &) const
 {
 }
 
@@ -782,13 +782,13 @@ CategoryFieldConfig::CategoryFieldConfig(const Json::Value & value)
     }
     prefix.append("\t");
 
-    hierarchy_name = json_get_string_member(value, "hierarchy", string());
-    if (hierarchy_name.empty()) {
-	throw InvalidValueError("Field configuration argument \"hierarchy\""
+    taxonomy_name = json_get_string_member(value, "taxonomy", string());
+    if (taxonomy_name.empty()) {
+	throw InvalidValueError("Field configuration argument \"taxonomy\""
 				" may not be empty");
     }
-    if (hierarchy_name.find('\t') != string::npos) {
-	throw InvalidValueError("Field configuration argument \"hierarchy\""
+    if (taxonomy_name.find('\t') != string::npos) {
+	throw InvalidValueError("Field configuration argument \"taxonomy\""
 				" contains invalid character \\t");
     }
 
@@ -801,7 +801,7 @@ CategoryFieldConfig::~CategoryFieldConfig()
 FieldIndexer *
 CategoryFieldConfig::indexer() const
 {
-    return new CategoryIndexer(prefix, hierarchy_name, store_field,
+    return new CategoryIndexer(prefix, taxonomy_name, store_field,
 			       max_length, too_long_action);
 }
 
@@ -871,10 +871,10 @@ CategoryFieldConfig::query(const string & qtype,
 }
 
 void
-CategoryFieldConfig::add_group_if_hierarchy(const string & hierarchy_name_,
-					    set<string> & result) const
+CategoryFieldConfig::add_group_if_taxonomy(const string & taxonomy_name_,
+					   set<string> & result) const
 {
-    if (hierarchy_name == hierarchy_name_) {
+    if (taxonomy_name == taxonomy_name_) {
 	result.insert(prefix.substr(0, prefix.size() - 1));
     }
 }
@@ -885,7 +885,7 @@ CategoryFieldConfig::to_json(Json::Value & value) const
     MaxLenFieldConfig::to_json(value);
     value["type"] = "cat";
     value["group"] = prefix.substr(0, prefix.size() - 1);
-    value["hierarchy"] = hierarchy_name;
+    value["taxonomy"] = taxonomy_name;
     value["store_field"] = store_field;
 }
 
@@ -1221,14 +1221,14 @@ Schema::set(const string & fieldname, FieldConfig * config)
 }
 
 void
-Schema::get_category_hierarchy_groups(const string & hierarchy_name,
-				      std::set<string> & result) const
+Schema::get_taxonomy_groups(const string & taxonomy_name,
+			    std::set<string> & result) const
 {
-    // iterate through fields, looking for category fields which have hierarchy
-    // equal to hierarchy_name, and add the groups of these to the result.
+    // iterate through fields, looking for category fields which have taxonomy
+    // equal to taxonomy_name, and add the groups of these to the result.
     for (map<string, FieldConfig *>::const_iterator i = fields.begin();
 	 i != fields.end(); ++i) {
-	i->second->add_group_if_hierarchy(hierarchy_name, result);
+	i->second->add_group_if_taxonomy(taxonomy_name, result);
     }
 }
 

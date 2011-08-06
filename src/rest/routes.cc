@@ -55,17 +55,17 @@ setup_routes(Router & router)
     //router.add("/coll/?/checkpoint/?", HTTP_DELETE, new CollDeleteCheckpointHandlerFactory);
 
     // Categories
-    router.add("/coll/?/category", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
-    router.add("/coll/?/category/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
-    router.add("/coll/?/category/?/id/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
-    router.add("/coll/?/category/?/id/?/parent/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
 
-    router.add("/coll/?/category/?/id/?/parent/?", HTTP_PUT, new CollPutCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_PUT, new CollPutCategoryHandlerFactory);
 
     /*
-    router.add("/coll/?/category/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
-    router.add("/coll/?/category/?/id/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
-    router.add("/coll/?/category/?/id/?/parent/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
     */
 
     // Documents

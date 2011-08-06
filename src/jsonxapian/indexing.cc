@@ -38,7 +38,7 @@
 #include "docdata.h"
 #include "hashterm.h"
 #include "jsonxapian/collconfig.h"
-#include "jsonxapian/category_hierarchy.h"
+#include "jsonxapian/taxonomy.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 #include "utils/validation.h"
@@ -329,8 +329,8 @@ CategoryIndexer::index(IndexingState & state,
 		       const std::string & fieldname,
 		       const Json::Value & values) const
 {
-    const CategoryHierarchy * hierarchy =
-	    state.collconfig.get_category_hierarchy(hierarchy_name);
+    const Taxonomy * taxonomy =
+	    state.collconfig.get_taxonomy(taxonomy_name);
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
@@ -364,9 +364,9 @@ CategoryIndexer::index(IndexingState & state,
 	    }
 	}
 	state.doc.add_term(prefix + "C" + val, 0);
-	if (hierarchy != NULL) {
+	if (taxonomy != NULL) {
 	    // Add terms for the parent categories.
-	    const Category * cat_ptr = hierarchy->find(val);
+	    const Category * cat_ptr = taxonomy->find(val);
 	    if (cat_ptr != NULL) {
 		for (Categories::const_iterator j = cat_ptr->ancestors.begin();
 		     j != cat_ptr->ancestors.end(); ++j) {

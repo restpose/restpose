@@ -57,12 +57,11 @@ namespace RestPose {
 	 */
 	virtual Xapian::valueno sort_slot() const = 0;
 
-	/** For fields which use category hierarchies; if the hierarchy_name
+	/** For fields which use taxonomies; if the taxonomy_name
 	 *  is as given, add the group to result.
 	 */
-	virtual void
-		add_group_if_hierarchy(const std::string & hierarchy_name,
-				       std::set<std::string> & result) const;
+	virtual void add_group_if_taxonomy(const std::string & taxonomy_name,
+		std::set<std::string> & result) const;
 
 	/// Add the configuration for a field to a JSON object.
 	virtual void to_json(Json::Value & value) const = 0;
@@ -416,15 +415,8 @@ namespace RestPose {
 	/// The prefix that the category terms are stored under.
 	std::string prefix;
 
-	/** The name of the hierarchy that this category uses.
-	 *
-	 *  Currently, this is just the prefix (without the tab separator),
-	 *  since the hierarchy needs to know the prefix used in order to
-	 *  update the appropriate documents when the hierarchy is modified,
-	 *  and just using the prefix as the hierarchy name is the easiest way
-	 *  to do this.
-	 */
-	std::string hierarchy_name;
+	/// The name of the taxonomy that this category uses.
+	std::string taxonomy_name;
 
 	/// The fieldname to store field values under (empty to not store).
 	std::string store_field;
@@ -434,13 +426,13 @@ namespace RestPose {
 
 	/// Create from parameters.
 	CategoryFieldConfig(std::string prefix_,
-			    std::string hierarchy_name_,
+			    std::string taxonomy_name_,
 			    unsigned int max_length_ = 64,
 			    MaxLenFieldConfig::TooLongAction too_long_action_ = TOOLONG_ERROR,
 			    const std::string & store_field_ = std::string())
 		: MaxLenFieldConfig(max_length_, too_long_action_),
 		  prefix(prefix_ + "\t"),
-		  hierarchy_name(hierarchy_name_),
+		  taxonomy_name(taxonomy_name_),
 		  store_field(store_field_)
 	{}
 
@@ -463,9 +455,9 @@ namespace RestPose {
 	    return Xapian::BAD_VALUENO;
 	}
 
-	/// If the hierarchy_name is as given, add the group to result.
-	void add_group_if_hierarchy(const std::string & hierarchy_name,
-				    std::set<std::string> & result) const;
+	/// If the taxonomy_name is as given, add the group to result.
+	void add_group_if_taxonomy(const std::string & taxonomy_name,
+				   std::set<std::string> & result) const;
 
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
@@ -664,10 +656,10 @@ namespace RestPose {
 	 */
 	void set(const std::string & fieldname, FieldConfig * config);
 
-	/** Get the groups using a given hierarchy.
+	/** Get the groups using a given taxonomy.
 	 */
-	void get_category_hierarchy_groups(const std::string & hierarchy_name,
-					std::set<std::string> & result) const;
+	void get_taxonomy_groups(const std::string & taxonomy_name,
+				 std::set<std::string> & result) const;
 
         /** Process a JSON object into a Xapian document.
 	 *

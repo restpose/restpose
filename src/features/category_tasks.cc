@@ -36,22 +36,21 @@ using namespace RestPose;
 using namespace std;
 
 void
-CollGetCategoryHierarchiesTask::perform(Collection * coll)
+CollGetTaxonomiesTask::perform(Collection * coll)
 {
     Json::Value result;
-    coll->get_category_hierarchy_names(result);
+    coll->get_taxonomy_names(result);
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
 }
 
 void
-CollGetCategoryHierarchyTask::perform(Collection * coll)
+CollGetTaxonomyTask::perform(Collection * coll)
 {
     Json::Value result(Json::objectValue);
-    const CategoryHierarchy * hier
-	    = coll->get_category_hierarchy(hierarchy_name);
+    const Taxonomy * hier = coll->get_taxonomy(taxonomy_name);
     if (hier == NULL) {
-	result["err"] = "Category hierarchy \"" + hexesc(hierarchy_name)
+	result["err"] = "Taxonomy \"" + hexesc(taxonomy_name)
 		+ "\" not found";
 	resulthandle.response().set(result, 404);
 	resulthandle.set_ready();
@@ -67,10 +66,9 @@ void
 CollGetCategoryTask::perform(Collection * coll)
 {
     Json::Value result(Json::objectValue);
-    const CategoryHierarchy * hier
-	    = coll->get_category_hierarchy(hierarchy_name);
+    const Taxonomy * hier = coll->get_taxonomy(taxonomy_name);
     if (hier == NULL) {
-	result["err"] = "Category hierarchy \"" + hexesc(hierarchy_name)
+	result["err"] = "Taxonomy \"" + hexesc(taxonomy_name)
 		+ "\" not found";
 	resulthandle.response().set(result, 404);
 	resulthandle.set_ready();
@@ -117,10 +115,9 @@ void
 CollGetCategoryParentTask::perform(Collection * coll)
 {
     Json::Value result(Json::objectValue);
-    const CategoryHierarchy * hier
-	    = coll->get_category_hierarchy(hierarchy_name);
+    const Taxonomy * hier = coll->get_taxonomy(taxonomy_name);
     if (hier == NULL) {
-	result["err"] = "Category hierarchy \"" + hexesc(hierarchy_name)
+	result["err"] = "Taxonomy \"" + hexesc(taxonomy_name)
 		+ "\" not found";
 	resulthandle.response().set(result, 404);
 	resulthandle.set_ready();
@@ -150,18 +147,18 @@ void
 ProcessingCollPutCategoryParentTask::perform(const std::string & coll_name,
 					     TaskManager * taskman)
 {
-    LOG_DEBUG("PutCategoryParentTask:" + coll_name + "," + hierarchy_name +
+    LOG_DEBUG("PutCategoryParentTask:" + coll_name + "," + taxonomy_name +
 	      "," + cat_id + "," + parent_id);
     auto_ptr<CollectionConfig> collconfig(taskman->get_collconfigs()
 					  .get(coll_name));
     {
 	Categories modified;
-	(void)collconfig->category_add_parent(hierarchy_name, cat_id,
+	(void)collconfig->category_add_parent(taxonomy_name, cat_id,
 					      parent_id, modified);
     }
     taskman->get_collconfigs().set(coll_name, collconfig.release());
     taskman->queue_indexing_from_processing(coll_name,
-	new CollPutCategoryParentTask(hierarchy_name, cat_id, parent_id));
+	new CollPutCategoryParentTask(taxonomy_name, cat_id, parent_id));
 }
 
 void
@@ -172,7 +169,7 @@ CollPutCategoryParentTask::perform_task(const std::string & coll_name,
     if (collection == NULL) {
 	collection = taskman->get_collections().get_writable(coll_name);
     }
-    collection->category_add_parent(hierarchy_name, cat_id, parent_id);
+    collection->category_add_parent(taxonomy_name, cat_id, parent_id);
 }
 
 void
@@ -188,5 +185,5 @@ CollPutCategoryParentTask::info(std::string & description,
 IndexingTask *
 CollPutCategoryParentTask::clone() const
 {
-    return new CollPutCategoryParentTask(hierarchy_name, cat_id, parent_id);
+    return new CollPutCategoryParentTask(taxonomy_name, cat_id, parent_id);
 }
