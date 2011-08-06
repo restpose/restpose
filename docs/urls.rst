@@ -216,59 +216,65 @@ Checkpoints also do not persist across server restarts.
 	       * `errors`: An array of errors.  If very many errors have
 		 occurred, only the top few will be returned.
 
-Categories
-----------
+Taxonomies and categories
+-------------------------
 
-.. http:get:: /coll/(collection_name)/category
+A RestPose collection can contain a set of Taxonomies, each of which is
+identified by a name, and which contains a set of Categories.  Each Category in
+a Taxonomy may be associated with other categories in parent-child
+relationships.
 
-   Get a list of all category hierarchies available in the collection.
+.. http:get:: /coll/(collection_name)/taxonomy
+
+   Get a list of all taxonomies available in the collection.
 
    :param collection_name: The name of the collection.  May not contain
           ``:/\.,`` or tab characters.
 
    :statuscode 200: Returns a JSON array of strings, holding the names of the
-               category hierarchies in the collection.
+               taxonomies in the collection.
 
    :statuscode 404: If the collection does not exist.
 
-.. http:get:: /coll/(collection_name)/category/(hierarchy_name)
+.. http:get:: /coll/(collection_name)/taxonomy/(taxonomy_name)
 
-   Get details of the named hierarchy in the collection.
+   Get details of the named taxonomy in the collection.
 
    :param collection_name: The name of the collection.  May not contain
           ``:/\.,`` or tab characters.
-   :param hierarchy_name: The name of the hierarchy.  May not contain ``:/\.,``
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
           or tab characters.
 
    :statuscode 200: Returns a JSON object representing the contents of the
-               hierarchy, mapping from category ID to an array of parent IDs.
+               taxonomy, mapping from category ID to an array of parent IDs.
 
-   :statuscode 404: If the collection or hierarchy do not exist.
+   :statuscode 404: If the collection or taxonomy do not exist.
 
-.. http:get:: /coll/(collection_name)/category/(hierarchy_name)/id/(cat_id)
+.. http:get:: /coll/(collection_name)/taxonomy/(taxonomy_name)/id/(cat_id)
 
-   Get details of a category in a named hierarchy in the collection.
+   Get details of a category in a named taxonomy in the collection.
 
    :param collection_name: The name of the collection.  May not contain
           ``:/\.,`` or tab characters.
-   :param hierarchy_name: The name of the hierarchy.  May not contain ``:/\.,``
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
           or tab characters.
    :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
           characters.
 
-   :statuscode 200: Returns a JSON object representing the contents of the
-               hierarchy, mapping from category ID to an array of parent IDs.
+   :statuscode 200: Returns a JSON object representing the category in the
+	       taxonomy, indicating the relationships between that category and
+	       others.
 
-   :statuscode 404: If the collection, hierarchy or category do not exist.
+   :statuscode 404: If the collection, taxonomy or category do not exist.
 
-.. http:get:: /coll/(collection_name)/category/(hierarchy_name)/id/(cat_id)/parent/(parent_id)
+.. http:get:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
 
-   Check if a category has a given parent, in the named hierarchy in the
+   Check if a category has a given parent, in the named taxonomy in the
    collection.
 
    :param collection_name: The name of the collection.  May not contain
           ``:/\.,`` or tab characters.
-   :param hierarchy_name: The name of the hierarchy.  May not contain ``:/\.,``
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
           or tab characters.
    :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
           characters.
@@ -276,9 +282,9 @@ Categories
           or tab characters.
 
    :statuscode 200: Returns an empty JSON object if the parent supplied is a
-               parent of the category supplier.
+               parent of the category supplied.
 
-   :statuscode 404: If the collection, hierarchy or category or parent do not
+   :statuscode 404: If the collection, taxonomy, category or parent do not
                exist, or the parent is not a parent of the category.
 
 

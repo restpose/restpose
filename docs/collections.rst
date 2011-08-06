@@ -21,10 +21,12 @@ A set of *Categorisers*
    These can can be applied to parts of a document for tasks such as
    identifying the language of a piece of text.
 
-A set of *Category Hierarchies*
-   Fields in documents can be attached to categories.  Searches can then 
-   efficiently match all items in a given category, or in the children of a
-   given category.
+A set of *Taxonomies*
+
+   Collections contain a named set of taxonomies, each of which contains a set
+   of categories.  The schema can associate fields with taxonomies.  Searches
+   can then efficiently match all items in a given category, or in the children
+   of a given category.
 
 A set of *Orderings*
    Documents in the collection, or a subset of documents in the collection,
@@ -203,24 +205,24 @@ Category fields
 
 (`type` = `cat`)
 
-Category fields are somewhat similar to exact fields, but in addition a
-hierarchy of field values can be defined.  Searches can then be used to find
-all documents in which a value in a document is a descendent of the search
-value.
+Category fields are somewhat similar to exact fields, but are attached to a
+taxonomy (essentially, a hierarchy of field values).  Searches can then be used
+to find all documents in which a value in a document is a descendent of the
+search value.
 
-They have one additional parameter: the "hierarchy" parameter, which is the
-name of the category hierarchy used by the field.  This allows multiple
-independent fields to make use of the same category hierarchy.
+They have one additional parameter: the "taxonomy" parameter, which is the name
+of the taxonomy used by the field.  Multiple independent fields may make use of
+the same taxononmy.
 
 In order to work correctly, it is advisable to ensure that the term `group`
 used for a category field is not shared with any other fields which use a
-different hierarchy, or which are not category fields.
+different taxonomy, or which are not category fields.
 
 Each field value may be given one or more parents.  It is also possible for a
 parent to have multiple child values.  It is an error to attempt to set up
 loops in the inheritance graph, however.
 
-See the `Category Hierarchies`_ section for more details.
+See the `Taxonomies`_ section for more details.
 
 Timestamp fields
 ----------------
@@ -405,11 +407,11 @@ Categorisers
 .. todo: document categorisers
 
 
---------------------
-Category Hierarchies
---------------------
+----------
+Taxonomies
+----------
 
-.. todo: document category hierarchies
+.. todo: document taxonomies
 
 ---------
 Orderings
