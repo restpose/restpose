@@ -59,27 +59,26 @@ class CollGetCategoryHandler : public QueuedHandler {
 			      const Json::Value & body);
 };
 
-#if 0
-/** Get information about categories.
+/** Set category information.
  *
- *  Expects 1, 2, 3 or 4 path parameters
+ *  Expects 4 path parameters
  *
  *   - the collection name
  *   - the category hierarchy name
  *   - the category id
  *   - the parent category id
  */
-class CollGetCategoryHandlerFactory : public HandlerFactory {
+class CollPutCategoryHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
 };
-class CollGetCategoryHandler : public QueuedHandler {
+class CollPutCategoryHandler : public NoWaitQueuedHandler {
     std::string coll_name;
     std::string hierarchy_name;
     std::string cat_id;
     std::string parent_id;
   public:
-    CollGetCategoryHandler(const std::string & coll_name_,
+    CollPutCategoryHandler(const std::string & coll_name_,
 			   const std::string hierarchy_name_,
 			   const std::string cat_id_,
 			   const std::string parent_id_)
@@ -92,6 +91,5 @@ class CollGetCategoryHandler : public QueuedHandler {
     Queue::QueueState enqueue(ConnectionInfo & conn,
 			      const Json::Value & body);
 };
-#endif
 
 #endif /* RESTPOSE_INCLUDED_CATEGORY_HANDLERS_H */

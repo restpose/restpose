@@ -105,4 +105,45 @@ class CollGetCategoryParentTask : public ReadonlyCollTask {
     void perform(RestPose::Collection * collection);
 };
 
+class ProcessingCollPutCategoryParentTask : public ProcessingTask {
+    const std::string hierarchy_name;
+    const std::string cat_id;
+    const std::string parent_id;
+  public:
+    ProcessingCollPutCategoryParentTask(const std::string & hierarchy_name_,
+					const std::string & cat_id_,
+					const std::string & parent_id_)
+	    : hierarchy_name(hierarchy_name_),
+	      cat_id(cat_id_),
+	      parent_id(parent_id_)
+    {}
+
+    void perform(const std::string & coll_name,
+		 TaskManager * taskman);
+};
+
+class CollPutCategoryParentTask : public IndexingTask {
+    const std::string hierarchy_name;
+    const std::string cat_id;
+    const std::string parent_id;
+  public:
+    CollPutCategoryParentTask(const std::string & hierarchy_name_,
+			      const std::string & cat_id_,
+			      const std::string & parent_id_)
+	    : hierarchy_name(hierarchy_name_),
+	      cat_id(cat_id_),
+	      parent_id(parent_id_)
+    {}
+
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
+		      TaskManager * taskman);
+
+    void info(std::string & description,
+	      std::string & doc_type,
+	      std::string & doc_id) const;
+
+    IndexingTask * clone() const;
+};
+
 #endif /* RESTPOSE_INCLUDED_CATEGORY_TASKS_H */

@@ -88,3 +88,30 @@ CollGetCategoryHandler::enqueue(ConnectionInfo &,
 
     return taskman->queue_readonly("categories", task.release());
 }
+
+Handler *
+CollPutCategoryHandlerFactory::create(const vector<string> & path_params) const
+{
+    string coll_name = path_params[0];
+    string hierarchy_name = path_params[1];
+    string cat_id = path_params[2];
+    string parent_id = path_params[3];
+
+    validate_collname_throw(coll_name);
+    validate_catid_throw(hierarchy_name);
+    validate_catid_throw(cat_id);
+    validate_catid_throw(parent_id);
+
+    return new CollPutCategoryHandler(coll_name, hierarchy_name, cat_id,
+				      parent_id);
+}
+
+Queue::QueueState
+CollPutCategoryHandler::enqueue(ConnectionInfo &,
+				const Json::Value &)
+{
+    return taskman->queue_processing(coll_name,
+	new ProcessingCollPutCategoryParentTask(hierarchy_name, cat_id,
+						parent_id),
+        true);
+}

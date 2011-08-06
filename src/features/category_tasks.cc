@@ -27,7 +27,9 @@
 
 #include "httpserver/response.h"
 #include "jsonxapian/collection.h"
+#include "logger/logger.h"
 #include "server/task_manager.h"
+#include "utils/jsonutils.h"
 #include "utils/stringutils.h"
 
 using namespace RestPose;
@@ -142,4 +144,54 @@ CollGetCategoryParentTask::perform(Collection * coll)
 
     resulthandle.response().set(result, 200);
     resulthandle.set_ready();
+}
+
+void
+ProcessingCollPutCategoryParentTask::perform(const std::string & coll_name,
+					     TaskManager * taskman)
+{
+    LOG_INFO("PutCategoryParentTask:" + coll_name + "," + hierarchy_name +
+	     "," + cat_id + "," + parent_id);
+    auto_ptr<CollectionConfig> collconfig(taskman->get_collconfigs()
+					  .get(coll_name));
+    Json::Value tmp;
+    LOG_INFO(json_serialise(collconfig->to_json(tmp)));
+    {
+	Categories modified;
+	(void)collconfig->category_add_parent(hierarchy_name, cat_id,
+					      parent_id, modified);
+    }
+    LOG_INFO(json_serialise(collconfig->to_json(tmp)));
+    taskman->get_collconfigs().set(coll_name, collconfig.release());
+    taskman->queue_indexing_from_processing(coll_name,
+	new CollPutCategoryParentTask(hierarchy_name, cat_id, parent_id));
+}
+
+void
+CollPutCategoryParentTask::perform_task(const std::string & coll_name,
+					RestPose::Collection * & collection,
+					TaskManager * taskman)
+{
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
+    collection->category_add_parent(hierarchy_name, cat_id, parent_id);
+    Json::Value tmp;
+    LOG_INFO(json_serialise(collection->to_json(tmp)));
+}
+
+void
+CollPutCategoryParentTask::info(std::string & description,
+				std::string & doc_type,
+				std::string & doc_id) const
+{
+    description = "Adding category parent";
+    doc_type.resize(0);
+    doc_id.resize(0);
+}
+
+IndexingTask *
+CollPutCategoryParentTask::clone() const
+{
+    return new CollPutCategoryParentTask(hierarchy_name, cat_id, parent_id);
 }
