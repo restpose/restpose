@@ -215,6 +215,7 @@ class Collection {
      */
     Json::Value & get_taxonomy_names(Json::Value & result) const;
 
+    void remove_taxonomy(const std::string & taxononmy_name);
     void category_add(const std::string & taxonomy_name,
 		      const std::string & cat_name);
     void category_remove(const std::string & taxonomy_name,

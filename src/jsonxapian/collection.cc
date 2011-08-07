@@ -115,21 +115,21 @@ Collection::write_config()
 }
 
 void
-Collection::update_modified_categories_group(const string & group_name,
+Collection::update_modified_categories_group(const string & prefix,
 					     const Taxonomy & taxonomy,
 					     const Categories & modified)
 {
-    // Find all documents with terms of the form group_name + "C" + cat where cat
-    // is any of the categories in modified.  For each of these documents, read
-    // in the list of terms of form group_name + "C" + *, build the appropriate
-    // list of ancestor categories using the taxonomy, and set the list of
-    // terms of form group_name + "A" to the ancestors.
+    // Find all documents with terms of the form prefix + "C" + cat where cat
+    // is any of the categories in modified.  For each of these documents,
+    // read in the list of terms of form prefix + "C" + *, build the
+    // appropriate list of ancestor categories using the taxonomy, and set
+    // the list of terms of form prefix + "A" to the ancestors.
 
     LOG_DEBUG("updating " + str(modified.size()) +
-	      " modified categories for group: " + group_name);
+	      " modified categories for group: " + prefix);
 
-    string cat_prefix = group_name + "C";
-    string ancestor_prefix = group_name + "A";
+    string cat_prefix = prefix + "C";
+    string ancestor_prefix = prefix + "A";
 
     Xapian::Database db = group.get_db();
     vector<Xapian::PostingIterator> iters;
@@ -227,8 +227,7 @@ Collection::update_modified_categories(const string & taxonomy_name,
 				       const Taxonomy & taxonomy,
 				       const Categories & modified)
 {
-    const set<string> & groups =
-	    config.get_taxonomy_groups(taxonomy_name);
+    const set<string> & groups = config.get_taxonomy_groups(taxonomy_name);
 
     /* Note; when there are many documents in which more than one group uses
      * the same taxonomy, it would be more efficient to do the update of all
@@ -332,6 +331,48 @@ Collection::get_taxonomy_names(Json::Value & result) const
 	throw InvalidStateError("Collection must be open to get taxonomy");
     }
     return config.get_taxonomy_names(result);
+}
+
+void
+Collection::remove_taxonomy(const string & taxonomy_name)
+{
+    config.remove_taxonomy(taxonomy_name);
+
+    // Update all documents which used the taxonomy.
+    Xapian::Database db = group.get_db();
+    const set<string> & groups = config.get_taxonomy_groups(taxonomy_name);
+    for (set<string>::const_iterator i = groups.begin();
+	 i != groups.end(); ++i) {
+	string prefix = *i + "\t";
+	string ancestor_prefix = prefix + "A";
+	// Remove all terms starting with ancestor_prefix.
+	for (Xapian::TermIterator allti = db.allterms_begin(ancestor_prefix);
+	     allti != db.allterms_end(ancestor_prefix); ++allti) {
+	    for (Xapian::PostingIterator pi = db.postlist_begin(*allti);
+		 pi != db.postlist_end(*allti); ++pi) {
+		Xapian::Document doc(db.get_document(*pi));
+		Xapian::TermIterator ti = doc.termlist_begin();
+
+		// Get the idterm
+		ti.skip_to("\t");
+		if (ti == doc.termlist_end() || (*ti)[0] != '\t') {
+		    throw InvalidValueError("Document has no ID - cannot update category terms");
+		}
+		string idterm = *ti;
+
+		ti.skip_to(ancestor_prefix);
+		while (ti != doc.termlist_end() &&
+		       string_startswith(*ti, ancestor_prefix)) {
+		    doc.remove_term(*ti);
+		}
+
+		group.add_doc(doc, idterm);
+	    }
+	}
+    }
+
+    //update_modified_categories(taxonomy_name, taxonomy, modified);
+    write_config();
 }
 
 void

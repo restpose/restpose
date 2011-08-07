@@ -515,6 +515,18 @@ CollectionConfig::set_taxonomy(const string & taxonomy_name,
     changed = true;
 }
 
+void
+CollectionConfig::remove_taxonomy(const string & taxonomy_name)
+{
+    map<string, Taxonomy *>::iterator i
+	    = taxonomies.find(taxonomy_name);
+    if (i == taxonomies.end()) {
+	return;
+    }
+    taxonomies.erase(i);
+    changed = true;
+}
+
 Json::Value &
 CollectionConfig::get_taxonomy_names(Json::Value & result) const
 {

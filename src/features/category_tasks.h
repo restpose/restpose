@@ -146,6 +146,71 @@ class CollPutCategoryParentTask : public IndexingTask {
     IndexingTask * clone() const;
 };
 
+
+class ProcessingCollDeleteTaxonomyTask : public ProcessingTask {
+    const std::string taxonomy_name;
+  public:
+    ProcessingCollDeleteTaxonomyTask(const std::string & taxonomy_name_)
+	    : taxonomy_name(taxonomy_name_)
+    {}
+
+    void perform(const std::string & coll_name, TaskManager * taskman);
+};
+
+class CollDeleteTaxonomyTask : public IndexingTask {
+    const std::string taxonomy_name;
+  public:
+    CollDeleteTaxonomyTask(const std::string & taxonomy_name_)
+	    : taxonomy_name(taxonomy_name_)
+    {}
+
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
+		      TaskManager * taskman);
+
+    void info(std::string & description,
+	      std::string & doc_type,
+	      std::string & doc_id) const;
+
+    IndexingTask * clone() const;
+};
+
+
+class ProcessingCollDeleteCategoryTask : public ProcessingTask {
+    const std::string taxonomy_name;
+    const std::string cat_id;
+  public:
+    ProcessingCollDeleteCategoryTask(const std::string & taxonomy_name_,
+				     const std::string & cat_id_)
+	    : taxonomy_name(taxonomy_name_),
+	      cat_id(cat_id_)
+    {}
+
+    void perform(const std::string & coll_name, TaskManager * taskman);
+};
+
+class CollDeleteCategoryTask : public IndexingTask {
+    const std::string taxonomy_name;
+    const std::string cat_id;
+  public:
+    CollDeleteCategoryTask(const std::string & taxonomy_name_,
+			   const std::string & cat_id_)
+	    : taxonomy_name(taxonomy_name_),
+	      cat_id(cat_id_)
+    {}
+
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
+		      TaskManager * taskman);
+
+    void info(std::string & description,
+	      std::string & doc_type,
+	      std::string & doc_id) const;
+
+    IndexingTask * clone() const;
+};
+
+
 class ProcessingCollDeleteCategoryParentTask : public ProcessingTask {
     const std::string taxonomy_name;
     const std::string cat_id;

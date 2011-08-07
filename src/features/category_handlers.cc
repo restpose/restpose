@@ -120,13 +120,20 @@ CollDeleteCategoryHandlerFactory::create(const vector<string> & path_params) con
 {
     string coll_name = path_params[0];
     string taxonomy_name = path_params[1];
-    string cat_id = path_params[2];
-    string parent_id = path_params[3];
+    string cat_id;
+    string parent_id;
 
     validate_collname_throw(coll_name);
     validate_catid_throw(taxonomy_name);
-    validate_catid_throw(cat_id);
-    validate_catid_throw(parent_id);
+
+    if (path_params.size() >= 3) {
+	cat_id = path_params[2];
+	validate_catid_throw(cat_id);
+    }
+    if (path_params.size() >= 4) {
+	parent_id = path_params[3];
+	validate_catid_throw(parent_id);
+    }
 
     return new CollDeleteCategoryHandler(coll_name, taxonomy_name, cat_id,
 					 parent_id);
@@ -136,8 +143,19 @@ Queue::QueueState
 CollDeleteCategoryHandler::enqueue(ConnectionInfo &,
 				   const Json::Value &)
 {
-    return taskman->queue_processing(coll_name,
-	new ProcessingCollDeleteCategoryParentTask(taxonomy_name, cat_id,
-						   parent_id),
-        true);
+    auto_ptr<ProcessingTask> task;
+
+    if (cat_id.empty()) {
+	task = auto_ptr<ProcessingTask>(
+	    new ProcessingCollDeleteTaxonomyTask(taxonomy_name));
+    } else if (parent_id.empty()) {
+	task = auto_ptr<ProcessingTask>(
+	    new ProcessingCollDeleteCategoryTask(taxonomy_name, cat_id));
+    } else {
+	task = auto_ptr<ProcessingTask>(
+	    new ProcessingCollDeleteCategoryParentTask(taxonomy_name, cat_id,
+						       parent_id));
+    }
+
+    return taskman->queue_processing(coll_name, task.release(), true);
 }

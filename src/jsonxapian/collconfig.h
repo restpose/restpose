@@ -280,6 +280,10 @@ class CollectionConfig {
     void set_taxonomy(const std::string & taxonomy_name,
 		      const Taxonomy & taxonomy);
 
+    /** Remove a taxonomy.
+     */
+    void remove_taxonomy(const std::string & taxonomy_name);
+
     /** Get a list of the taxonomies.
      *
      *  @param result A reference to a value which will be set to an array of

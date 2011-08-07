@@ -188,6 +188,93 @@ CollPutCategoryParentTask::clone() const
     return new CollPutCategoryParentTask(taxonomy_name, cat_id, parent_id);
 }
 
+
+void
+ProcessingCollDeleteTaxonomyTask::perform(const std::string & coll_name,
+					  TaskManager * taskman)
+{
+    LOG_DEBUG("DeleteTaxonomyTask:" + coll_name + "," + taxonomy_name);
+    auto_ptr<CollectionConfig> collconfig(taskman->get_collconfigs()
+					  .get(coll_name));
+    collconfig->remove_taxonomy(taxonomy_name);
+    taskman->get_collconfigs().set(coll_name, collconfig.release());
+    taskman->queue_indexing_from_processing(coll_name,
+	new CollDeleteTaxonomyTask(taxonomy_name));
+}
+
+void
+CollDeleteTaxonomyTask::perform_task(const std::string & coll_name,
+				     RestPose::Collection * & collection,
+				     TaskManager * taskman)
+{
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
+    collection->remove_taxonomy(taxonomy_name);
+}
+
+void
+CollDeleteTaxonomyTask::info(std::string & description,
+			     std::string & doc_type,
+			     std::string & doc_id) const
+{
+    description = "Removing taxonomy";
+    doc_type.resize(0);
+    doc_id.resize(0);
+}
+
+IndexingTask *
+CollDeleteTaxonomyTask::clone() const
+{
+    return new CollDeleteTaxonomyTask(taxonomy_name);
+}
+
+
+void
+ProcessingCollDeleteCategoryTask::perform(const std::string & coll_name,
+					     TaskManager * taskman)
+{
+    LOG_DEBUG("DeleteCategoryTask:" + coll_name + "," + taxonomy_name +
+	      "," + cat_id);
+    auto_ptr<CollectionConfig> collconfig(taskman->get_collconfigs()
+					  .get(coll_name));
+    {
+	Categories modified;
+	(void)collconfig->category_remove(taxonomy_name, cat_id, modified);
+    }
+    taskman->get_collconfigs().set(coll_name, collconfig.release());
+    taskman->queue_indexing_from_processing(coll_name,
+	new CollDeleteCategoryTask(taxonomy_name, cat_id));
+}
+
+void
+CollDeleteCategoryTask::perform_task(const std::string & coll_name,
+				     RestPose::Collection * & collection,
+				     TaskManager * taskman)
+{
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
+    collection->category_remove(taxonomy_name, cat_id);
+}
+
+void
+CollDeleteCategoryTask::info(std::string & description,
+			     std::string & doc_type,
+			     std::string & doc_id) const
+{
+    description = "Removing category";
+    doc_type.resize(0);
+    doc_id.resize(0);
+}
+
+IndexingTask *
+CollDeleteCategoryTask::clone() const
+{
+    return new CollDeleteCategoryTask(taxonomy_name, cat_id);
+}
+
+
 void
 ProcessingCollDeleteCategoryParentTask::perform(const std::string & coll_name,
 					     TaskManager * taskman)
