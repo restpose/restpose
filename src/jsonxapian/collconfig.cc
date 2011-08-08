@@ -351,6 +351,7 @@ CollectionConfig::from_json(const Json::Value & value)
     check_format_number(json_get_uint64_member(value, "format",
 					       Json::Value::maxInt));
 
+    clear();
     schemas_config_from_json(value);
     pipes_config_from_json(value);
     categorisers_config_from_json(value);
