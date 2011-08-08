@@ -207,7 +207,7 @@ Category fields
 
 Category fields are somewhat similar to exact fields, but are attached to a
 taxonomy (essentially, a hierarchy of field values).  Searches can then be used
-to find all documents in which a value in a document is a descendent of the
+to find all documents in which a value in a document is a descendant of the
 search value.
 
 They have one additional parameter: the "taxonomy" parameter, which is the name
@@ -400,18 +400,35 @@ are used for special purposes.
      meta field - the entries will be automatically generated based on the
      result of processing the documents.
 
+----------
+Taxonomies
+----------
+
+A collection may contain a set of Taxonomies, each identified by a name.  These
+taxonomies consist of a hierarchy of categories, and can be associated with
+fields.  When associated with a category field, it becomes possible to search
+efficiently for all documents in which a field value is a descendant of a given
+category; normally, it would only be possible to do this by constructing a huge
+query consisting of all the categories which are such descendants.
+
+Taxonomies may be modifed at any time by adding or removing category-parent
+relationships, or even hold categories.  The necessary index updates will be
+performed automatically.
+
+.. note:: If possible, it is better to put the hierarchy in place before adding
+          documents, since this will require less work in total.
+
+.. note:: Currently, the taxonomy feature is not designed to perform well with
+	  large numbers of entries in the category hierarchy (ie, more than a
+	  few hundred entries).  Performance improvements are planned, but if
+	  you need to use the feature with deep hierarchies, contact the author
+	  on IRC or email.
+
 ------------
 Categorisers
 ------------
 
 .. todo: document categorisers
-
-
-----------
-Taxonomies
-----------
-
-.. todo: document taxonomies
 
 ---------
 Orderings
