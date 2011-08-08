@@ -371,7 +371,6 @@ Collection::remove_taxonomy(const string & taxonomy_name)
 	}
     }
 
-    //update_modified_categories(taxonomy_name, taxonomy, modified);
     write_config();
 }
 
