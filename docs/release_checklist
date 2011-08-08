@@ -24,9 +24,9 @@ Before release.
 
  - tag in git, and push tag
 
-   For python::
+   For example::
 
-       git tag -a -m "0.7.0 release" r0.7.0
+       git tag -a -m "0.X.X release" r0.X.X # Replace the Xes
        git push --tags
 
  - upload tarballs
