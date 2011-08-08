@@ -1,13 +1,6 @@
 TODO
 ====
 
- - Add URLs and tasks for setting and updating category parent-child
-   relationships.
-    - Python client: add query types for searching category.
-
- - Test that all category URLs behave as documented (especially with regards to
-   404 status when collections, etc, don't exist).
-
  - Make query_phrase support window parameter, for phrase size.
 
    - Python client: uncomment the test of setting window size in query_text.
@@ -23,8 +16,6 @@ Next release
  - Update INSTALL
 
  - Document categorisers
-
- - Document category hierarchies
 
  - Implement and document orderingings.
 
