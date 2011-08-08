@@ -115,7 +115,7 @@ TEST(CollectionConfigFormatCheck)
     c.from_json(json_unserialise(std::string("{\"format\": 3}"), tmp));
     tmp = Json::nullValue;
     CHECK_EQUAL("{" DEFAULT_TYPE_SCHEMA ","
-		"\"format\":3,\"pipes\":{\"default\":{}},"
+		"\"format\":3,"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{}"
 		"}",
@@ -316,7 +316,6 @@ TEST(CollectionCategoriser)
     CHECK_EQUAL("{"
 		DEFAULT_TYPE_SCHEMA ","
 		"\"format\":3,"
-		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"id\":{\"max_length\":64,"
@@ -360,7 +359,6 @@ TEST(CollectionCategoriser)
 		"},"
 		DEFAULT_TYPE_SCHEMA ","
 		"\"format\":3,"
-		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"types\":{\"default\":{\"fields\":{"
 		  "\"id\":{\"max_length\":64,"
@@ -440,7 +438,6 @@ TEST(CollectionCategory)
     CHECK_EQUAL("{"
 		DEFAULT_TYPE_SCHEMA ","
 		"\"format\":3,"
-		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"taxonomies\":{\"Foo\":{}},"
 		"\"types\":{\"default\":{\"fields\":{"
@@ -464,7 +461,6 @@ TEST(CollectionCategory)
     CHECK_EQUAL("{"
 		DEFAULT_TYPE_SCHEMA ","
 		"\"format\":3,"
-		"\"pipes\":{\"default\":{}},"
 		DEFAULT_SPECIAL_FIELDS ","
 		"\"taxonomies\":{\"Foo\":{\"child\":[\"parent\"],\"parent\":[]}},"
 		"\"types\":{\"default\":{\"fields\":{"
