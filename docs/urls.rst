@@ -312,6 +312,51 @@ relationships.
 		 which they're sending documents is ``high_load`` messages
 		 persist.
 
+.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)
+
+   Delete an entire taxonomy.
+
+   This will also update any documents which need to be updated as a result of
+   there no longer being any category relationships in that taxonomy.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+
+.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)
+
+   Remove a category.  Will create the collection and taxonomy if they don't
+   already exist.
+
+   This will also update any documents which need to be updated as a result of
+   there no longer being any category relationships involving that category.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+
 .. http:delete:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
 
    Remove a parent from a category.  Will create the collection and taxonomy if
