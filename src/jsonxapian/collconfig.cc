@@ -311,7 +311,6 @@ CollectionConfig::set_default()
 {
     clear();
     set_default_schema();
-    set_pipe("default", Pipe());
 }
 
 CollectionConfig *
@@ -434,8 +433,7 @@ CollectionConfig::get_pipe(const string & pipe_name) const
 }
 
 void
-CollectionConfig::set_pipe(const string & pipe_name,
-			   const Pipe & pipe)
+CollectionConfig::set_pipe(const string & pipe_name, const Pipe & pipe)
 {
     Pipe * pipeptr;
     map<string, Pipe *>::iterator i = pipes.find(pipe_name);
