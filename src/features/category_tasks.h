@@ -113,7 +113,8 @@ class ProcessingCollPutCategoryParentTask : public ProcessingTask {
     ProcessingCollPutCategoryParentTask(const std::string & taxonomy_name_,
 					const std::string & cat_id_,
 					const std::string & parent_id_)
-	    : taxonomy_name(taxonomy_name_),
+	    : ProcessingTask(false),
+	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      parent_id(parent_id_)
     {}
@@ -151,7 +152,8 @@ class ProcessingCollDeleteTaxonomyTask : public ProcessingTask {
     const std::string taxonomy_name;
   public:
     ProcessingCollDeleteTaxonomyTask(const std::string & taxonomy_name_)
-	    : taxonomy_name(taxonomy_name_)
+	    : ProcessingTask(false),
+	      taxonomy_name(taxonomy_name_)
     {}
 
     void perform(const std::string & coll_name, TaskManager * taskman);
@@ -182,7 +184,8 @@ class ProcessingCollDeleteCategoryTask : public ProcessingTask {
   public:
     ProcessingCollDeleteCategoryTask(const std::string & taxonomy_name_,
 				     const std::string & cat_id_)
-	    : taxonomy_name(taxonomy_name_),
+	    : ProcessingTask(false),
+	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_)
     {}
 
@@ -219,7 +222,8 @@ class ProcessingCollDeleteCategoryParentTask : public ProcessingTask {
     ProcessingCollDeleteCategoryParentTask(const std::string & taxonomy_name_,
 					   const std::string & cat_id_,
 					   const std::string & parent_id_)
-	    : taxonomy_name(taxonomy_name_),
+	    : ProcessingTask(false),
+	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      parent_id(parent_id_)
     {}
