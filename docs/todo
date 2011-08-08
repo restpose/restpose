@@ -46,8 +46,14 @@ Further future
 
    - Add sort_by support for multiple keys.
 
+ - Highlighting:
+   - Add support for highlighting fields returned from a search.
+
  - Allow a name to be associated with a search (or perhaps a list of names),
    which will be recorded in logs for later analysis.
+
+ - Consider adding support for the X-Opaque-ID header that elasticsearch
+   supports.
 
  - Allow Occur and CoOccur handlers to be given a group name, instead of a prefix.
 
