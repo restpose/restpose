@@ -287,6 +287,32 @@ relationships.
    :statuscode 404: If the collection, taxonomy, category or parent do not
                exist, or the parent is not a parent of the category.
 
+.. http:put:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)
+
+   Add a category, creating the collection, taxonomy and category if needed.
+
+   The body submitted is ignored.
+
+   .. note:: in future, it may be possible to set the parents of the category
+	     by supplying an appropriate structure in the body.  For now, the
+	     parents need to be added with individual calls, so the body should
+	     be left empty.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
 .. http:put:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
 
    Add a parent to a category, creating the collection, taxonomy, category and
