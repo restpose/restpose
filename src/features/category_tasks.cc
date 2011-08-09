@@ -143,6 +143,52 @@ CollGetCategoryParentTask::perform(Collection * coll)
     resulthandle.set_ready();
 }
 
+
+void
+ProcessingCollPutCategoryTask::perform(const std::string & coll_name,
+				       TaskManager * taskman)
+{
+    LOG_DEBUG("PutCategoryTask:" + coll_name + "," + taxonomy_name +
+	      "," + cat_id);
+    auto_ptr<CollectionConfig> collconfig(taskman->get_collconfigs()
+					  .get(coll_name));
+    {
+	Categories modified;
+	(void)collconfig->category_add(taxonomy_name, cat_id, modified);
+    }
+    taskman->get_collconfigs().set(coll_name, collconfig.release());
+    taskman->queue_indexing_from_processing(coll_name,
+	new CollPutCategoryTask(taxonomy_name, cat_id));
+}
+
+void
+CollPutCategoryTask::perform_task(const std::string & coll_name,
+				  RestPose::Collection * & collection,
+				  TaskManager * taskman)
+{
+    if (collection == NULL) {
+	collection = taskman->get_collections().get_writable(coll_name);
+    }
+    collection->category_add(taxonomy_name, cat_id);
+}
+
+void
+CollPutCategoryTask::info(std::string & description,
+			  std::string & doc_type,
+			  std::string & doc_id) const
+{
+    description = "Adding category";
+    doc_type.resize(0);
+    doc_id.resize(0);
+}
+
+IndexingTask *
+CollPutCategoryTask::clone() const
+{
+    return new CollPutCategoryTask(taxonomy_name, cat_id);
+}
+
+
 void
 ProcessingCollPutCategoryParentTask::perform(const std::string & coll_name,
 					     TaskManager * taskman)

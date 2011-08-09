@@ -105,6 +105,44 @@ class CollGetCategoryParentTask : public ReadonlyCollTask {
     void perform(RestPose::Collection * collection);
 };
 
+
+class ProcessingCollPutCategoryTask : public ProcessingTask {
+    const std::string taxonomy_name;
+    const std::string cat_id;
+  public:
+    ProcessingCollPutCategoryTask(const std::string & taxonomy_name_,
+				  const std::string & cat_id_)
+	    : ProcessingTask(false),
+	      taxonomy_name(taxonomy_name_),
+	      cat_id(cat_id_)
+    {}
+
+    void perform(const std::string & coll_name,
+		 TaskManager * taskman);
+};
+
+class CollPutCategoryTask : public IndexingTask {
+    const std::string taxonomy_name;
+    const std::string cat_id;
+  public:
+    CollPutCategoryTask(const std::string & taxonomy_name_,
+			const std::string & cat_id_)
+	    : taxonomy_name(taxonomy_name_),
+	      cat_id(cat_id_)
+    {}
+
+    void perform_task(const std::string & coll_name,
+		      RestPose::Collection * & collection,
+		      TaskManager * taskman);
+
+    void info(std::string & description,
+	      std::string & doc_type,
+	      std::string & doc_id) const;
+
+    IndexingTask * clone() const;
+};
+
+
 class ProcessingCollPutCategoryParentTask : public ProcessingTask {
     const std::string taxonomy_name;
     const std::string cat_id;

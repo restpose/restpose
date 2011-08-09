@@ -60,6 +60,7 @@ setup_routes(Router & router)
     router.add("/coll/?/taxonomy/?/id/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
     router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
 
+    router.add("/coll/?/taxonomy/?/id/?", HTTP_PUT, new CollPutCategoryHandlerFactory);
     router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_PUT, new CollPutCategoryHandlerFactory);
 
     router.add("/coll/?/taxonomy/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
