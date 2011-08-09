@@ -2,6 +2,7 @@
 
  - Update taxonomy documentation.
  - Add URL for adding an individual category to a taxonomy.
+ - Add URL for getting details of top-level categories in a taxonomy.
  - Perform log writes in a subthread.  Logging now places items to write on
    a queue of limited size, which is read by the logger thread; if this
    queue becomes overloaded, a count of missed messages will be displayed.
