@@ -36,6 +36,7 @@ include src/ngramcat/Makefile.mk
 include src/rest/Makefile.mk
 include src/server/Makefile.mk
 include src/utils/Makefile.mk
+include perftest/Makefile.mk
 include unittests/Makefile.mk
 
 SUBDIRS = libs/libmicrohttpd .
