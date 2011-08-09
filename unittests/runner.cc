@@ -22,10 +22,16 @@
  * IN THE SOFTWARE.
  */
 
+#include <config.h>
 #include "UnitTest++.h"
 #include "TestReporterStdout.h"
+#include "logger/logger.h"
 
 int main(int, char const **)
 {
-    return UnitTest::RunAllTests();
+    RestPose::g_log.start();
+    int result = UnitTest::RunAllTests();
+    RestPose::g_log.stop();
+    RestPose::g_log.join();
+    return result;
 }
