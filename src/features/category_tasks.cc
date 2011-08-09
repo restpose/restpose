@@ -143,6 +143,32 @@ CollGetCategoryParentTask::perform(Collection * coll)
     resulthandle.set_ready();
 }
 
+void
+CollGetTopCategoriesTask::perform(Collection * coll)
+{
+    Json::Value result(Json::objectValue);
+    const Taxonomy * hier = coll->get_taxonomy(taxonomy_name);
+    if (hier == NULL) {
+	result["err"] = "Taxonomy \"" + hexesc(taxonomy_name)
+		+ "\" not found";
+	resulthandle.response().set(result, 404);
+	resulthandle.set_ready();
+    }
+
+    for (map<string, Category>::const_iterator i = hier->begin();
+	 i != hier->end(); ++i) {
+	const Category & cat = i->second;
+	if (cat.parents.empty()) {
+	    Json::Value & catval = result[cat.name] = Json::objectValue;
+	    catval["child_count"] = cat.children.size();
+	    catval["descendant_count"] = cat.descendants.size();
+	}
+    }
+
+    resulthandle.response().set(result, 200);
+    resulthandle.set_ready();
+}
+
 
 void
 ProcessingCollPutCategoryTask::perform(const std::string & coll_name,

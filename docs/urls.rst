@@ -287,6 +287,26 @@ relationships.
    :statuscode 404: If the collection, taxonomy, category or parent do not
                exist, or the parent is not a parent of the category.
 
+.. http:get:: /coll/(collection_name)/category/(taxonomy_name)/top
+
+   Get the top level categories (ie, categories which have no parents) in the
+   named taxonomy in the collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 200: Returns a JSON object in which keys are the IDs of the top
+               level categories, and the values are objects with two members:
+
+		- child_count: (integer) number of child categories of this
+		  category.
+		- descendant_count: (integer) number of descendant categories
+		  of this category.
+
+   :statuscode 404: If the collection or taxonomy do not exist.
+
 .. http:put:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)
 
    Add a category, creating the collection, taxonomy and category if needed.

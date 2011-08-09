@@ -88,6 +88,29 @@ CollGetCategoryHandler::enqueue(ConnectionInfo &,
     return taskman->queue_readonly("categories", task.release());
 }
 
+
+Handler *
+CollGetTopCategoriesHandlerFactory::create(const vector<string> & path_params) const
+{
+    string coll_name = path_params[0];
+    string taxonomy_name = path_params[1];
+
+    validate_collname_throw(coll_name);
+    validate_catid_throw(taxonomy_name);
+
+    return new CollGetTopCategoriesHandler(coll_name, taxonomy_name);
+}
+
+Queue::QueueState
+CollGetTopCategoriesHandler::enqueue(ConnectionInfo &,
+				     const Json::Value &)
+{
+    return taskman->queue_readonly("categories",
+	new CollGetTopCategoriesTask(resulthandle, coll_name, taxonomy_name,
+				     taskman));
+}
+
+
 Handler *
 CollPutCategoryHandlerFactory::create(const vector<string> & path_params) const
 {

@@ -105,6 +105,24 @@ class CollGetCategoryParentTask : public ReadonlyCollTask {
     void perform(RestPose::Collection * collection);
 };
 
+/** Get the top-level categories.
+ */
+class CollGetTopCategoriesTask : public ReadonlyCollTask {
+    const std::string taxonomy_name;
+    TaskManager * taskman;
+  public:
+    CollGetTopCategoriesTask(const RestPose::ResultHandle & resulthandle_,
+			     const std::string & coll_name_,
+			     const std::string & taxonomy_name_,
+			     TaskManager * taskman_)
+	    : ReadonlyCollTask(resulthandle_, coll_name_),
+	      taxonomy_name(taxonomy_name_),
+	      taskman(taskman_)
+    {}
+
+    void perform(RestPose::Collection * collection);
+};
+
 
 class ProcessingCollPutCategoryTask : public ProcessingTask {
     const std::string taxonomy_name;

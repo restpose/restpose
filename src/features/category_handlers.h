@@ -46,13 +46,40 @@ class CollGetCategoryHandler : public QueuedHandler {
     std::string parent_id;
   public:
     CollGetCategoryHandler(const std::string & coll_name_,
-			   const std::string taxonomy_name_,
-			   const std::string cat_id_,
-			   const std::string parent_id_)
+			   const std::string & taxonomy_name_,
+			   const std::string & cat_id_,
+			   const std::string & parent_id_)
 	    : coll_name(coll_name_),
 	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
 	      parent_id(parent_id_)
+    {}
+
+    Queue::QueueState enqueue(ConnectionInfo & conn,
+			      const Json::Value & body);
+};
+
+/** Get information about the top-level categories.
+ *
+ *  Returns an array of the names of all categories which have no parents.
+ *
+ *  Expects 2 path parameters
+ *
+ *   - the collection name
+ *   - the taxonomy name
+ */
+class CollGetTopCategoriesHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+class CollGetTopCategoriesHandler : public QueuedHandler {
+    std::string coll_name;
+    std::string taxonomy_name;
+  public:
+    CollGetTopCategoriesHandler(const std::string & coll_name_,
+				const std::string & taxonomy_name_)
+	    : coll_name(coll_name_),
+	      taxonomy_name(taxonomy_name_)
     {}
 
     Queue::QueueState enqueue(ConnectionInfo & conn,
@@ -79,9 +106,9 @@ class CollPutCategoryHandler : public NoWaitQueuedHandler {
     std::string parent_id;
   public:
     CollPutCategoryHandler(const std::string & coll_name_,
-			   const std::string taxonomy_name_,
-			   const std::string cat_id_,
-			   const std::string parent_id_)
+			   const std::string & taxonomy_name_,
+			   const std::string & cat_id_,
+			   const std::string & parent_id_)
 	    : coll_name(coll_name_),
 	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
@@ -112,9 +139,9 @@ class CollDeleteCategoryHandler : public NoWaitQueuedHandler {
     std::string parent_id;
   public:
     CollDeleteCategoryHandler(const std::string & coll_name_,
-			      const std::string taxonomy_name_,
-			      const std::string cat_id_,
-			      const std::string parent_id_)
+			      const std::string & taxonomy_name_,
+			      const std::string & cat_id_,
+			      const std::string & parent_id_)
 	    : coll_name(coll_name_),
 	      taxonomy_name(taxonomy_name_),
 	      cat_id(cat_id_),
