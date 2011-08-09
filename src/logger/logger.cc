@@ -35,8 +35,8 @@
 using namespace std;
 using namespace RestPose;
 
-Logger::Logger()
-	: Thread(), max_queue_size(100), log_fd(1)
+Logger::Logger(int log_fd_)
+	: Thread(), max_queue_size(100), log_fd(log_fd_)
 {}
 
 void
@@ -53,34 +53,48 @@ Logger::log(const string & message)
 }
 
 void
+Logger::process_queue(ContextLocker & lock)
+{
+    string buf;
+    // Write the contents of the queue into the buffer.
+    while (!queue.empty()) {
+	LogMsg & item = queue.front();
+	buf += str(item.timestamp) + ": " + item.message + "\n";
+	if (item.queue_full_count) {
+	    buf += str(item.timestamp) + ": LOG OVERLOADED - missing " +
+		    str(item.queue_full_count) + " entries\n";
+	}
+	queue.pop();
+    }
+
+    // Drop the lock while writing out the buffer.
+    if (!buf.empty()) {
+	lock.unlock();
+	(void)io_write(log_fd, buf);
+	lock.lock();
+    }
+}
+
+void
 Logger::run()
 {
     ContextLocker lock(cond);
     while (!stop_requested) {
-	string buf;
-	// Write the contents of the queue into the buffer.
-	while (!queue.empty()) {
-	    LogMsg & item = queue.front();
-	    buf += str(item.timestamp) + ": " + item.message + "\n";
-	    if (item.queue_full_count) {
-		buf += str(item.timestamp) + ": LOG OVERLOADED - missing " +
-			str(item.queue_full_count) + " entries\n";
-	    }
-	    queue.pop();
-	}
-
-	// Drop the lock while writing out the buffer.
-	{
-	    cond.unlock();
-	    (void)io_write(log_fd, buf);
-	    cond.lock();
-	}
+	process_queue(lock);
 	if (stop_requested)
 	    break;
 	if (queue.empty()) {
 	    cond.wait();
 	}
     }
+}
+
+void
+Logger::join()
+{
+    Thread::join();
+    ContextLocker lock(cond);
+    process_queue(lock);
 }
 
 void

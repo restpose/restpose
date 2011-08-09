@@ -51,12 +51,17 @@ class Logger : public Thread {
     int log_fd;
 
     void log(const std::string & message);
+    void process_queue(ContextLocker & lock);
   public:
-    Logger();
+    Logger(int log_fd_ = 1);
 
     /** Main loop for the logger thread.
      */
     void run();
+
+    /** Join the queue, and then flush any remaining items.
+     */
+    void join();
 
     /** Log a debug message.
      *
