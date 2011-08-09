@@ -5,11 +5,6 @@ TODO
 
    - Python client: uncomment the test of setting window size in query_text.
 
- - Make logging do writes asynchronously.  (Currently, a log call acquires the
-   logger mutex, then does the write, blocking all other threads.  Instead, log
-   messages should be added to a queue, and a logger thread should write them
-   to disk, syslog, or whatever the appropriate target is.)
-
 Next release
 ------------
 
