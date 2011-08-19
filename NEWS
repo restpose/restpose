@@ -1,1 +1,16 @@
-No news yet.
+0.7.2 - unreleased
+
+ - Update taxonomy documentation.
+ - Add URL for adding an individual category to a taxonomy.
+ - Add URL for getting details of top-level categories in a taxonomy.
+ - Perform log writes in a subthread.  Logging now places items to write on
+   a queue of limited size, which is read by the logger thread; if this
+   queue becomes overloaded, a count of missed messages will be displayed.
+
+0.7.1 - 8th August 2011
+
+ - Added taxonomy hierarchy support.
+
+0.7.0 - 1st August 2011
+
+ - Initial release.  Functioning basic indexing and search.

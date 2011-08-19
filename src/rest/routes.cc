@@ -26,6 +26,7 @@
 #include "rest/routes.h"
 
 #include "features/checkpoint_handlers.h"
+#include "features/category_handlers.h"
 #include "features/coll_handlers.h"
 #include "httpserver/httpserver.h"
 #include "rest/handlers.h"
@@ -52,6 +53,20 @@ setup_routes(Router & router)
     router.add("/coll/?/checkpoint", HTTP_POST, new CollCreateCheckpointHandlerFactory);
     router.add("/coll/?/checkpoint/?", HTTP_GETHEAD, new CollGetCheckpointHandlerFactory);
     //router.add("/coll/?/checkpoint/?", HTTP_DELETE, new CollDeleteCheckpointHandlerFactory);
+
+    // Categories
+    router.add("/coll/?/taxonomy", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_GETHEAD, new CollGetCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/top", HTTP_GETHEAD, new CollGetTopCategoriesHandlerFactory);
+
+    router.add("/coll/?/taxonomy/?/id/?", HTTP_PUT, new CollPutCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_PUT, new CollPutCategoryHandlerFactory);
+
+    router.add("/coll/?/taxonomy/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
+    router.add("/coll/?/taxonomy/?/id/?/parent/?", HTTP_DELETE, new CollDeleteCategoryHandlerFactory);
 
     // Documents
     router.add("/coll/?/type/?/id/?", HTTP_PUT, new IndexDocumentHandlerFactory);

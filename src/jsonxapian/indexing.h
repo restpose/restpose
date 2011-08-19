@@ -26,6 +26,7 @@
 #define RESTPOSE_INCLUDED_INDEXING_H
 
 #include "jsonxapian/docdata.h"
+#include "jsonxapian/docvalues.h"
 #include "json/value.h"
 #include <map>
 #include <string>
@@ -84,6 +85,10 @@ namespace RestPose {
 	 *  document data.
 	 */
 	DocumentData docdata;
+
+	/** Data to be stored in document values in the Xapian document.
+	 */
+	DocumentValues docvals;
 
 	/** Fields which are present in a document.
 	 */
@@ -160,11 +165,9 @@ namespace RestPose {
 	 *
 	 *  If the field is an ID field, it should set the idterm appropriately.
 	 *
-	 *  @param state
-	 *  @param doc The document to store terms and values in.
-	 *  @param docdata The document data (may be modified by the method).
+	 *  @param state The current indexing state.
+	 *  @param fieldname The fieldname.
 	 *  @param value The JSON value held in the field.
-	 *  @param idterm A string which may be set to the document ID.
 	 */
 	virtual void index(IndexingState & state,
 			   const std::string & fieldname,
@@ -313,18 +316,18 @@ namespace RestPose {
      */
     class CategoryIndexer : public FieldIndexer {
 	std::string prefix;
-	std::string hierarchy_name;
+	std::string taxonomy_name;
 	std::string store_field;
 	unsigned int max_length;
 	MaxLenFieldConfig::TooLongAction too_long_action;
       public:
 	CategoryIndexer(const std::string & prefix_,
-			const std::string & hierarchy_name_,
+			const std::string & taxonomy_name_,
 			const std::string & store_field_,
 			unsigned int max_length_,
 			MaxLenFieldConfig::TooLongAction too_long_action_)
 		: prefix(prefix_),
-		  hierarchy_name(hierarchy_name_),
+		  taxonomy_name(taxonomy_name_),
 		  store_field(store_field_),
 		  max_length(max_length_), too_long_action(too_long_action_)
 	{}

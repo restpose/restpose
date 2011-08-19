@@ -1,7 +1,7 @@
-/** @file runner.cc
- * @brief Unittest runner.
+/** @file multivalue_keymaker.cc
+ * @brief KeyMaker for sorting by multivalued slots
  */
-/* Copyright (c) 2010 Richard Boulton
+/* Copyright (c) 2011 Richard Boulton
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -23,15 +23,21 @@
  */
 
 #include <config.h>
-#include "UnitTest++.h"
-#include "TestReporterStdout.h"
-#include "logger/logger.h"
+#include "postingsources/multivalue_keymaker.h"
 
-int main(int, char const **)
+#include "serialise.h"
+#include <string>
+#include <xapian.h>
+
+using namespace RestPose;
+using namespace std;
+
+string
+MultiValueKeyMaker::operator()(const Xapian::Document & doc) const
 {
-    RestPose::g_log.start();
-    int result = UnitTest::RunAllTests();
-    RestPose::g_log.stop();
-    RestPose::g_log.join();
-    return result;
+    string value(doc.get_value(slot));
+    const char * pos = value.data();
+    const char * endpos = pos + value.size();
+    size_t len = decode_length(&pos, endpos, true);
+    return string(pos, len);;
 }

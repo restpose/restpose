@@ -34,6 +34,9 @@ using namespace std;
 string
 validate_collname(const string & value)
 {
+    if (value.empty()) {
+	return "Invalid empty collection name";
+    }
     for (string::size_type i = 0; i != value.size(); ++i) {
 	unsigned char ch = value[i];
 	switch (ch) {
@@ -42,7 +45,7 @@ validate_collname(const string & value)
 	    case 15: case 16: case 17: case 18: case 19: case 20: case 21:
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
-	    case '.': case ',':
+	    case '.': case ',': case '[': case ']': case '{': case '}':
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in collection name";
 	}
     }
@@ -61,6 +64,9 @@ validate_collname_throw(const string & value)
 string
 validate_doc_type(const string & value)
 {
+    if (value.empty()) {
+	return "Invalid empty document type name";
+    }
     for (string::size_type i = 0; i != value.size(); ++i) {
 	unsigned char ch = value[i];
 	switch (ch) {
@@ -69,7 +75,7 @@ validate_doc_type(const string & value)
 	    case 15: case 16: case 17: case 18: case 19: case 20: case 21:
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
-	    case '.': case ',':
+	    case '.': case ',': case '[': case ']': case '{': case '}':
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in document type";
 	}
     }
@@ -79,6 +85,9 @@ validate_doc_type(const string & value)
 string
 validate_doc_id(const string & value)
 {
+    if (value.empty()) {
+	return "Invalid empty document ID";
+    }
     for (string::size_type i = 0; i != value.size(); ++i) {
 	unsigned char ch = value[i];
 	switch (ch) {
@@ -87,9 +96,39 @@ validate_doc_id(const string & value)
 	    case 15: case 16: case 17: case 18: case 19: case 20: case 21:
 	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
 	    case 29: case 30: case 31: case ':': case '/': case '\\':
-	    case '.': case ',':
+	    case '.': case ',': case '[': case ']': case '{': case '}':
 		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in document ID";
 	}
     }
     return string();
+}
+
+string
+validate_catid(const string & value)
+{
+    if (value.empty()) {
+	return "Invalid empty category identifier";
+    }
+    for (string::size_type i = 0; i != value.size(); ++i) {
+	unsigned char ch = value[i];
+	switch (ch) {
+	    case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+	    case 8: case 9: case 10: case 11: case 12: case 13: case 14:
+	    case 15: case 16: case 17: case 18: case 19: case 20: case 21:
+	    case 22: case 23: case 24: case 25: case 26: case 27: case 28:
+	    case 29: case 30: case 31: case ':': case '/': case '\\':
+	    case '.': case ',': case '[': case ']': case '{': case '}':
+		return "Invalid character (" + hexesc(value.substr(i, 1)) + ") in category identifier";
+	}
+    }
+    return string();
+}
+
+void
+validate_catid_throw(const string & value)
+{
+    string error = validate_catid(value);
+    if (!error.empty()) {
+	throw InvalidValueError(error);
+    }
 }

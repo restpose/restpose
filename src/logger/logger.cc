@@ -35,57 +35,106 @@
 using namespace std;
 using namespace RestPose;
 
-Logger::Logger()
-	: log_fd(1)
+Logger::Logger(int log_fd_)
+	: Thread(), max_queue_size(100), log_fd(log_fd_)
 {}
 
 void
-Logger::log(const string & message) const
+Logger::log(const string & message)
 {
-    ContextLocker lock(mutex);
+    ContextLocker lock(cond);
     double now = RealTime::now();
-    string buf = str(now) + ": " + message + "\n";
-    (void)io_write(log_fd, buf);
+    if (queue.size() >= max_queue_size) {
+	(queue.back().queue_full_count)++;
+    } else {
+	queue.push(LogMsg(now, message));
+	cond.broadcast();
+    }
 }
 
 void
-Logger::debug(const std::string & message) const
+Logger::process_queue(ContextLocker & lock)
+{
+    string buf;
+    // Write the contents of the queue into the buffer.
+    while (!queue.empty()) {
+	LogMsg & item = queue.front();
+	buf += str(item.timestamp) + ": " + item.message + "\n";
+	if (item.queue_full_count) {
+	    buf += str(item.timestamp) + ": LOG OVERLOADED - missing " +
+		    str(item.queue_full_count) + " entries\n";
+	}
+	queue.pop();
+    }
+
+    // Drop the lock while writing out the buffer.
+    if (!buf.empty()) {
+	lock.unlock();
+	(void)io_write(log_fd, buf);
+	lock.lock();
+    }
+}
+
+void
+Logger::run()
+{
+    ContextLocker lock(cond);
+    while (!stop_requested) {
+	process_queue(lock);
+	if (stop_requested)
+	    break;
+	if (queue.empty()) {
+	    cond.wait();
+	}
+    }
+}
+
+void
+Logger::join()
+{
+    Thread::join();
+    ContextLocker lock(cond);
+    process_queue(lock);
+}
+
+void
+Logger::debug(const std::string & message)
 {
     log("D:" + message);
 }
 
 void
-Logger::info(const std::string & message) const
+Logger::info(const std::string & message)
 {
     log("I:" + message);
 }
 
 void
-Logger::warn(const std::string & message) const
+Logger::warn(const std::string & message)
 {
     log("W:" + message);
 }
 
 void
-Logger::error(const std::string & message) const
+Logger::error(const std::string & message)
 {
     log("E:" + message);
 }
 
 void
-Logger::error(const std::string & context, const RestPose::Error & err) const
+Logger::error(const std::string & context, const RestPose::Error & err)
 {
     log("E:" + context + ": " + err.what());
 }
 
 void
-Logger::error(const std::string & context, const Xapian::Error & err) const
+Logger::error(const std::string & context, const Xapian::Error & err)
 {
     log("E:" + context + ": " + err.get_description());
 }
 
 void
-Logger::error(const std::string & context, const std::bad_alloc &) const
+Logger::error(const std::string & context, const std::bad_alloc &)
 {
     log("E:" + context + ": out of memory");
 }

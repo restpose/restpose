@@ -32,6 +32,7 @@
 #include "jsonxapian/query_builder.h"
 #include "logger/logger.h"
 #include <memory>
+#include "postingsources/multivalue_keymaker.h"
 #include "str.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
@@ -114,21 +115,21 @@ Collection::write_config()
 }
 
 void
-Collection::update_modified_categories(const string & group_name,
-				       const CategoryHierarchy & hierarchy,
-				       const Categories & modified)
+Collection::update_modified_categories_group(const string & prefix,
+					     const Taxonomy & taxonomy,
+					     const Categories & modified)
 {
-    // Find all documents with terms of the form group_name + "C" + cat where cat
-    // is any of the categories in modified.  For each of these documents, read
-    // in the list of terms of form group_name + "C" + *, build the appropriate
-    // list of ancestor categories using the hierarchy, and set the list of
-    // terms of form group_name + "A" to the ancestors.
+    // Find all documents with terms of the form prefix + "C" + cat where cat
+    // is any of the categories in modified.  For each of these documents,
+    // read in the list of terms of form prefix + "C" + *, build the
+    // appropriate list of ancestor categories using the taxonomy, and set
+    // the list of terms of form prefix + "A" to the ancestors.
 
     LOG_DEBUG("updating " + str(modified.size()) +
-	      " modified categories for group: " + group_name);
+	      " modified categories for group: " + prefix);
 
-    string cat_prefix = group_name + "C";
-    string ancestor_prefix = group_name + "A";
+    string cat_prefix = prefix + "C";
+    string ancestor_prefix = prefix + "A";
 
     Xapian::Database db = group.get_db();
     vector<Xapian::PostingIterator> iters;
@@ -168,7 +169,7 @@ Collection::update_modified_categories(const string & group_name,
 		break;
 	    }
 	    const Category * cat =
-		    hierarchy.find((*ti).substr(cat_prefix.size()));
+		    taxonomy.find((*ti).substr(cat_prefix.size()));
 	    if (cat != NULL) {
 		ancestors.insert(cat->ancestors.begin(),
 				 cat->ancestors.end());
@@ -221,6 +222,24 @@ Collection::update_modified_categories(const string & group_name,
     }
 }
 
+void
+Collection::update_modified_categories(const string & taxonomy_name,
+				       const Taxonomy & taxonomy,
+				       const Categories & modified)
+{
+    const set<string> & groups = config.get_taxonomy_groups(taxonomy_name);
+
+    /* Note; when there are many documents in which more than one group uses
+     * the same taxonomy, it would be more efficient to do the update of all
+     * the groups at the same time, rather than one-by-one; we only do it
+     * one-by-one for ease of implementation.
+     */
+    for (set<string>::const_iterator i = groups.begin();
+	 i != groups.end(); ++i) {
+	update_modified_categories_group(*i + "\t", taxonomy, modified);
+    }
+}
+
 Schema &
 Collection::get_schema(const string & type)
 {
@@ -249,7 +268,7 @@ const Pipe &
 Collection::get_pipe(const string & pipe_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
+	throw InvalidStateError("Collection must be open to get pipe");
     }
     return config.get_pipe(pipe_name);
 }
@@ -269,7 +288,7 @@ const Categoriser &
 Collection::get_categoriser(const string & categoriser_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
+	throw InvalidStateError("Collection must be open to get categoriser");
     }
     return config.get_categoriser(categoriser_name);
 }
@@ -285,69 +304,123 @@ Collection::set_categoriser(const string & categoriser_name,
     write_config();
 }
 
-const CategoryHierarchy *
-Collection::get_category_hierarchy(const string & category_name) const
+const Taxonomy *
+Collection::get_taxonomy(const string & category_name) const
 {
     if (!group.is_open()) {
-	throw InvalidStateError("Collection must be open to get schema");
+	throw InvalidStateError("Collection must be open to get taxonomy");
     }
-    return config.get_category_hierarchy(category_name);
+    return config.get_taxonomy(category_name);
 }
 
 void
-Collection::set_category_hierarchy(const string & category_name,
-			 const CategoryHierarchy & category)
+Collection::set_taxonomy(const string & category_name,
+			 const Taxonomy & category)
 {
     if (!group.is_writable()) {
 	throw InvalidStateError("Collection must be open for writing to set category");
     }
-    config.set_category_hierarchy(category_name, category);
+    config.set_taxonomy(category_name, category);
+    write_config();
+}
+
+Json::Value &
+Collection::get_taxonomy_names(Json::Value & result) const
+{
+    if (!group.is_open()) {
+	throw InvalidStateError("Collection must be open to get taxonomy");
+    }
+    return config.get_taxonomy_names(result);
+}
+
+void
+Collection::remove_taxonomy(const string & taxonomy_name)
+{
+    config.remove_taxonomy(taxonomy_name);
+
+    // Update all documents which used the taxonomy.
+    Xapian::Database db = group.get_db();
+    const set<string> & groups = config.get_taxonomy_groups(taxonomy_name);
+    for (set<string>::const_iterator i = groups.begin();
+	 i != groups.end(); ++i) {
+	string prefix = *i + "\t";
+	string ancestor_prefix = prefix + "A";
+	// Remove all terms starting with ancestor_prefix.
+	for (Xapian::TermIterator allti = db.allterms_begin(ancestor_prefix);
+	     allti != db.allterms_end(ancestor_prefix); ++allti) {
+	    for (Xapian::PostingIterator pi = db.postlist_begin(*allti);
+		 pi != db.postlist_end(*allti); ++pi) {
+		Xapian::Document doc(db.get_document(*pi));
+		Xapian::TermIterator ti = doc.termlist_begin();
+
+		// Get the idterm
+		ti.skip_to("\t");
+		if (ti == doc.termlist_end() || (*ti)[0] != '\t') {
+		    throw InvalidValueError("Document has no ID - cannot update category terms");
+		}
+		string idterm = *ti;
+
+		ti.skip_to(ancestor_prefix);
+		while (ti != doc.termlist_end() &&
+		       string_startswith(*ti, ancestor_prefix)) {
+		    doc.remove_term(*ti);
+		}
+
+		group.add_doc(doc, idterm);
+	    }
+	}
+    }
+
     write_config();
 }
 
 void
-Collection::category_add(const string & hierarchy_name,
+Collection::category_add(const string & taxonomy_name,
 			 const string & cat_name)
 {
     Categories modified;
-    config.category_add(hierarchy_name, cat_name, modified);
+    config.category_add(taxonomy_name, cat_name, modified);
     // modified either contains the new category, or is empty if the
     // category already existed.  In either case, there are no
     // changes to other categories, so no need to update documents.
+    write_config();
 }
 
 void
-Collection::category_remove(const string & hierarchy_name,
+Collection::category_remove(const string & taxonomy_name,
 			    const string & cat_name)
 {
     Categories modified;
-    const CategoryHierarchy & hierarchy =
-	    config.category_remove(hierarchy_name, cat_name, modified);
-    update_modified_categories(hierarchy_name + "\t", hierarchy, modified);
+    const Taxonomy & taxonomy =
+	    config.category_remove(taxonomy_name, cat_name, modified);
+    update_modified_categories(taxonomy_name, taxonomy, modified);
+    write_config();
 }
 
 void
-Collection::category_add_parent(const string & hierarchy_name,
+Collection::category_add_parent(const string & taxonomy_name,
 				const string & child_name,
 				const string & parent_name)
 {
     Categories modified;
-    const CategoryHierarchy & hierarchy =
-	    config.category_add_parent(hierarchy_name, child_name,
+    const Taxonomy & taxonomy =
+	    config.category_add_parent(taxonomy_name, child_name,
 				       parent_name, modified);
-    update_modified_categories(hierarchy_name + "\t", hierarchy, modified);
+    update_modified_categories(taxonomy_name, taxonomy, modified);
+    write_config();
 }
 
 void
-Collection::category_remove_parent(const string & hierarchy_name,
+Collection::category_remove_parent(const string & taxonomy_name,
 				   const string & child_name,
 				   const string & parent_name)
 {
     Categories modified;
-    const CategoryHierarchy & hierarchy =
-	    config.category_remove_parent(hierarchy_name, child_name,
+    const Taxonomy & taxonomy =
+	    config.category_remove_parent(taxonomy_name, child_name,
 					  parent_name, modified);
-    update_modified_categories(hierarchy_name + "\t", hierarchy, modified);
+    update_modified_categories(taxonomy_name, taxonomy, modified);
+    write_config();
 }
 
 void
@@ -509,6 +582,7 @@ Collection::perform_search(const Json::Value & search,
     // Internal document IDs are not under the user's control, so set this
     // option for potential (though probably slight) performance increases.
     enq.set_docid_order(enq.DONT_CARE);
+    auto_ptr<Xapian::KeyMaker> sorter;
 
     if (search.isMember("order_by")) {
 	const Json::Value & order_by = search["order_by"];
@@ -532,6 +606,8 @@ Collection::perform_search(const Json::Value & search,
 	    }
 	    bool ascending = json_get_bool(order_by_item, "ascending", true);
 	    enq.set_sort_by_value(slot, !ascending);
+	    sorter = auto_ptr<Xapian::KeyMaker>(new MultiValueKeyMaker(slot));
+	    enq.set_sort_by_key_then_relevance(sorter.get(), !ascending);
 	} else if (order_by_item.isMember("score")) {
 	    // Order by the weights calculated in the query tree.
 	    if (order_by_item["score"] != "weight") {

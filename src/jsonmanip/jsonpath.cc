@@ -82,13 +82,13 @@ JSONPath::from_json(const Json::Value & value)
 }
 
 
-JSONWalker::Level::Level(const Json::Value & value)
-	: parent_value(&value),
-	  pos(value.begin()),
-	  end(value.end()),
+JSONWalker::Level::Level(const Json::Value & new_value)
+	: parent_value(&new_value),
+	  pos(new_value.begin()),
+	  end(new_value.end()),
 	  started(false)
 {
-    if (value.isObject()) {
+    if (new_value.isObject()) {
 	type = JSONPathComponent::JSONPATH_KEY;
     } else {
 	type = JSONPathComponent::JSONPATH_INDEX;

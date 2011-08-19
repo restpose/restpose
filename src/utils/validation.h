@@ -50,4 +50,16 @@ std::string validate_doc_type(const std::string & value);
  */
 std::string validate_doc_id(const std::string & value);
 
+/** Check if a category identifier is valid.
+ *
+ *  Returns an error message if the name is not valid.
+ */
+std::string validate_catid(const std::string & value);
+
+/** Check if a category identifier is valid.
+ *
+ *  Raises InvalidValueError if the name is not valid.
+ */
+void validate_catid_throw(const std::string & value);
+
 #endif /* RESTPOSE_INCLUDED_VALIDATION_H */

@@ -38,7 +38,7 @@
 #include "docdata.h"
 #include "hashterm.h"
 #include "jsonxapian/collconfig.h"
-#include "jsonxapian/category_hierarchy.h"
+#include "jsonxapian/taxonomy.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 #include "utils/validation.h"
@@ -202,8 +202,8 @@ DoubleIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	} else if ((*i).isConvertibleTo(Json::realValue)) {
 	    state.field_nonempty(fieldname);
-	    state.doc.add_value(slot,
-				Xapian::sortable_serialise((*i).asDouble()));
+	    state.docvals.add(slot,
+			      Xapian::sortable_serialise((*i).asDouble()));
 	} else {
 	    state.append_error(fieldname, "Double field must be numeric");
 	}
@@ -229,8 +229,8 @@ TimeStampIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	} else if ((*i).isConvertibleTo(Json::realValue)) {
 	    state.field_nonempty(fieldname);
-	    state.doc.add_value(slot,
-				Xapian::sortable_serialise((*i).asDouble()));
+	    state.docvals.add(slot,
+			      Xapian::sortable_serialise((*i).asDouble()));
 	} else {
 	    state.append_error(fieldname, "Timestamp field must be numeric");
 	}
@@ -260,7 +260,7 @@ DateIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	} else {
 	    state.field_nonempty(fieldname);
-	    state.doc.add_value(slot, parsed);
+	    state.docvals.add(slot, parsed);
 	}
     }
 
@@ -329,8 +329,8 @@ CategoryIndexer::index(IndexingState & state,
 		       const std::string & fieldname,
 		       const Json::Value & values) const
 {
-    const CategoryHierarchy * hierarchy =
-	    state.collconfig.get_category_hierarchy(hierarchy_name);
+    const Taxonomy * taxonomy =
+	    state.collconfig.get_taxonomy(taxonomy_name);
     for (Json::Value::const_iterator i = values.begin();
 	 i != values.end(); ++i) {
 
@@ -364,9 +364,9 @@ CategoryIndexer::index(IndexingState & state,
 	    }
 	}
 	state.doc.add_term(prefix + "C" + val, 0);
-	if (hierarchy != NULL) {
+	if (taxonomy != NULL) {
 	    // Add terms for the parent categories.
-	    const Category * cat_ptr = hierarchy->find(val);
+	    const Category * cat_ptr = taxonomy->find(val);
 	    if (cat_ptr != NULL) {
 		for (Categories::const_iterator j = cat_ptr->ancestors.begin();
 		     j != cat_ptr->ancestors.end(); ++j) {

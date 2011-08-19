@@ -34,6 +34,7 @@
 #include "server/task_manager.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
+#include "utils/stringutils.h"
 #include "utils/validation.h"
 
 using namespace std;
@@ -86,12 +87,12 @@ CollectionConfig::clear()
     }
     categorisers.clear();
 
-    for (map<string, CategoryHierarchy *>::iterator
-	 i = categories.begin(); i != categories.end(); ++i) {
+    for (map<string, Taxonomy *>::iterator
+	 i = taxonomies.begin(); i != taxonomies.end(); ++i) {
 	delete i->second;
 	i->second = NULL;
     }
-    categories.clear();
+    taxonomies.clear();
 }
 
 void
@@ -123,8 +124,8 @@ CollectionConfig::set_default_schema()
 "    [ \"tag\", { \"type\": \"exact\", \"group\": \"g\", \"store_field\": \"tag\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
 "    [ \"*_url\", { \"type\": \"exact\", \"group\": \"u*\", \"store_field\": \"*_url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
 "    [ \"url\", { \"type\": \"exact\", \"group\": \"u\", \"store_field\": \"url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
-"    [ \"*_cat\", { \"type\": \"cat\", \"group\": \"c*\", \"store_field\": \"*_cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
-"    [ \"cat\", { \"type\": \"cat\", \"group\": \"c\", \"store_field\": \"cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
+"    [ \"*_cat\", { \"type\": \"cat\", \"group\": \"c*\", \"store_field\": \"*_cat\", \"taxonomy\": \"*_cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
+"    [ \"cat\", { \"type\": \"cat\", \"group\": \"c\", \"store_field\": \"cat\", \"taxonomy\": \"cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
 "    [ \"id\", { \"type\": \"id\", \"store_field\": \"id\" } ],"
 "    [ \"type\", { \"type\": \"exact\", \"group\": \"!\", \"store_field\": \"type\" } ],"
 "    [ \"_meta\", { \"type\": \"meta\", \"group\": \"#\", \"slot\": 0 } ],"
@@ -247,11 +248,11 @@ CollectionConfig::categorisers_config_from_json(const Json::Value & value)
 void
 CollectionConfig::categories_config_to_json(Json::Value & value) const
 {
-    Json::Value & categories_obj(value["categories"]);
+    Json::Value & categories_obj(value["taxonomies"]);
     categories_obj = Json::objectValue;
 
-    for (map<string, CategoryHierarchy *>::const_iterator
-	 i = categories.begin(); i != categories.end(); ++i) {
+    for (map<string, Taxonomy *>::const_iterator
+	 i = taxonomies.begin(); i != taxonomies.end(); ++i) {
 	Json::Value & category_obj = categories_obj[i->first];
 	i->second->to_json(category_obj);
     }
@@ -260,31 +261,31 @@ CollectionConfig::categories_config_to_json(Json::Value & value) const
 void
 CollectionConfig::categories_config_from_json(const Json::Value & value)
 {
-    const Json::Value & categories_obj(value["categories"]);
+    const Json::Value & categories_obj(value["taxonomies"]);
     if (!categories_obj.isNull()) {
-	json_check_object(categories_obj, "categories definition");
+	json_check_object(categories_obj, "taxonomies definition");
 	for (Json::Value::iterator i = categories_obj.begin();
 	     i != categories_obj.end(); ++i) {
-	    CategoryHierarchy hierarchy;
-	    hierarchy.from_json(*i);
-	    set_category_hierarchy(i.memberName(), hierarchy);
+	    Taxonomy taxonomy;
+	    taxonomy.from_json(*i);
+	    set_taxonomy(i.memberName(), taxonomy);
 	}
     }
 }
 
-CategoryHierarchy &
-CollectionConfig::get_or_add_cat_hierarchy(const std::string & hierarchy_name)
+Taxonomy &
+CollectionConfig::get_or_add_taxonomy(const std::string & taxonomy_name)
 {
-    map<string, CategoryHierarchy *>::const_iterator i
-	    = categories.find(hierarchy_name);
-    if (i == categories.end()) {
-	pair<map<string, CategoryHierarchy *>::iterator, bool> ret;
-	pair<string, CategoryHierarchy *> item(hierarchy_name, NULL);
-	ret = categories.insert(item);
-	CategoryHierarchy * categoryptr = new CategoryHierarchy();
-	ret.first->second = categoryptr;
+    map<string, Taxonomy *>::const_iterator i
+	    = taxonomies.find(taxonomy_name);
+    if (i == taxonomies.end()) {
+	pair<map<string, Taxonomy *>::iterator, bool> ret;
+	pair<string, Taxonomy *> item(taxonomy_name, NULL);
+	ret = taxonomies.insert(item);
+	Taxonomy * taxonomyptr = new Taxonomy();
+	ret.first->second = taxonomyptr;
 	changed = true;
-	return *categoryptr;
+	return *taxonomyptr;
     } else {
 	return *(i->second);
     }
@@ -310,7 +311,6 @@ CollectionConfig::set_default()
 {
     clear();
     set_default_schema();
-    set_pipe("default", Pipe());
 }
 
 CollectionConfig *
@@ -335,7 +335,7 @@ CollectionConfig::to_json(Json::Value & value) const
     if (!categorisers.empty()) {
 	categorisers_config_to_json(value);
     }
-    if (!categories.empty()) {
+    if (!taxonomies.empty()) {
 	categories_config_to_json(value);
     }
     value["format"] = CONFIG_FORMAT;
@@ -350,6 +350,7 @@ CollectionConfig::from_json(const Json::Value & value)
     check_format_number(json_get_uint64_member(value, "format",
 					       Json::Value::maxInt));
 
+    clear();
     schemas_config_from_json(value);
     pipes_config_from_json(value);
     categorisers_config_from_json(value);
@@ -432,8 +433,7 @@ CollectionConfig::get_pipe(const string & pipe_name) const
 }
 
 void
-CollectionConfig::set_pipe(const string & pipe_name,
-			   const Pipe & pipe)
+CollectionConfig::set_pipe(const string & pipe_name, const Pipe & pipe)
 {
     Pipe * pipeptr;
     map<string, Pipe *>::iterator i = pipes.find(pipe_name);
@@ -481,84 +481,122 @@ CollectionConfig::set_categoriser(const string & categoriser_name,
     changed = true;
 }
 
-const CategoryHierarchy *
-CollectionConfig::get_category_hierarchy(const string & hierarchy_name) const
+const Taxonomy *
+CollectionConfig::get_taxonomy(const string & taxonomy_name) const
 {
-    map<string, CategoryHierarchy *>::const_iterator i
-	    = categories.find(hierarchy_name);
-    if (i == categories.end()) {
+    map<string, Taxonomy *>::const_iterator i
+	    = taxonomies.find(taxonomy_name);
+    if (i == taxonomies.end()) {
 	return NULL;
     }
     return i->second;
 }
 
 void
-CollectionConfig::set_category_hierarchy(const string & hierarchy_name,
-					 const CategoryHierarchy & category)
+CollectionConfig::set_taxonomy(const string & taxonomy_name,
+			       const Taxonomy & taxonomy)
 {
-    CategoryHierarchy * categoryptr;
-    map<string, CategoryHierarchy *>::iterator i
-	    = categories.find(hierarchy_name);
+    Taxonomy * taxonomyptr;
+    map<string, Taxonomy *>::iterator i = taxonomies.find(taxonomy_name);
 
-    if (i == categories.end()) {
-	pair<map<string, CategoryHierarchy *>::iterator, bool> ret;
-	pair<string, CategoryHierarchy *> item(hierarchy_name, NULL);
-	ret = categories.insert(item);
-	categoryptr = new CategoryHierarchy();
-	ret.first->second = categoryptr;
+    if (i == taxonomies.end()) {
+	pair<map<string, Taxonomy *>::iterator, bool> ret;
+	pair<string, Taxonomy *> item(taxonomy_name, NULL);
+	ret = taxonomies.insert(item);
+	taxonomyptr = new Taxonomy();
+	ret.first->second = taxonomyptr;
     } else {
-	categoryptr = i->second;
+	taxonomyptr = i->second;
     }
 
-    // Copy the category hierarchy.
-    *categoryptr = category;
+    // Copy the taxonomy.
+    *taxonomyptr = taxonomy;
     changed = true;
 }
 
-const CategoryHierarchy &
-CollectionConfig::category_add(const std::string & hierarchy_name,
+void
+CollectionConfig::remove_taxonomy(const string & taxonomy_name)
+{
+    map<string, Taxonomy *>::iterator i
+	    = taxonomies.find(taxonomy_name);
+    if (i == taxonomies.end()) {
+	return;
+    }
+    taxonomies.erase(i);
+    changed = true;
+}
+
+Json::Value &
+CollectionConfig::get_taxonomy_names(Json::Value & result) const
+{
+    result = Json::arrayValue;
+    for (map<string, Taxonomy *>::const_iterator
+	 i = taxonomies.begin(); i != taxonomies.end(); ++i) {
+	result.append(i->first);
+    }
+    return result;
+}
+
+const set<string> &
+CollectionConfig::get_taxonomy_groups(const string & taxonomy_name) const
+{
+    // Currently, the information needed for this isn't updated when things
+    // change, so we just have to iterate through all the types, looking for
+    // uses of the taxonomy.
+    set<string> & result(group_taxonomies[taxonomy_name]);
+    result.clear();
+    for (map<string, Schema *>::const_iterator i = types.begin();
+	 i != types.end(); ++i) {
+	if (i->second == NULL) continue;
+	i->second->get_taxonomy_groups(taxonomy_name, result);
+    }
+    return result;
+}
+
+const Taxonomy &
+CollectionConfig::category_add(const std::string & taxonomy_name,
 			       const std::string & cat_name,
 			       Categories & modified)
 {
-    CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
-    hierarchy.add(cat_name, modified);
+    Taxonomy & taxonomy = get_or_add_taxonomy(taxonomy_name);
+    taxonomy.add(cat_name, modified);
     changed = true;
-    return hierarchy;
+    return taxonomy;
 }
 
-const CategoryHierarchy &
-CollectionConfig::category_remove(const std::string & hierarchy_name,
+const Taxonomy &
+CollectionConfig::category_remove(const std::string & taxonomy_name,
 				  const std::string & cat_name,
 				  Categories & modified)
 {
-    CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
-    hierarchy.remove(cat_name, modified);
+    Taxonomy & taxonomy = get_or_add_taxonomy(taxonomy_name);
+    taxonomy.remove(cat_name, modified);
     changed = true;
-    return hierarchy;
+    return taxonomy;
 }
 
-const CategoryHierarchy &
-CollectionConfig::category_add_parent(const std::string & hierarchy_name,
+const Taxonomy &
+CollectionConfig::category_add_parent(const std::string & taxonomy_name,
 				      const std::string & child_name,
 				      const std::string & parent_name,
 				      Categories & modified)
 {
-    CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
-    hierarchy.add_parent(child_name, parent_name, modified);
+    Taxonomy & taxonomy = get_or_add_taxonomy(taxonomy_name);
+    taxonomy.add_parent(child_name, parent_name, modified);
     changed = true;
-    return hierarchy;
+    return taxonomy;
 }
 
-const CategoryHierarchy &
-CollectionConfig::category_remove_parent(const std::string & hierarchy_name,
+const Taxonomy &
+CollectionConfig::category_remove_parent(const std::string & taxonomy_name,
 					 const std::string & child_name,
 					 const std::string & parent_name,
 					 Categories & modified)
 {
-    CategoryHierarchy & hierarchy = get_or_add_cat_hierarchy(hierarchy_name);
-    hierarchy.remove_parent(child_name, parent_name, modified);
+    Taxonomy & taxonomy = get_or_add_taxonomy(taxonomy_name);
+    taxonomy.remove_parent(child_name, parent_name, modified);
     changed = true;
-    return hierarchy;
+    return taxonomy;
 }
 
 Json::Value &
@@ -715,8 +753,51 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
     }
 
     if (doc_id.empty()) {
-	// No document id supplied in URL - assume it's in the document,
-	// or deliberately absent.
+	// No document id supplied in URL - get value from the document.
+	Json::Value & id_obj = doc_obj[id_field];
+	string doc_id_;
+	if (id_obj.isNull()) {
+	    errors.append(id_field,
+			  "No document ID supplied or stored in document.");
+	    errors.total_failure = true;
+	    return doc;
+	}
+	if (id_obj.isArray()) {
+	    if (id_obj.size() == 1) {
+		string error;
+		doc_id_ = json_get_idstyle_value(id_obj[0], error);
+		if (!error.empty()) {
+		    errors.append(id_field, error);
+		    errors.total_failure = true;
+		    return doc;
+		}
+	    } else if (id_obj.size() == 0) {
+		errors.append(id_field,
+			      "No document ID stored in document.");
+		errors.total_failure = true;
+		return doc;
+	    } else {
+		errors.append(id_field,
+			      "Multiple ID values provided - must have only one");
+		errors.total_failure = true;
+		return doc;
+	    }
+	} else {
+	    string error;
+	    doc_id_ = json_get_idstyle_value(id_obj, error);
+	    if (!error.empty()) {
+		errors.append(id_field, error);
+		errors.total_failure = true;
+		return doc;
+	    }
+	}
+
+	string error = validate_doc_id(doc_id_);
+	if (!error.empty()) {
+	    errors.append(id_field, error);
+	    errors.total_failure = true;
+	    return doc;
+	}
     } else {
 	// Document id supplied in URL - check that it isn't different in
 	// document, and set it in the document.
@@ -737,7 +818,7 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		    }
 		} else if (id_obj.size() > 1) {
 		    errors.append(id_field,
-				  "Multiple document ids stored in document.");
+				  "Multiple ID values provided - must have only one");
 		    errors.total_failure = true;
 		    return doc;
 		}
@@ -759,12 +840,18 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 		return doc;
 	    }
 	}
+	string error = validate_doc_id(doc_id);
+	if (!error.empty()) {
+	    errors.append(id_field, error);
+	    errors.total_failure = true;
+	    return doc;
+	}
     }
 
     {
 	string error = validate_doc_type(doc_type_);
 	if (!error.empty()) {
-	    errors.append(id_field, error);
+	    errors.append(type_field, error);
 	    errors.total_failure = true;
 	    return doc;
 	}

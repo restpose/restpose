@@ -64,6 +64,7 @@ main_do(int argc, char * const* argv)
     server.add("taskman", taskman);
     Router router(taskman, &server);
     setup_routes(router);
+    g_log.start();
 
     if (opts.action == CliOptions::ACT_SERVE) {
 	server.add("httpserver", new HTTPServer(opts.port, opts.pedantic, &router));
@@ -124,6 +125,9 @@ main_do(int argc, char * const* argv)
 	cat.to_json(tmp);
 	printf("%s", json_serialise(tmp).c_str());
     }
+
+    g_log.stop();
+    g_log.join();
 
     return ret;
 }

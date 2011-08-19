@@ -1,10 +1,14 @@
 Before release.
 
- - review README files in restpose and restpose-py.
+ - update NEWS and ChangeLog with details of changes since last release.
+
+ - review README files in restpose and restpose-py.  Update version numbers.
 
  - update version number in configure.ac to remove "dev"
 
  - update version number in restpose-py/restpose/version.py to remove "dev"
+
+ - review restpose-py/setup.py - in particular, check classifiers still correct.
 
  - check all tests run
 
@@ -15,11 +19,30 @@ Before release.
 
  - build tarballs, with make distcheck.
 
- - commit and push versions of restpose and restpose-py with "dev" removed from configure.ac
+ - commit and push versions of restpose and restpose-py with "dev" removed from
+   configure.ac
 
  - tag in git, and push tag
 
+   For example::
+
+       git tag -a -m "0.X.X release" r0.X.X # Replace the Xes
+       git push --tags
+
  - upload tarballs
+
+   For server, upload manually to github
+
+   For python::
+
+       python setup.py sdist register upload
+       (cd docs && make html)
+       python setup.py upload_docs --upload-dir docs/build/html/
 
  - update version number in configure.ac and restpose-py/restpose/version.py to
    be the next release number, with "dev" appended.  commit this.
+
+ - update freshmeat
+
+ - hit hammer for all versions on readthedocs, to get the navigation links
+   updated correctly.

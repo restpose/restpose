@@ -27,7 +27,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include "jsonxapian/category_hierarchy.h"
+#include "jsonxapian/taxonomy.h"
 #include "logger/logger.h"
 #include "str.h"
 #include "utils/jsonutils.h"
@@ -64,10 +64,10 @@ flatten(const Category * cat)
 }
 
 /// Test building a basic hierarchy
-TEST(CategoryHierarchyBasic)
+TEST(TaxonomyBasic)
 {
     Json::Value tmp;
-    CategoryHierarchy h;
+    Taxonomy h;
 
     CHECK_EQUAL("{}",
 		json_serialise(h.to_json(tmp)));
@@ -152,7 +152,7 @@ TEST(CategoryHierarchyBasic)
 }
 
 static bool
-check_for_loop(const CategoryHierarchy & h, const string & child, const string & parent)
+check_for_loop(const Taxonomy & h, const string & child, const string & parent)
 {
     if (child == parent) {
 	// A trivial loop.
@@ -181,12 +181,12 @@ check_for_loop(const CategoryHierarchy & h, const string & child, const string &
 }
 
 /// Fuzz test for modifications to a category hierarchy.
-TEST(CategoryHierarchyRandomOp)
+TEST(TaxonomyRandomOp)
 {
     srand(42);
     int count = 200;
 
-    CategoryHierarchy h;
+    Taxonomy h;
     map<string, string> flat_cats; // Flattened versions of the categories.
     while (count-- > 0) {
 	Categories actual_modified;

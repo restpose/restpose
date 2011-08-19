@@ -333,7 +333,7 @@ TEST(DoubleFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"num\":[0]},\"values\":{\"7\":\"\\\\x80\"}}",
+	CHECK_EQUAL("{\"data\":{\"num\":[0]},\"values\":{\"7\":\"\\\\x01\\\\x80\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"num\":[0]}");
     }
@@ -343,9 +343,9 @@ TEST(DoubleFields)
     CollectionQueryBuilder builder;
 
     Xapian::Query q = builder.build(config, json_unserialise("{\"field\": [\"num\", \"range\", [-1, 1]]}", tmp));
-    CHECK_EQUAL("Xapian::Query(VALUE_RANGE 7 ^ \xa0)", q.get_description());
+    CHECK_EQUAL("Xapian::Query(PostingSource(MultiValueRangeSource(7, 1, ^, \\xa0)))", q.get_description());
     q = builder.build(config, json_unserialise("{\"field\": [\"num\", \"range\", [0, 1]]}", tmp));
-    CHECK_EQUAL("Xapian::Query(VALUE_RANGE 7 \x80 \xa0)", q.get_description());
+    CHECK_EQUAL("Xapian::Query(PostingSource(MultiValueRangeSource(7, 1, \\x80, \\xa0)))", q.get_description());
 }
 
 TEST(TimestampFields)
@@ -371,7 +371,7 @@ TEST(TimestampFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"timestamp\":[1283400000]},\"values\":{\"0\":\"\\\\xe0\\\\\\\\\\\\xc7\\\\xf2\\\\x14\"}}",
+	CHECK_EQUAL("{\"data\":{\"timestamp\":[1283400000]},\"values\":{\"0\":\"\\\\x05\\\\xe0\\\\\\\\\\\\xc7\\\\xf2\\\\x14\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"timestamp\":[1283400000]}");
     }
@@ -400,7 +400,7 @@ TEST(DateFields)
 	Xapian::Document doc = s.process(v, config, idterm, errors);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
-	CHECK_EQUAL("{\"data\":{\"date2\":[\"2010-06-08\"]},\"values\":{\"0\":\"\\\\xcf\\\\xda&(\"}}",
+	CHECK_EQUAL("{\"data\":{\"date2\":[\"2010-06-08\"]},\"values\":{\"0\":\"\\\\x04\\\\xcf\\\\xda&(\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL("{\"date2\":[\"2010-06-08\"]}", s.display_doc_as_string(doc));
     }
@@ -411,8 +411,8 @@ TEST(CategoryFields)
     CollectionConfig config("test"); // dummy config, used for testing.
     Json::Value tmp, tmp2;
     Schema s2("");
-    s2.set("cat", new CategoryFieldConfig("cat", 30, ExactFieldConfig::TOOLONG_ERROR, "category"));
-    CHECK_EQUAL("{\"fields\":{\"cat\":{\"group\":\"cat\",\"max_length\":30,\"store_field\":\"category\",\"too_long_action\":\"error\",\"type\":\"cat\"}},\"patterns\":[]}",
+    s2.set("cat", new CategoryFieldConfig("cat", "cat1", 30, ExactFieldConfig::TOOLONG_ERROR, "category"));
+    CHECK_EQUAL("{\"fields\":{\"cat\":{\"group\":\"cat\",\"max_length\":30,\"store_field\":\"category\",\"taxonomy\":\"cat1\",\"too_long_action\":\"error\",\"type\":\"cat\"}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");

@@ -21,10 +21,12 @@ A set of *Categorisers*
    These can can be applied to parts of a document for tasks such as
    identifying the language of a piece of text.
 
-A set of *Category Hierarchies*
-   Fields in documents can be attached to categories.  Searches can then 
-   efficiently match all items in a given category, or in the children of a
-   given category.
+A set of *Taxonomies*
+
+   Collections contain a named set of taxonomies, each of which contains a set
+   of categories.  The schema can associate fields with taxonomies.  Searches
+   can then efficiently match all items in a given category, or in the children
+   of a given category.
 
 A set of *Orderings*
    Documents in the collection, or a subset of documents in the collection,
@@ -44,7 +46,7 @@ value when referred to in URIs, and is not allowed to contain the following
 characters:
 
  * "Control" characters: ie, characters in the range 0 to 31.
- * ``:``, ``/``, ``\``, ``.``, ``,``
+ * ``:``, ``/``, ``\``, ``.``, ``,``, ``[``, ``]``, ``{``, ``}``
 
 ---------
 Documents
@@ -76,7 +78,9 @@ Document IDs and type names are assumed to be UTF-8 encoded values when
 referred to in URIs, and are not allowed to contain the following characters:
 
  * "Control" characters: ie, characters in the range 0 to 31.
- * ``:``, ``/``, ``\``, ``.``, ``,``
+ * ``:``, ``/``, ``\``, ``.``, ``,``, ``[``, ``]``, ``{``, ``}``
+
+.. _types_and_schemas:
 
 -----------------
 Types and Schemas
@@ -91,14 +95,14 @@ Each type is described by a schema, which consists of several properties and
 governs the way in which search and indexing is performed:
 
 *fields*
-    A description of the configuration for each known `field type`_.
+    A description of the configuration for each known `field_type`_.
 *patterns*
     A list of `patterns`_ to apply, in order, to unknown fields.
 
 The collection configuration contains a section which defines which fields are
 used to hold identifiers for document ids and document types.
 
-.. _field type:
+.. _field_type:
 
 Field types
 ===========
@@ -201,16 +205,24 @@ Category fields
 
 (`type` = `cat`)
 
-Category fields are somewhat similar to exact fields, but in addition a
-hierarchy of field values can be defined.  Searches can then be used to find
-all documents in which a value in a document is an ancestor of the search
-value.
+Category fields are somewhat similar to exact fields, but are attached to a
+taxonomy (essentially, a hierarchy of field values).  Searches can then be used
+to find all documents in which a value in a document is a descendant of the
+search value.
+
+They have one additional parameter: the "taxonomy" parameter, which is the name
+of the taxonomy used by the field.  Multiple independent fields may make use of
+the same taxononmy.
+
+In order to work correctly, it is advisable to ensure that the term `group`
+used for a category field is not shared with any other fields which use a
+different taxonomy, or which are not category fields.
 
 Each field value may be given one or more parents.  It is also possible for a
 parent to have multiple child values.  It is an error to attempt to set up
 loops in the inheritance graph, however.
 
-See the `Category Hierarchies`_ section for more details.
+See the `Taxonomies`_ section for more details.
 
 Timestamp fields
 ----------------
@@ -259,9 +271,9 @@ Ignore fields
 (`type` = `ignore`)
 
 Ignore fields are completely ignored.  They may be defined to prevent the
-default action for unknown fields being performed on them.
-
-.. todo: check that the behaviour for an ignore field which has a store_field parameter is sensible, and document it.
+default action for unknown fields being performed on them.  Note that this
+field type does not support the `store_field` parameter; the contents of an
+ignored field will never be stored.
 
 ID fields
 ---------
@@ -388,18 +400,35 @@ are used for special purposes.
      meta field - the entries will be automatically generated based on the
      result of processing the documents.
 
+----------
+Taxonomies
+----------
+
+A collection may contain a set of Taxonomies, each identified by a name.  These
+taxonomies consist of a hierarchy of categories, and can be associated with
+fields.  When associated with a category field, it becomes possible to search
+efficiently for all documents in which a field value is a descendant of a given
+category; normally, it would only be possible to do this by constructing a huge
+query consisting of all the categories which are such descendants.
+
+Taxonomies may be modifed at any time by adding or removing category-parent
+relationships, or even hold categories.  The necessary index updates will be
+performed automatically.
+
+.. note:: If possible, it is better to put the hierarchy in place before adding
+          documents, since this will require less work in total.
+
+.. note:: Currently, the taxonomy feature is not designed to perform well with
+	  large numbers of entries in the category hierarchy (ie, more than a
+	  few hundred entries).  Performance improvements are planned, but if
+	  you need to use the feature with deep hierarchies, contact the author
+	  on IRC or email.
+
 ------------
 Categorisers
 ------------
 
 .. todo: document categorisers
-
-
---------------------
-Category Hierarchies
---------------------
-
-.. todo: implement and document category hierarchies
 
 ---------
 Orderings

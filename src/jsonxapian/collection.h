@@ -38,7 +38,7 @@ class TaskManager;
 
 namespace RestPose {
 
-class Pipe;
+struct Pipe;
 
 class Collection {
     /** The configuration used for this collection.
@@ -74,10 +74,17 @@ class Collection {
      */
     void write_config();
 
+    /** Update documents which are in the list of modified categories in this
+     *  group.
+     */
+    void update_modified_categories_group(const std::string & group,
+					  const Taxonomy & taxonomy,
+					  const Categories & modified);
+
     /** Update documents which are in the list of modified categories.
      */
-    void update_modified_categories(const std::string & group,
-				    const CategoryHierarchy & hierarchy,
+    void update_modified_categories(const std::string & taxonomy_name,
+				    const Taxonomy & taxonomy,
 				    const Categories & modified);
 
     /// Copying not allowed.
@@ -185,31 +192,38 @@ class Collection {
 			 const Categoriser & categoriser);
 
 
-    /** Get a CategoryHierarchy.
+    /** Get a taxonomy.
      *
-     *  Returns NULL if the hierarchy is not known.
+     *  Returns NULL if the taxonomy is not known.
      *
      *  The returned pointer is invalid after modifications have been made
      *  to the collection's categoriser configuration.
      */
-    const CategoryHierarchy *
-	    get_category_hierarchy(const std::string & hierarchy_name) const;
+    const Taxonomy * get_taxonomy(const std::string & taxonomy_name) const;
 
-    /** Set a category hierarchy.
+    /** Set a taxonomy.
      *
-     *  Takes a copy of the supplied category hierarchy.
+     *  Takes a copy of the supplied taxonomy.
      */
-    void set_category_hierarchy(const std::string & hierarchy_name,
-				const CategoryHierarchy & category);
+    void set_taxonomy(const std::string & taxonomy_name,
+		      const Taxonomy & category);
 
-    void category_add(const std::string & hierarchy_name,
+    /** Get a list of the taxonomies.
+     *
+     *  @param result A reference to a value which will be set to an array of
+     *  category names.
+     */
+    Json::Value & get_taxonomy_names(Json::Value & result) const;
+
+    void remove_taxonomy(const std::string & taxononmy_name);
+    void category_add(const std::string & taxonomy_name,
 		      const std::string & cat_name);
-    void category_remove(const std::string & hierarchy_name,
+    void category_remove(const std::string & taxonomy_name,
 			 const std::string & cat_name);
-    void category_add_parent(const std::string & hierarchy_name,
+    void category_add_parent(const std::string & taxonomy_name,
 			     const std::string & child_name,
 			     const std::string & parent_name);
-    void category_remove_parent(const std::string & hierarchy_name,
+    void category_remove_parent(const std::string & taxonomy_name,
 				const std::string & child_name,
 				const std::string & parent_name);
 

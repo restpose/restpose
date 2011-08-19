@@ -18,6 +18,7 @@ restpose_LDADD = \
  liblogger.a \
  libdbgroup.a \
  libutils.a \
+ libpostingsources.a \
  libmatchspies.a \
  libxapiancommon.a \
  libmongocdriver.a \

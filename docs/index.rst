@@ -6,8 +6,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   install.rst
    intro.rst
+   install.rst
    collections.rst
    categorisation.rst
    urls.rst

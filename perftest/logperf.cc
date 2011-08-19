@@ -1,7 +1,7 @@
-/** @file runner.cc
- * @brief Unittest runner.
+/** @file logperf.cc
+ * @brief Performance test for logging.
  */
-/* Copyright (c) 2010 Richard Boulton
+/* Copyright (c) 2011 Richard Boulton
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -23,15 +23,39 @@
  */
 
 #include <config.h>
-#include "UnitTest++.h"
-#include "TestReporterStdout.h"
 #include "logger/logger.h"
 
-int main(int, char const **)
-{
-    RestPose::g_log.start();
-    int result = UnitTest::RunAllTests();
-    RestPose::g_log.stop();
-    RestPose::g_log.join();
-    return result;
+#include "realtime.h"
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
+using namespace RestPose;
+
+int main(int argc, const char ** argv) {
+    (void) argc;
+    (void) argv;
+    int fds[2];
+    int ret = socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, fds);
+    if (ret == -1) {
+	fprintf(stderr, "Couldn't create internal socketpair: %d", errno);
+    }
+
+    //Logger logger(fds[0]);
+    Logger logger(1);
+
+    double start(RealTime::now());
+    for (int i = 0; i != 1000; ++i) {
+	logger.info("test");
+    }
+    logger.start();
+    for (int i = 0; i != 10; ++i) {
+	logger.info("test");
+    }
+    logger.stop();
+    logger.join();
+    double end(RealTime::now());
+    printf("Processed in %f seconds\n", end - start);
+
+    return 0;
 }

@@ -44,18 +44,18 @@ CollCreateCheckpointHandlerFactory::create(const std::vector<std::string> & path
 
 Queue::QueueState
 CollCreateCheckpointHandler::create_checkpoint(TaskManager * taskman,
-					       const std::string & coll_name,
+					       const std::string & new_coll_name,
 					       std::string & checkid,
 					       bool do_commit,
 					       bool allow_throttle)
 {
-    checkid = taskman->get_checkpoints().alloc_checkpoint(coll_name);
-    Queue::QueueState state = taskman->queue_processing(coll_name,
+    checkid = taskman->get_checkpoints().alloc_checkpoint(new_coll_name);
+    Queue::QueueState state = taskman->queue_processing(new_coll_name,
 	new DelayedIndexingTask(
 	    new IndexingCheckpointTask(checkid, do_commit)),
 	allow_throttle);
     if (state != Queue::CLOSED && state != Queue::FULL) {
-	taskman->get_checkpoints().publish_checkpoint(coll_name, checkid);
+	taskman->get_checkpoints().publish_checkpoint(new_coll_name, checkid);
     }
     return state;
 }

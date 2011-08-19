@@ -36,6 +36,8 @@
 #include "jsonxapian/indexing.h"
 #include "logger/logger.h"
 #include <memory>
+#include "postingsources/multivaluerange_source.h"
+#include <set>
 #include "slotname.h"
 #include <string>
 #include "utils/jsonutils.h"
@@ -46,6 +48,12 @@
 
 using namespace RestPose;
 using namespace std;
+
+void
+FieldConfig::add_group_if_taxonomy(const std::string &,
+				   std::set<std::string> &) const
+{
+}
 
 FieldConfig *
 FieldConfig::from_json(const Json::Value & value,
@@ -649,7 +657,9 @@ DoubleFieldConfig::query(const string & qtype,
 
     string start = Xapian::sortable_serialise(value[0u].asDouble());
     string end = Xapian::sortable_serialise(value[1u].asDouble());
-    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
+
+    MultiValueRangeSource source(slot.get(), 1.0, start, end);
+    return Xapian::Query(&source);
 }
 
 void
@@ -691,7 +701,9 @@ TimestampFieldConfig::query(const string & qtype,
     }
     string start = Xapian::sortable_serialise(json_get_uint64(value[Json::UInt(0u)]));
     string end = Xapian::sortable_serialise(json_get_uint64(value[1u]));
-    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
+
+    MultiValueRangeSource source(slot.get(), 1.0, start, end);
+    return Xapian::Query(&source);
 }
 
 void
@@ -740,7 +752,9 @@ DateFieldConfig::query(const string & qtype,
     if (!error.empty()) {
 	throw InvalidValueError(error);
     }
-    return Xapian::Query(Xapian::Query::OP_VALUE_RANGE, slot.get(), start, end);
+
+    MultiValueRangeSource source(slot.get(), 1.0, start, end);
+    return Xapian::Query(&source);
 }
 
 void
@@ -766,8 +780,17 @@ CategoryFieldConfig::CategoryFieldConfig(const Json::Value & value)
 	throw InvalidValueError("Field configuration argument \"group\""
 				" contains invalid character \\t");
     }
-    hierarchy_name = prefix;
     prefix.append("\t");
+
+    taxonomy_name = json_get_string_member(value, "taxonomy", string());
+    if (taxonomy_name.empty()) {
+	throw InvalidValueError("Field configuration argument \"taxonomy\""
+				" may not be empty");
+    }
+    if (taxonomy_name.find('\t') != string::npos) {
+	throw InvalidValueError("Field configuration argument \"taxonomy\""
+				" contains invalid character \\t");
+    }
 
     store_field = json_get_string_member(value, "store_field", string());
 }
@@ -778,7 +801,7 @@ CategoryFieldConfig::~CategoryFieldConfig()
 FieldIndexer *
 CategoryFieldConfig::indexer() const
 {
-    return new CategoryIndexer(prefix, hierarchy_name, store_field,
+    return new CategoryIndexer(prefix, taxonomy_name, store_field,
 			       max_length, too_long_action);
 }
 
@@ -845,7 +868,15 @@ CategoryFieldConfig::query(const string & qtype,
 	}
     }
     return Xapian::Query(Xapian::Query::OP_OR, terms.begin(), terms.end());
+}
 
+void
+CategoryFieldConfig::add_group_if_taxonomy(const string & taxonomy_name_,
+					   set<string> & result) const
+{
+    if (taxonomy_name == taxonomy_name_) {
+	result.insert(prefix.substr(0, prefix.size() - 1));
+    }
 }
 
 void
@@ -854,6 +885,7 @@ CategoryFieldConfig::to_json(Json::Value & value) const
     MaxLenFieldConfig::to_json(value);
     value["type"] = "cat";
     value["group"] = prefix.substr(0, prefix.size() - 1);
+    value["taxonomy"] = taxonomy_name;
     value["store_field"] = store_field;
 }
 
@@ -1188,6 +1220,18 @@ Schema::set(const string & fieldname, FieldConfig * config)
     ret.first->second = configptr.release();
 }
 
+void
+Schema::get_taxonomy_groups(const string & taxonomy_name,
+			    std::set<string> & result) const
+{
+    // iterate through fields, looking for category fields which have taxonomy
+    // equal to taxonomy_name, and add the groups of these to the result.
+    for (map<string, FieldConfig *>::const_iterator i = fields.begin();
+	 i != fields.end(); ++i) {
+	i->second->add_group_if_taxonomy(taxonomy_name, result);
+    }
+}
+
 Xapian::Document
 Schema::process(const Json::Value & value,
 		const CollectionConfig & collconfig,
@@ -1246,6 +1290,7 @@ Schema::process(const Json::Value & value,
     }
 
     state.doc.set_data(state.docdata.serialise());
+    state.docvals.apply(state.doc);
     return state.doc;
 }
 

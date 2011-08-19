@@ -1,0 +1,6 @@
+Mon Aug 08 09:32:04 BST 2011  Richard Boulton <richard@cnav.co.uk>
+
+	* *: The ChangeLog is auto-generated when releases are built.  You
+	  should only see this when working from code checked out from a
+	  revision control system; in which case, use that system's
+	  features to see the log of changes.

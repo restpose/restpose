@@ -216,6 +216,219 @@ Checkpoints also do not persist across server restarts.
 	       * `errors`: An array of errors.  If very many errors have
 		 occurred, only the top few will be returned.
 
+Taxonomies and categories
+-------------------------
+
+A RestPose collection can contain a set of Taxonomies, each of which is
+identified by a name, and which contains a set of Categories.  Each Category in
+a Taxonomy may be associated with other categories in parent-child
+relationships.
+
+.. http:get:: /coll/(collection_name)/taxonomy
+
+   Get a list of all taxonomies available in the collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+
+   :statuscode 200: Returns a JSON array of strings, holding the names of the
+               taxonomies in the collection.
+
+   :statuscode 404: If the collection does not exist.
+
+.. http:get:: /coll/(collection_name)/taxonomy/(taxonomy_name)
+
+   Get details of the named taxonomy in the collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 200: Returns a JSON object representing the contents of the
+               taxonomy, mapping from category ID to an array of parent IDs.
+
+   :statuscode 404: If the collection or taxonomy do not exist.
+
+.. http:get:: /coll/(collection_name)/taxonomy/(taxonomy_name)/id/(cat_id)
+
+   Get details of a category in a named taxonomy in the collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+
+   :statuscode 200: Returns a JSON object representing the category in the
+	       taxonomy, indicating the relationships between that category and
+	       others.
+
+   :statuscode 404: If the collection, taxonomy or category do not exist.
+
+.. http:get:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
+
+   Check if a category has a given parent, in the named taxonomy in the
+   collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+   :param parent_id: The ID of the parent category.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 200: Returns an empty JSON object if the parent supplied is a
+               parent of the category supplied.
+
+   :statuscode 404: If the collection, taxonomy, category or parent do not
+               exist, or the parent is not a parent of the category.
+
+.. http:get:: /coll/(collection_name)/category/(taxonomy_name)/top
+
+   Get the top level categories (ie, categories which have no parents) in the
+   named taxonomy in the collection.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 200: Returns a JSON object in which keys are the IDs of the top
+               level categories, and the values are objects with two members:
+
+		- child_count: (integer) number of child categories of this
+		  category.
+		- descendant_count: (integer) number of descendant categories
+		  of this category.
+
+   :statuscode 404: If the collection or taxonomy do not exist.
+
+.. http:put:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)
+
+   Add a category, creating the collection, taxonomy and category if needed.
+
+   The body submitted is ignored.
+
+   .. note:: in future, it may be possible to set the parents of the category
+	     by supplying an appropriate structure in the body.  For now, the
+	     parents need to be added with individual calls, so the body should
+	     be left empty.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+.. http:put:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
+
+   Add a parent to a category, creating the collection, taxonomy, category and
+   parent if needed.
+
+   This will also update any documents which need to be updated to ensure that
+   category searches still return the right answers.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+   :param parent_id: The ID of the parent category.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)
+
+   Delete an entire taxonomy.
+
+   This will also update any documents which need to be updated as a result of
+   there no longer being any category relationships in that taxonomy.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+
+.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)
+
+   Remove a category.  Will create the collection and taxonomy if they don't
+   already exist.
+
+   This will also update any documents which need to be updated as a result of
+   there no longer being any category relationships involving that category.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+
+.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
+
+   Remove a parent from a category.  Will create the collection and taxonomy if
+   they don't already exist.
+
+   This will also update any documents which need to be updated to ensure that
+   category searches still return the right answers.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param taxonomy_name: The name of the taxonomy.  May not contain ``:/\.,``
+          or tab characters.
+   :param cat_id: The ID of the category.  May not contain ``:/\.,`` or tab
+          characters.
+   :param parent_id: The ID of the parent category.  May not contain ``:/\.,``
+          or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+
 Documents
 ---------
 
@@ -285,6 +498,71 @@ Documents
 		 which they're sending documents is ``high_load`` messages
 		 persist.
 
+.. http:post:: /coll/(collection_name)/type/(type)
+
+   Create, or update, a document with the given `collection_name` and `type`.
+   The id of the document will be read from the document body, from the field
+   configured in the collection configuration for storing IDs (by default,
+   this is `id`).
+
+   Creates the collection with default settings if it didn't exist before the
+   call.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param type: The type of the document.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+.. http:post:: /coll/(collection_name)/id/(id)
+
+   Create, or update, a document with the given `collection_name` and `id`.
+   The type of the document will be read from the document body, from the
+   field configured in the collection configuration for storing types (by
+   default, this is `type`).
+
+   Creates the collection with default settings if it didn't exist before the
+   call.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+   :param id: The ID of the document.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
+.. http:post:: /coll/(collection_name)
+
+   Create, or update, a document in the collection `collection_name`.  The
+   type and ID of the document will be read from the document body, from the
+   fields configured in the collection configuration for storing types and
+   IDs (by default, these are `type` and `id`).
+
+   Creates the collection with default settings if it didn't exist before the
+   call.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+
+   :statuscode 202: Normal response: returns a JSON object.  This will usually
+               be empty, but may contain the following:
+
+	       * ``high_load``: contains an integer value of 1 if the
+		 processing queue is busy.  Clients should reduce the rate at
+		 which they're sending documents is ``high_load`` messages
+		 persist.
+
 .. http:delete:: /coll/(collection_name)/type/(type)/id/(id)
 
    Delete a document from a collection.
@@ -309,6 +587,25 @@ Searches are performed by sending a JSON search structure in the request body.
 This may be done using a :http:method:`GET` request, but will usually be done
 with a :http:method:`POST` request, since not all software supports sending a
 body as part of a `GET` request.
+
+
+.. http:get:: /coll/(collection_name)/search
+.. http:post:: /coll/(collection_name)/search
+
+   Search for documents in a collection, across all document types.
+
+   The search is sent as a JSON structure in the request body: see the
+   :ref:`searches` section for details on the search structure.
+
+   :param collection_name: The name of the collection.  May not contain
+          ``:/\.,`` or tab characters.
+
+   :statuscode 200: Returns the result of running the search, as a JSON
+	       structure.  See the :ref:`search_results` section for details on
+	       the search result structure.
+
+   :statuscode 404: If the collection is not found.
+
 
 .. http:get:: /coll/(collection_name)/type/(type)/search
 .. http:post:: /coll/(collection_name)/type/(type)/search
