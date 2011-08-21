@@ -160,8 +160,8 @@ CollGetTopCategoriesTask::perform(Collection * coll)
 	const Category & cat = i->second;
 	if (cat.parents.empty()) {
 	    Json::Value & catval = result[cat.name] = Json::objectValue;
-	    catval["child_count"] = cat.children.size();
-	    catval["descendant_count"] = cat.descendants.size();
+	    catval["child_count"] = Json::UInt64(cat.children.size());
+	    catval["descendant_count"] = Json::UInt64(cat.descendants.size());
 	}
     }
 
