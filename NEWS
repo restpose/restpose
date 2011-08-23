@@ -1,4 +1,4 @@
-0.7.2 - unreleased
+0.7.2 - 24th August 2011
 
  - Update taxonomy documentation.
  - Add URL for adding an individual category to a taxonomy.
@@ -6,6 +6,9 @@
  - Perform log writes in a subthread.  Logging now places items to write on
    a queue of limited size, which is read by the logger thread; if this
    queue becomes overloaded, a count of missed messages will be displayed.
+ - For ID and exact fields which have been truncated or hashed, do the
+   corresponding action at search time.
+ - Some compile fixes.
 
 0.7.1 - 8th August 2011
 
