@@ -27,6 +27,7 @@
 
 #include <cjk-tokenizer.h> // FIXME - this should be moved to a separate file
 #include "docdata.h"
+#include "hashterm.h"
 #include "indexing.h"
 #include "infohandlers.h"
 #include "json/reader.h"
@@ -284,8 +285,9 @@ IDFieldConfig::query(const string & qtype,
     vector<string> terms;
     for (Json::Value::const_iterator iter = value_ptr->begin();
 	 iter != value_ptr->end(); ++iter) {
+	string termtext;
 	if ((*iter).isString()) {
-	    terms.push_back(prefix + (*iter).asString());
+	    termtext = (*iter).asString();
 	} else {
 	    if (!(*iter).isConvertibleTo(Json::uintValue)) {
 		throw InvalidValueError("ID value must be an integer or a string");
@@ -299,8 +301,29 @@ IDFieldConfig::query(const string & qtype,
 					Json::valueToString(Json::Value::maxUInt64) +
 					")");
 	    }
-	    terms.push_back(prefix + Json::valueToString((*iter).asUInt64()));
+	    termtext = Json::valueToString((*iter).asUInt64());
 	}
+	if (termtext.size() > max_length) {
+	    switch (too_long_action) {
+		case MaxLenFieldConfig::TOOLONG_ERROR:
+		    // A matching field would have produced an error at
+		    // indexing time, but that means it's not in the
+		    // database, so we just let it pass; no results will
+		    // come from this term (unless the config has changed
+		    // since indexing or the user has been indexing to the
+		    // database in another way).
+		    break;
+		case MaxLenFieldConfig::TOOLONG_HASH:
+		    // Note - this isn't UTF-8 aware.
+		    termtext = hash_long_term(termtext, max_length);
+		    break;
+		case MaxLenFieldConfig::TOOLONG_TRUNCATE:
+		    // Note - this isn't UTF-8 aware.
+		    termtext.erase(max_length);
+		    break;
+	    }
+	}
+	terms.push_back(prefix + termtext);
     }
     return Xapian::Query(Xapian::Query::OP_OR, terms.begin(), terms.end());
 }
@@ -364,8 +387,9 @@ ExactFieldConfig::query(const string & qtype,
     vector<string> terms;
     for (Json::Value::const_iterator iter = value_ptr->begin();
 	 iter != value_ptr->end(); ++iter) {
+	string termtext;
 	if ((*iter).isString()) {
-	    terms.push_back(prefix + (*iter).asString());
+	    termtext = (*iter).asString();
 	} else {
 	    if (!(*iter).isConvertibleTo(Json::uintValue)) {
 		throw InvalidValueError("Filter value must be an integer or a string");
@@ -379,8 +403,29 @@ ExactFieldConfig::query(const string & qtype,
 					Json::valueToString(Json::Value::maxUInt64) +
 					")");
 	    }
-	    terms.push_back(prefix + Json::valueToString((*iter).asUInt64()));
+	    termtext = Json::valueToString((*iter).asUInt64());
 	}
+	if (termtext.size() > max_length) {
+	    switch (too_long_action) {
+		case MaxLenFieldConfig::TOOLONG_ERROR:
+		    // A matching field would have produced an error at
+		    // indexing time, but that means it's not in the
+		    // database, so we just let it pass; no results will
+		    // come from this term (unless the config has changed
+		    // since indexing or the user has been indexing to the
+		    // database in another way).
+		    break;
+		case MaxLenFieldConfig::TOOLONG_HASH:
+		    // Note - this isn't UTF-8 aware.
+		    termtext = hash_long_term(termtext, max_length);
+		    break;
+		case MaxLenFieldConfig::TOOLONG_TRUNCATE:
+		    // Note - this isn't UTF-8 aware.
+		    termtext.erase(max_length);
+		    break;
+	    }
+	}
+	terms.push_back(prefix + termtext);
     }
     return Xapian::Query(Xapian::Query::OP_OR, terms.begin(), terms.end());
 }
