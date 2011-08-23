@@ -115,6 +115,7 @@ libs/libmicrohttpd/src/testcurl/https/tls_session_time_out_test
 libs/libmicrohttpd/src/testcurl/https/tls_thread_mode_test
 libs/libtextcat/src/createfp
 libs/libtextcat/src/testtextcat
+/logperf
 /rspdbs
 stamp-h1
 /python/.coverage
