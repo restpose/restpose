@@ -88,7 +88,7 @@ IndexDocumentHandlerFactory::create(
     validate_collname_throw(coll_name);
     string doc_type = path_params[1];
     string doc_id = path_params[2];
-    LOG_INFO("IndexDocumentHandler called for '" + coll_name + "' type='" + doc_type + "' id='" + doc_id + "'");
+    LOG_DEBUG("IndexDocumentHandler called for '" + coll_name + "' type='" + doc_type + "' id='" + doc_id + "'");
     return new IndexDocumentHandler(coll_name, doc_type, doc_id);
 }
 
@@ -108,7 +108,7 @@ IndexDocumentTypeHandlerFactory::create(
     string coll_name = path_params[0];
     validate_collname_throw(coll_name);
     string doc_type = path_params[1];
-    LOG_INFO("IndexDocumentTypeHandler called for '" + coll_name + "' type='" + doc_type + "'");
+    LOG_DEBUG("IndexDocumentTypeHandler called for '" + coll_name + "' type='" + doc_type + "'");
     return new IndexDocumentHandler(coll_name, doc_type, string());
 }
 
@@ -119,7 +119,7 @@ IndexDocumentIdHandlerFactory::create(
     string coll_name = path_params[0];
     validate_collname_throw(coll_name);
     string doc_id = path_params[1];
-    LOG_INFO("IndexDocumentIdHandler called for '" + coll_name + "' id='" + doc_id + "'");
+    LOG_DEBUG("IndexDocumentIdHandler called for '" + coll_name + "' id='" + doc_id + "'");
     return new IndexDocumentHandler(coll_name, string(), doc_id);
 }
 
@@ -129,7 +129,7 @@ IndexDocumentNoTypeIdHandlerFactory::create(
 {
     string coll_name = path_params[0];
     validate_collname_throw(coll_name);
-    LOG_INFO("IndexDocumentNoTypeIdHandler called for '" + coll_name + "'");
+    LOG_DEBUG("IndexDocumentNoTypeIdHandler called for '" + coll_name + "'");
     return new IndexDocumentHandler(coll_name, string(), string());
 }
 
@@ -137,7 +137,7 @@ Handler *
 DeleteDocumentHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
-    LOG_INFO("DeleteDocumentHandler called");
+    LOG_DEBUG("DeleteDocumentHandler called");
     string coll_name = path_params[0];
     validate_collname_throw(coll_name);
     string doc_type = path_params[1];
@@ -159,7 +159,7 @@ Handler *
 CollDeleteHandlerFactory::create(
 	const std::vector<std::string> & path_params) const
 {
-    LOG_INFO("CollDeleteHandler called");
+    LOG_DEBUG("CollDeleteHandler called");
     string coll_name = path_params[0];
     validate_collname_throw(coll_name);
     return new CollDeleteHandler(coll_name);
