@@ -274,7 +274,7 @@ DbGroup::add_frag()
 }
 
 DbGroup::DbGroup(const std::string & groupdir_)
-	: max_newdb_docs(10000000),
+	: max_newdb_docs(100000000),
 	  groupdir(groupdir_),
 	  control("control", groupdir_ + "/control"),
 	  next_fragnum(0),
