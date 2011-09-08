@@ -55,7 +55,7 @@ main_do(int argc, char * const* argv)
     CliOptions opts;
     int ret = opts.parse(PROGNAME, argc, argv);
     if (ret) {
-	return ret;
+	return (ret > 0) ? ret : 0;
     }
 
     Server server;

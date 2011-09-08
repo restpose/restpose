@@ -93,12 +93,12 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
 "Options for \"train\" action\n"
 "  -l, --lang=LANGUAGE    a language to train\n"
 "\n";
-		return 0;
+		return -1; // -1 to exit, but not return an error code.
 	    case 'v':
 		std::cout << progname << " version: " << PACKAGE_VERSION << "\n"
 			     "xapian version: " << Xapian::version_string() <<
 			     "\n";
-		return 0;
+		return -1; // -1 to exit, but not return an error code.
 	    case 'd':
 		datadir = optarg;
 		break;

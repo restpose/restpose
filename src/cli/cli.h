@@ -32,6 +32,15 @@ namespace RestPose {
 
 struct CliOptions {
     CliOptions();
+
+    /** Parse the options.
+     *
+     *  Returns 0 if parsed correctly.
+     *  Returns -1 if parsed correctly, but execution should now terminate (eg,
+     *  -h or -v was passed).
+     *  Returns >0 if parse error (an appropriate message will have been
+     *  displayed).
+     */
     int parse(const char * progname, int argc, char * const* argv);
 
     enum action_type {
