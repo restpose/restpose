@@ -511,6 +511,57 @@ Collection::doc_count() const
     return get_db().get_doccount();
 }
 
+static Xapian::doccount
+calc_fromdoc_offset(const Xapian::Database & db,
+		    const Xapian::Enquire & enq,
+		    const string & fromdoc_type,
+		    const string & fromdoc_id,
+		    Xapian::doccount fromdoc_pagesize,
+		    int fromdoc_from,
+		    Xapian::doccount check_at_least)
+{
+    Xapian::doccount from = 0;
+    // Get the Xapian ID of the document.
+    string idterm = "\t" + fromdoc_type + "\t" + fromdoc_id;
+    Xapian::PostingIterator idpl(db.postlist_begin(idterm));
+    Xapian::docid fromdoc_xapid;
+    if (idpl != db.postlist_end(idterm)) {
+	// idterm is in the db.
+	fromdoc_xapid = *idpl;
+    } else {
+	// The document isn't in the database; just return an error.
+	// FIXME - identify this error somehow so it can be handled more
+	// easily.
+	throw InvalidValueError("fromdoc document not present in database");
+    }
+
+    while (true) {
+	Xapian::MSet mset = enq.get_mset(from, fromdoc_pagesize,
+					 check_at_least);
+	for (Xapian::MSet::const_iterator i = mset.begin();
+	     i != mset.end(); ++i) {
+	    if (*i == fromdoc_xapid) {
+		from = i.get_rank();
+		if (fromdoc_from < 0 &&
+		    Xapian::doccount(-fromdoc_from) > from) {
+		    from = 0;
+		} else {
+		    from += fromdoc_from;
+		}
+		return from;
+	    }
+	}
+
+	if (mset.size() != fromdoc_pagesize) {
+	    break;
+	}
+	from += fromdoc_pagesize;
+    }
+    // FIXME - identify this error somehow so it can be handled more
+    // easily.
+    throw InvalidValueError("fromdoc document not present in result set");
+}
+
 void
 Collection::perform_search(const Json::Value & search,
 			   const string & doc_type,
@@ -556,6 +607,49 @@ Collection::perform_search(const Json::Value & search,
 	size = total_docs;
     } else {
 	size = json_get_uint64_member(search, "size", Json::Value::maxUInt, 10);
+    }
+
+    // Check for a request to get results at an offset from a specific document.
+    string fromdoc_type;
+    string fromdoc_id;
+    int fromdoc_from = 0;
+    Xapian::doccount fromdoc_pagesize = 10000;
+    Json::Value fromdoc_obj = search["fromdoc"];
+    if (!fromdoc_obj.isNull()) {
+	if (from != 0) {
+	    throw InvalidValueError("fromdoc was supplied, but from was not 0");
+	}
+	if (!fromdoc_obj.isObject()) {
+	    throw InvalidValueError("Invalid value supplied for fromdoc: "
+				    "expected an object");
+	}
+	string error;
+	fromdoc_type = json_get_idstyle_value(fromdoc_obj["type"], error);
+	if (!error.empty()) {
+	    throw InvalidValueError("Invalid value supplied for fromdoc type: " +
+				    error);
+	}
+	if (fromdoc_type.empty()) {
+	    throw InvalidValueError("Missing or empty type supplied for fromdoc");
+	}
+	fromdoc_id = json_get_idstyle_value(fromdoc_obj["id"], error);
+	if (!error.empty()) {
+	    throw InvalidValueError("Invalid value supplied for fromdoc ID: " +
+				    error);
+	}
+	if (fromdoc_id.empty()) {
+	    throw InvalidValueError("Missing or empty ID supplied for fromdoc");
+	}
+	Json::Value & tmp = fromdoc_obj["from"];
+	if (!tmp.isNull()) {
+	    if (!tmp.isConvertibleTo(Json::intValue)) {
+		throw InvalidValueError("fromdoc \"from\" parameter is not convertible to an integer");
+	    }
+	    fromdoc_from = tmp.asInt();
+	}
+	fromdoc_pagesize = json_get_uint64_member(fromdoc_obj, "pagesize",
+						  Json::Value::maxUInt,
+						  fromdoc_pagesize);
     }
 
     if (search["check_at_least"] == -1) {
@@ -625,6 +719,11 @@ Collection::perform_search(const Json::Value & search,
 	}
     }
 
+    if (!fromdoc_id.empty()) {
+	from = calc_fromdoc_offset(db, enq, fromdoc_type, fromdoc_id,
+				   fromdoc_pagesize, fromdoc_from,
+				   check_at_least);
+    }
     Xapian::MSet mset(enq.get_mset(from, size, check_at_least));
 
     // Write the results
