@@ -14,6 +14,7 @@ documents to calculate and return.
     SEARCH = {
         "query": QUERY,
         "from": <offset of first document to return.  Integer.  0 based.  Default=0>,
+        "fromdoc": FROMDOC,
         "size": <maximum number of documents to return.  -1=return all matches.  Integer.  Default=10>,
         "check_at_least": <minimum number of documents to examine before early termination optimisations are allowed.  -1=check all matches.  Integer.  Default=0>,
         "info": [ INFO ],
@@ -266,6 +267,38 @@ Alternately, the sort order can be set to be relevance order (which is the defau
     ]
 
 At present, the list of sort orders may only contain exactly one item.
+
+
+Specifying a result set offset relative to a document
+=====================================================
+
+Sometimes, it's useful to be able to get the section of a search result set
+containing a particular document, rather than just a section of a result set
+based on an offset.  For example, imagine you're providing an interface which
+allows users to page through a resultset where documents are constantly being
+added to the underlying database, so additional documents may be added at any
+time.
+
+In this situation, it may be better to ask for the results which follow a
+particular document, rather than to ask for the next page of results by a fixed
+offset.  This is particularly true if documents are being returned sorted by
+most-recent first; using this technique.
+
+Note that this interface can also be used to get the rank of a given document
+in a set of search results, without having to iterate through the search
+results on the client side.
+
+To get a set of search results based on the position of a document in the
+search results, you can add a "fromdoc" property to the search::
+
+    FROMDOC = {
+        "type": <string: the document type of the base document>
+        "id": <string: the document ID of the base document>
+        "from": <integer: offset relative to the base document - may be negative.  Defaults to 0>
+        "pagesize": <integer: number of results to calculate in each page when looking for the base document.  This may usually be ignored, but is available to allow tweaking for performance reasons.  Defaults to 10000.>
+    }
+
+Note that if a "fromdoc" property is supplied for a search, the "from" property must be 0 (or absent).
 
 .. _search_results:
 
