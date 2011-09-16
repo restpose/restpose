@@ -5,6 +5,9 @@ TODO
 
    - Python client: uncomment the test of setting window size in query_text.
 
+ - Ensure that new field configurations get saved, even if a parallel thread
+   makes alterations to the same schema.
+
 Next release
 ------------
 
