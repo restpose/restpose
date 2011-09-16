@@ -32,7 +32,8 @@
 using namespace RestPose;
 using namespace std;
 
-BaseTermOccurMatchSpy::BaseTermOccurMatchSpy(const string & prefix_,
+BaseTermOccurMatchSpy::BaseTermOccurMatchSpy(const string & group_,
+					     const string & prefix_,
 					     Xapian::doccount doc_limit_,
 					     Xapian::doccount result_limit_,
 					     bool get_termfreqs_,
@@ -41,13 +42,14 @@ BaseTermOccurMatchSpy::BaseTermOccurMatchSpy(const string & prefix_,
 	  doc_limit(doc_limit_),
 	  terms_seen(0),
 	  result_limit(result_limit_),
+	  group(group_),
 	  prefix(prefix_),
 	  orig_prefix(prefix_),
 	  get_termfreqs(get_termfreqs_),
 	  db(db_)
 {
-    if (!prefix.empty()) {
-	prefix += "\t";
+    if (!group.empty()) {
+	prefix = group + '\t' + prefix;
     }
 }
 
@@ -102,6 +104,7 @@ TermOccurMatchSpy::get_result(Json::Value & result) const
 {
     result = Json::objectValue;
     result["type"] = "occur";
+    result["group"] = group;
     result["prefix"] = orig_prefix;
     result["docs_seen"] = docs_seen;
     result["terms_seen"] = terms_seen;
@@ -215,6 +218,7 @@ TermCoOccurMatchSpy::get_result(Json::Value & result) const
 {
     result = Json::objectValue;
     result["type"] = "cooccur";
+    result["group"] = group;
     result["prefix"] = orig_prefix;
     result["docs_seen"] = docs_seen;
     result["terms_seen"] = terms_seen;

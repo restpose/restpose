@@ -26,6 +26,7 @@
 #include "jsonxapian/occurinfohandler.h"
 
 #include <limits.h>
+#include "logger/logger.h"
 #include "matchspies/termoccurmatchspy.h"
 #include "utils/jsonutils.h"
 
@@ -55,13 +56,14 @@ OccurInfoHandler::OccurInfoHandler(const Json::Value & params,
 				   Xapian::doccount & check_at_least)
 	: BaseOccurInfoHandler(db_)
 {
+    string group = json_get_string_member(params, "group", "");
     string prefix = json_get_string_member(params, "prefix", "");
     Xapian::doccount doc_limit = json_get_uint64_member(params,
 	"doc_limit", UINT_MAX, db->get_doccount());
     Xapian::doccount result_limit = json_get_uint64_member(params,
 	"result_limit", UINT_MAX, UINT_MAX);
     bool get_termfreqs = json_get_bool(params, "get_termfreqs", false);
-    spy = new TermOccurMatchSpy(prefix, doc_limit, result_limit,
+    spy = new TermOccurMatchSpy(group, prefix, doc_limit, result_limit,
 				get_termfreqs, db);
     const Json::Value & stopwords = params["stopwords"];
     if (!stopwords.isNull()) {
@@ -86,13 +88,14 @@ CoOccurInfoHandler::CoOccurInfoHandler(const Json::Value & params,
 				       Xapian::doccount & check_at_least)
 	: BaseOccurInfoHandler(db_)
 {
+    string group = json_get_string_member(params, "group", "");
     string prefix = json_get_string_member(params, "prefix", "");
     Xapian::doccount doc_limit = json_get_uint64_member(params,
 	"doc_limit", UINT_MAX, db->get_doccount());
     Xapian::doccount result_limit = json_get_uint64_member(params,
 	"result_limit", UINT_MAX, UINT_MAX);
     bool get_termfreqs = json_get_bool(params, "get_termfreqs", false);
-    spy = new TermCoOccurMatchSpy(prefix, doc_limit, result_limit,
+    spy = new TermCoOccurMatchSpy(group, prefix, doc_limit, result_limit,
 				  get_termfreqs, db);
     const Json::Value & stopwords = params["stopwords"];
     if (!stopwords.isNull()) {

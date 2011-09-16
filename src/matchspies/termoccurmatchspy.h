@@ -51,11 +51,15 @@ class BaseTermOccurMatchSpy : public Xapian::MatchSpy {
      */
     Xapian::doccount result_limit;
 
+    /** Group that terms must be in to be counted.
+     */
+    std::string group;
+
     /** Prefix to look for in terms to count.
      */
     std::string prefix;
 
-    /** Original prefix (prefix without a possible trailing tab).
+    /** Original prefix (without modifications to restrict to group).
      */
     std::string orig_prefix;
 
@@ -77,7 +81,8 @@ class BaseTermOccurMatchSpy : public Xapian::MatchSpy {
     const Xapian::Database * db;
 
   public:
-    BaseTermOccurMatchSpy(const std::string & prefix_,
+    BaseTermOccurMatchSpy(const std::string & group_,
+			  const std::string & prefix_,
 			  Xapian::doccount doc_limit_,
 			  Xapian::doccount result_limit_,
 			  bool get_termfreqs_,
@@ -92,12 +97,13 @@ class BaseTermOccurMatchSpy : public Xapian::MatchSpy {
 
 class TermOccurMatchSpy : public BaseTermOccurMatchSpy {
   public:
-    TermOccurMatchSpy(const std::string & prefix_,
+    TermOccurMatchSpy(const std::string & group_,
+		      const std::string & prefix_,
 		      Xapian::doccount doc_limit_,
 		      Xapian::doccount result_limit_,
 		      bool get_termfreqs_,
 		      const Xapian::Database * db_)
-	    : BaseTermOccurMatchSpy(prefix_, doc_limit_, result_limit_,
+	    : BaseTermOccurMatchSpy(group_, prefix_, doc_limit_, result_limit_,
 				    get_termfreqs_, db_)
     {}
 
@@ -108,12 +114,13 @@ class TermOccurMatchSpy : public BaseTermOccurMatchSpy {
 
 class TermCoOccurMatchSpy : public BaseTermOccurMatchSpy {
   public:
-    TermCoOccurMatchSpy(const std::string & prefix_,
+    TermCoOccurMatchSpy(const std::string & group_,
+			const std::string & prefix_,
 			Xapian::doccount doc_limit_,
 			Xapian::doccount result_limit_,
 			bool get_termfreqs_,
 			const Xapian::Database * db_)
-	    : BaseTermOccurMatchSpy(prefix_, doc_limit_, result_limit_,
+	    : BaseTermOccurMatchSpy(group_, prefix_, doc_limit_, result_limit_,
 				    get_termfreqs_, db_)
     {}
 
