@@ -59,8 +59,10 @@ TEST(SearchIntegerExactFields)
 	CHECK(reader.parse("{\"id\": 32, \"intid\": 18446744073709551615, \"type\": \"testtype\"}", value, false)); // 2**64-1
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc(config.process_doc(value, "", "", idterm, errors));
+	bool new_fields(false);
+	Xapian::Document doc(config.process_doc(value, "", "", idterm, errors, new_fields));
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(true, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},"
 		     "\"terms\":{\"\\\\ttesttype\\\\t32\":{},"
 		                "\"intid\\\\t18446744073709551615\":{},"
@@ -75,8 +77,10 @@ TEST(SearchIntegerExactFields)
 	CHECK(reader.parse("{\"id\": 18446744073709551615, \"intid\": 31, \"type\": \"testtype\"}", value, false)); // 2**64-1
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc(config.process_doc(value, "", "", idterm, errors));
+	bool new_fields(false);
+	Xapian::Document doc(config.process_doc(value, "", "", idterm, errors, new_fields));
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(true, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[31]},"
 		     "\"terms\":{\"\\\\ttesttype\\\\t18446744073709551615\":{},"
 				"\"intid\\\\t31\":{},"

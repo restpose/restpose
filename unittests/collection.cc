@@ -274,14 +274,16 @@ TEST(CollectionAddViaPipe)
 
     CHECK_EQUAL(0u, c->doc_count());
 
+    bool new_fields(false);
     c->send_to_pipe(taskman, "default",
-		   json_unserialise("{"
-				    "\"id\": \"1\","
-				    "\"foo\": \"Hello world\""
-				    "}",tmp));
+		    json_unserialise("{"
+				     "\"id\": \"1\","
+				     "\"foo\": \"Hello world\""
+				     "}", tmp), new_fields);
     taskman->stop();
     taskman->join();
     delete taskman;
+    CHECK_EQUAL(true, new_fields);
     CHECK_EQUAL(0u, c->doc_count());
     pool.release(c);
     c = pool.get_readonly("default");
@@ -389,14 +391,16 @@ TEST(CollectionCategoriser)
     pool.release(c);
     c = pool.get_readonly("default");
 
+    bool new_fields(false);
     c->send_to_pipe(taskman, "default",
-		   json_unserialise("{"
-				    "\"id\": \"2\","
-				    "\"text\": \"Hello world\""
-				    "}",tmp));
+		    json_unserialise("{"
+				     "\"id\": \"2\","
+				     "\"text\": \"Hello world\""
+				     "}", tmp), new_fields);
     taskman->stop();
     taskman->join();
     delete taskman;
+    CHECK_EQUAL(true, new_fields);
     CHECK_EQUAL(0u, c->doc_count());
     pool.release(c);
     c = pool.get_readonly("default");
@@ -481,8 +485,10 @@ TEST(CollectionCategory)
 	Json::Value doc(Json::objectValue);
 	doc["foo"] = "hello";
 	std::string idterm;
-	Xapian::Document xdoc = c->process_doc(doc, "default", "0", idterm);
+	bool new_fields(false);
+	Xapian::Document xdoc = c->process_doc(doc, "default", "0", idterm, new_fields);
 	CHECK_EQUAL("\tdefault\t0", idterm);
+	CHECK_EQUAL(true, new_fields);
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"]},\"terms\":{\"\\\\tdefault\\\\t0\":{},\"foo\\\\tChello\":{}}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
 
@@ -491,8 +497,9 @@ TEST(CollectionCategory)
 	catval.append("world");
 	catval.append("child");
 	idterm.resize(0);
-	xdoc = c->process_doc(doc, "default", "1", idterm);
+	xdoc = c->process_doc(doc, "default", "1", idterm, new_fields);
 	CHECK_EQUAL("\tdefault\t1", idterm);
+	CHECK_EQUAL(true, new_fields);
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
 	c->raw_update_doc(xdoc, idterm);
@@ -531,10 +538,12 @@ TEST(MetaInfoSimple)
     doc["foo"] = "hello";
     std::string idterm;
     IndexingErrors errors;
+    bool new_fields(false);
     Xapian::Document xdoc = c.process_doc(doc, "default", "0", idterm,
-					  errors);
+					  errors, new_fields);
     CHECK_EQUAL("\tdefault\t0", idterm);
     CHECK_EQUAL(0u, errors.errors.size());
+    CHECK_EQUAL(true, new_fields);
     CHECK_EQUAL("{\"data\":{\"foo\":[\"hello\"],"
 		"\"id\":[\"0\"],"
 		"\"type\":[\"default\"]},"
@@ -568,10 +577,12 @@ TEST(MetaInfoMissing)
 	doc["foo_cat"] = emptyval;
 	std::string idterm;
 	IndexingErrors errors;
+	bool new_fields(false);
 	Xapian::Document xdoc = c.process_doc(doc, "default", "0", idterm,
-					      errors);
+					      errors, new_fields);
 	CHECK_EQUAL("\tdefault\t0", idterm);
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(true, new_fields);
 	CHECK_EQUAL("{\"data\":{\"foo_cat\":[null],"
 			       "\"foo_tag\":[null],"
 			       "\"foo_text\":[null],"

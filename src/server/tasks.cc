@@ -150,7 +150,8 @@ ProcessorPipeDocumentTask::perform(const string & coll_name,
     LOG_DEBUG("PipeDocument to '" + target_pipe + "' in '" + coll_name + "'");
     auto_ptr<CollectionConfig> config(taskman->get_collconfigs()
 				      .get(coll_name));
-    config->send_to_pipe(taskman, target_pipe, doc);
+    bool new_fields(false);
+    config->send_to_pipe(taskman, target_pipe, doc, new_fields);
 }
 
 void
@@ -164,7 +165,8 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     config->clear_changed();
     IndexingErrors errors;
     // Validation happens in process_doc
-    Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm, errors);
+    bool new_fields(false);
+    Xapian::Document xdoc = config->process_doc(doc, doc_type, doc_id, idterm, errors, new_fields);
     for (vector<pair<string, string> >::const_iterator
 	 i = errors.errors.begin(); i != errors.errors.end(); ++i) {
 	string msg("Indexing error in field \"" + i->first + "\": \"" +
@@ -183,7 +185,13 @@ ProcessorProcessDocumentTask::perform(const string & coll_name,
     taskman->queue_indexing_from_processing(coll_name,
 	new IndexerUpdateDocumentTask(idterm, xdoc));
 
-    if (config->is_changed()) {
+    // FIXME - when it's just new fields that have been added, should send
+    // out a task that updates the collection config with the new fields,
+    // without overwriting any other new fields that have been added by
+    // tasks running in parallel.
+
+    if (config->is_changed() || new_fields) {
+	LOG_DEBUG("Config has changed due to processing; applying new config");
 	// FIXME - could push just the new config for the schema for the doc_type in question, to save work.
 	Json::Value tmp;
 	config->to_json(tmp);

@@ -40,6 +40,7 @@
 #include "postingsources/multivaluerange_source.h"
 #include <set>
 #include "slotname.h"
+#include "str.h"
 #include <string>
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
@@ -1109,6 +1110,9 @@ FieldConfig *
 FieldConfigPatterns::get(const string & fieldname,
 			 const string & doc_type) const
 {
+    LOG_DEBUG("Searching through " + str(patterns.size()) +
+	      " patterns for field config pattern matching '" +
+	      fieldname + "'");
     for (vector<FieldConfigPattern>::const_iterator
 	 i = patterns.begin(); i != patterns.end(); ++i) {
 	FieldConfig * result = i->test(fieldname, doc_type);
@@ -1116,6 +1120,7 @@ FieldConfigPatterns::get(const string & fieldname,
 	    return result;
 	}
     }
+    LOG_DEBUG("No matching pattern found");
     return NULL;
 }
 
@@ -1247,6 +1252,7 @@ void
 Schema::set(const string & fieldname, FieldConfig * config)
 {
     if (config == NULL) {
+	LOG_DEBUG("Removing config for field '" + fieldname + "'");
 	map<string, FieldConfig *>::iterator i;
 	i = fields.find(fieldname);
 	if (i != fields.end()) {
@@ -1257,6 +1263,7 @@ Schema::set(const string & fieldname, FieldConfig * config)
 	return;
     }
 
+    LOG_DEBUG("Setting config for field '" + fieldname + "'");
     auto_ptr<FieldConfig> configptr(config);
     pair<string, FieldConfig*> item(fieldname, NULL);
     pair<map<string, FieldConfig *>::iterator, bool> ret;
@@ -1281,7 +1288,8 @@ Xapian::Document
 Schema::process(const Json::Value & value,
 		const CollectionConfig & collconfig,
 		string & idterm,
-		IndexingErrors & errors)
+		IndexingErrors & errors,
+		bool & new_fields)
 {
     json_check_object(value, "input document");
 
@@ -1304,6 +1312,7 @@ Schema::process(const Json::Value & value,
 	if (!indexer) {
 	    LOG_DEBUG(string("New field type: ") + fieldname);
 	    set(fieldname, patterns.get(fieldname, doc_type));
+	    new_fields = true;
 	    indexer = get_indexer(fieldname);
 	}
 
@@ -1325,8 +1334,9 @@ Schema::process(const Json::Value & value,
     if (!meta_field.empty()) {
 	const FieldIndexer * indexer = get_indexer(meta_field);
 	if (!indexer) {
-	    LOG_DEBUG(string("New field type: ") + meta_field);
+	    LOG_DEBUG(string("New meta field type: ") + meta_field);
 	    set(meta_field, patterns.get(meta_field, doc_type));
+	    new_fields = true;
 	    indexer = get_indexer(meta_field);
 	}
 	if (indexer) {

@@ -284,6 +284,7 @@ CollectionConfig::get_or_add_taxonomy(const std::string & taxonomy_name)
 	ret = taxonomies.insert(item);
 	Taxonomy * taxonomyptr = new Taxonomy();
 	ret.first->second = taxonomyptr;
+	LOG_DEBUG("Config changed: new taxonomy '" + taxonomy_name + "' created");
 	changed = true;
 	return *taxonomyptr;
     } else {
@@ -395,6 +396,7 @@ CollectionConfig::set_schema(const string & type,
     }
 
     schemaptr->merge_from(schema);
+    LOG_DEBUG("Config changed: schema for type '" + type + "' created or altered");
     changed = true;
 
     return schemaptr;
@@ -448,6 +450,7 @@ CollectionConfig::set_pipe(const string & pipe_name, const Pipe & pipe)
 	pipeptr = i->second;
     }
     *pipeptr = pipe;
+    LOG_DEBUG("Config changed: pipe '" + pipe_name + "' created or altered");
     changed = true;
 }
 
@@ -478,6 +481,7 @@ CollectionConfig::set_categoriser(const string & categoriser_name,
 	categoriserptr = i->second;
     }
     *categoriserptr = categoriser;
+    LOG_DEBUG("Config changed: categoriser '" + categoriser_name + "' created or altered");
     changed = true;
 }
 
@@ -511,6 +515,7 @@ CollectionConfig::set_taxonomy(const string & taxonomy_name,
 
     // Copy the taxonomy.
     *taxonomyptr = taxonomy;
+    LOG_DEBUG("Config changed: taxonomy '" + taxonomy_name + "' created or altered");
     changed = true;
 }
 
@@ -523,6 +528,7 @@ CollectionConfig::remove_taxonomy(const string & taxonomy_name)
 	return;
     }
     taxonomies.erase(i);
+    LOG_DEBUG("Config changed: taxonomy '" + taxonomy_name + "' removed");
     changed = true;
 }
 
@@ -560,6 +566,7 @@ CollectionConfig::category_add(const std::string & taxonomy_name,
 {
     Taxonomy & taxonomy = get_or_add_taxonomy(taxonomy_name);
     taxonomy.add(cat_name, modified);
+    LOG_DEBUG("Config changed: category added to taxonomy '" + taxonomy_name + "'");
     changed = true;
     return taxonomy;
 }
@@ -571,6 +578,7 @@ CollectionConfig::category_remove(const std::string & taxonomy_name,
 {
     Taxonomy & taxonomy = get_or_add_taxonomy(taxonomy_name);
     taxonomy.remove(cat_name, modified);
+    LOG_DEBUG("Config changed: category removed from taxonomy '" + taxonomy_name + "'");
     changed = true;
     return taxonomy;
 }
@@ -583,6 +591,7 @@ CollectionConfig::category_add_parent(const std::string & taxonomy_name,
 {
     Taxonomy & taxonomy = get_or_add_taxonomy(taxonomy_name);
     taxonomy.add_parent(child_name, parent_name, modified);
+    LOG_DEBUG("Config changed: category parent added to taxonomy '" + taxonomy_name + "'");
     changed = true;
     return taxonomy;
 }
@@ -595,6 +604,7 @@ CollectionConfig::category_remove_parent(const std::string & taxonomy_name,
 {
     Taxonomy & taxonomy = get_or_add_taxonomy(taxonomy_name);
     taxonomy.remove_parent(child_name, parent_name, modified);
+    LOG_DEBUG("Config changed: category parent removed from taxonomy '" + taxonomy_name + "'");
     changed = true;
     return taxonomy;
 }
@@ -618,7 +628,8 @@ CollectionConfig::categorise(const string & categoriser_name,
 void
 CollectionConfig::send_to_pipe(TaskManager * taskman,
 			       const string & pipe_name,
-			       Json::Value & obj)
+			       Json::Value & obj,
+			       bool & new_fields)
 {
     LOG_DEBUG("Sending to pipe \"" + pipe_name + "\"");
     // FIXME - this method just uses a recursive implementation, and doesn't
@@ -633,7 +644,7 @@ CollectionConfig::send_to_pipe(TaskManager * taskman,
 	IndexingErrors errors;
 	// FIXME - remove hardcoded "default" here - pipes should have a way to
 	// say what type the output document is.
-	Xapian::Document xdoc = process_doc(obj, "default", "", idterm, errors);
+	Xapian::Document xdoc = process_doc(obj, "default", "", idterm, errors, new_fields);
 
 	if (!errors.errors.empty()) {
 	    throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
@@ -652,7 +663,7 @@ CollectionConfig::send_to_pipe(TaskManager * taskman,
 	bool applied = i->apply(*this, obj, output);
 	//printf("applied: %s\n", applied ? "true" : "false");
 	if (applied) {
-	    send_to_pipe(taskman, pipe.target, output);
+	    send_to_pipe(taskman, pipe.target, output, new_fields);
 	    if (!pipe.apply_all) {
 		break;
 	    }
@@ -665,7 +676,8 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 			      const string & doc_type,
 			      const string & doc_id,
 			      string & idterm,
-			      IndexingErrors & errors)
+			      IndexingErrors & errors,
+			      bool & new_fields)
 {
     json_check_object(doc_obj, "input document");
     Xapian::Document doc;
@@ -862,6 +874,6 @@ CollectionConfig::process_doc(Json::Value & doc_obj,
 	newschema.from_json(default_type_config);
 	schema = set_schema(doc_type_, newschema);
     }
-    doc = schema->process(doc_obj, *this, idterm, errors);
+    doc = schema->process(doc_obj, *this, idterm, errors, new_fields);
     return doc;
 }

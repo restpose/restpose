@@ -262,7 +262,8 @@ class Collection {
      */
     void send_to_pipe(TaskManager * taskman,
 		      const std::string & pipe_name,
-		      Json::Value & obj);
+		      Json::Value & obj,
+		      bool & new_fields);
 
     /** Add (or replace) a document.
      */
@@ -274,7 +275,8 @@ class Collection {
     Xapian::Document process_doc(Json::Value & doc_obj,
 				 const std::string & doc_type,
 				 const std::string & doc_id,
-				 std::string & idterm);
+				 std::string & idterm,
+				 bool & new_fields);
 
     /** Update (or add) a Xapian document, given its unique id term.
      */

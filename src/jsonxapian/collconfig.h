@@ -341,7 +341,8 @@ class CollectionConfig {
      */
     void send_to_pipe(TaskManager * taskman,
 		      const std::string & pipe_name,
-		      Json::Value & obj);
+		      Json::Value & obj,
+		      bool & new_fields);
 
     /** Process a JSON document into a Xapian document.
      */
@@ -349,7 +350,8 @@ class CollectionConfig {
 				 const std::string & doc_type,
 				 const std::string & doc_id,
 				 std::string & idterm,
-				 IndexingErrors & errors);
+				 IndexingErrors & errors,
+				 bool & new_fields);
 };
 
 }

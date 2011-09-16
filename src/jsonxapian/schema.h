@@ -672,7 +672,8 @@ namespace RestPose {
 	Xapian::Document process(const Json::Value & value,
 				 const CollectionConfig & collconfig,
 				 std::string & idterm,
-				 IndexingErrors & errors);
+				 IndexingErrors & errors,
+				 bool & new_fields);
 
 	/// Get the list of fields to return, from a search
 	void get_fieldlist(Json::Value & result,

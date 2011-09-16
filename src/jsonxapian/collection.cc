@@ -444,9 +444,10 @@ Collection::categorise(const string & categoriser_name,
 void
 Collection::send_to_pipe(TaskManager * taskman,
 			 const string & pipe_name,
-			 Json::Value & obj)
+			 Json::Value & obj,
+			 bool & new_fields)
 {
-    config.send_to_pipe(taskman, pipe_name, obj);
+    config.send_to_pipe(taskman, pipe_name, obj, new_fields);
 }
 
 void
@@ -455,7 +456,8 @@ Collection::add_doc(Json::Value & doc_obj,
 {
     string idterm;
     IndexingErrors errors;
-    Xapian::Document doc(config.process_doc(doc_obj, doc_type, "FIXME", idterm, errors));
+    bool new_fields;
+    Xapian::Document doc(config.process_doc(doc_obj, doc_type, "FIXME", idterm, errors, new_fields));
     if (!errors.errors.empty()) {
 	throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
     }
@@ -466,10 +468,12 @@ Xapian::Document
 Collection::process_doc(Json::Value & doc_obj,
 			const string & doc_type,
 			const string & doc_id,
-			string & idterm)
+			string & idterm,
+			bool & new_fields)
 {
     IndexingErrors errors;
-    Xapian::Document doc(config.process_doc(doc_obj, doc_type, doc_id, idterm, errors));
+    Xapian::Document doc(config.process_doc(doc_obj, doc_type, doc_id, idterm,
+					    errors, new_fields));
     if (!errors.errors.empty()) {
 	throw InvalidValueError(errors.errors[0].first + ": " + errors.errors[0].second);
     }

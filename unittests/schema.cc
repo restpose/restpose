@@ -97,10 +97,11 @@ TEST(SchemaToDoc)
 	Json::Value v(Json::objectValue);
 	string idterm;
 	IndexingErrors errors;
-
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL(doc.get_data(), "");
 	Json::Value tmp;
 	CHECK_EQUAL("{}", json_serialise(doc_to_json(doc, tmp)));
@@ -113,9 +114,11 @@ TEST(SchemaToDoc)
 	v["url"] = "http://example.com/";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "\t\tabcd");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL(doc.get_data(), "\003url\027[\"http://example.com/\"]");
 	Json::Value tmp;
 	CHECK_EQUAL("{\"data\":{\"url\":[\"http://example.com/\"]},\"terms\":{\"\\\\t\\\\tabcd\":{},\"url\\\\thttp://example.com/\":{}}}",
@@ -128,9 +131,11 @@ TEST(SchemaToDoc)
 	v["nostore"] = "abcd";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL(doc.get_data(), "");
 	Json::Value tmp;
 	CHECK_EQUAL("{\"terms\":{\"ns\\\\tabcd\":{}}}",
@@ -158,13 +163,16 @@ TEST(LongExactFields)
 	v["id"] = "01234567890123456789012345678901234567890123456789012345678901234";
 	string idterm;
 	IndexingErrors errors;
-	s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(1u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	v["id"] = "0123456789012345678901234567890123456789012345678901234567890123";
 	errors.errors.clear();
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "\t\t0123456789012345678901234567890123456789012345678901234567890123");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"terms\":{\"\\\\t\\\\t0123456789012345678901234567890123456789012345678901234567890123\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{}");
@@ -175,9 +183,11 @@ TEST(LongExactFields)
 	v["url"] = "0123456789012345678901234567890";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"url\":[\"0123456789012345678901234567890\"]},\"terms\":{\"url\\\\t012345678901234567890123Y]^J/ \":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"url\":[\"0123456789012345678901234567890\"]}");
@@ -188,9 +198,11 @@ TEST(LongExactFields)
 	v["tags"] = "0123456789012345678901234567890";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"tags\":[\"0123456789012345678901234567890\"]},\"terms\":{\"tags\\\\t012345678901234567890123456789\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"tags\":[\"0123456789012345678901234567890\"]}");
@@ -201,13 +213,16 @@ TEST(LongExactFields)
 	v["valuable"] = "0123456789012345678901234567890";
 	string idterm;
 	IndexingErrors errors;
-	s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(1u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	errors.errors.clear();
 	v["valuable"] = "012345678901234567890123456789";
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"valuable\":[\"012345678901234567890123456789\"]},\"terms\":{\"valuable\\\\t012345678901234567890123456789\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"valuable\":[\"012345678901234567890123456789\"]}");
@@ -235,9 +250,11 @@ TEST(IntegerExactFields)
 	v["intid"] = Json::UInt64(5000000000LL);
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[5000000000]},\"terms\":{\"intid\\\\t5000000000\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"intid\":[5000000000]}");
@@ -250,62 +267,71 @@ TEST(IntegerExactFields)
 
 	string idterm;
 	IndexingErrors errors;
-	s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(1u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 
 	CHECK(reader.parse("{\"intid\": 0}", v, false));
 	errors.errors.clear();
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[0]},\"terms\":{\"intid\\\\t0\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 
 	CHECK(reader.parse("{\"intid\": 1}", v, false));
 	errors.errors.clear();
-	doc = s.process(v, config, idterm, errors);
+	doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[1]},\"terms\":{\"intid\\\\t1\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 
 	CHECK(reader.parse("{\"intid\": 4294967295}", v, false)); // 2**32-1
 	errors.errors.clear();
-	doc = s.process(v, config, idterm, errors);
+	doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[4294967295]},\"terms\":{\"intid\\\\t4294967295\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 
 	CHECK(reader.parse("{\"intid\": 9223372036854775807}", v, false)); // 2**63-1
 	errors.errors.clear();
-	doc = s.process(v, config, idterm, errors);
+	doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[9223372036854775807]},\"terms\":{\"intid\\\\t9223372036854775807\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 
 	CHECK(reader.parse("{\"intid\": 9223372036854775808}", v, false)); // 2**63
 	errors.errors.clear();
-	doc = s.process(v, config, idterm, errors);
+	doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[9223372036854775808]},\"terms\":{\"intid\\\\t9223372036854775808\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 
 	CHECK(reader.parse("{\"intid\": 18446744073709551615}", v, false)); // 2**64-1
 	errors.errors.clear();
-	doc = s.process(v, config, idterm, errors);
+	doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL("{\"data\":{\"intid\":[18446744073709551615]},\"terms\":{\"intid\\\\t18446744073709551615\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 
 	CHECK(reader.parse("{\"intid\": 18446744073709551616}", v, false));
 	errors.errors.clear();
-	doc = s.process(v, config, idterm, errors);
+	doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(1u, errors.errors.size()); // Too big
+	CHECK_EQUAL(false, new_fields);
     }
 }
 
@@ -330,9 +356,11 @@ TEST(DoubleFields)
 	v["num"] = 0;
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(true, new_fields);
 	CHECK_EQUAL("{\"data\":{\"num\":[0]},\"values\":{\"7\":\"\\\\x01\\\\x80\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"num\":[0]}");
@@ -368,9 +396,11 @@ TEST(TimestampFields)
 	v["timestamp"] = 1283400000;
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"timestamp\":[1283400000]},\"values\":{\"0\":\"\\\\x05\\\\xe0\\\\\\\\\\\\xc7\\\\xf2\\\\x14\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"timestamp\":[1283400000]}");
@@ -397,9 +427,11 @@ TEST(DateFields)
 	v["date"] = "2010-06-08";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"date2\":[\"2010-06-08\"]},\"values\":{\"0\":\"\\\\x04\\\\xcf\\\\xda&(\"}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL("{\"date2\":[\"2010-06-08\"]}", s.display_doc_as_string(doc));
@@ -426,9 +458,11 @@ TEST(CategoryFields)
 	v["cat"] = "foo";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"category\":[\"foo\"]},\"terms\":{\"cat\\\\tCfoo\":{}}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL("{\"category\":[\"foo\"]}", s.display_doc_as_string(doc));
@@ -455,9 +489,11 @@ TEST(StoreFields)
 	v["store"] = "Well, can you store me?";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"store2\":[\"Well, can you store me?\"]}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL("{\"store2\":[\"Well, can you store me?\"]}",
@@ -469,9 +505,11 @@ TEST(StoreFields)
 	v["store"] = 1283400000;
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"store2\":[1283400000]}}",
 		    json_serialise(doc_to_json(doc, tmp)));
 	CHECK_EQUAL("{\"store2\":[1283400000]}", s.display_doc_as_string(doc));
@@ -498,9 +536,11 @@ TEST(EnglishStemmedFields)
 	v["text"] = "Some english words";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL("", idterm);
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"text\":[\"Some english words\"]},\"terms\":{"
 
 		    "\"Zt\\\\tenglish\":{\"wdf\":1},"
@@ -536,9 +576,11 @@ TEST(CJKFields)
 	v["text"] = "Some english text";
 	string idterm;
 	IndexingErrors errors;
-	Xapian::Document doc = s.process(v, config, idterm, errors);
+	bool new_fields(false);
+	Xapian::Document doc = s.process(v, config, idterm, errors, new_fields);
 	CHECK_EQUAL(idterm, "");
 	CHECK_EQUAL(0u, errors.errors.size());
+	CHECK_EQUAL(false, new_fields);
 	CHECK_EQUAL("{\"data\":{\"text\":[\"Some english text\"]},\"terms\":{\"t\\\\tenglish\":{\"positions\":[2],\"wdf\":1},\"t\\\\tsome\":{\"positions\":[1],\"wdf\":1},\"t\\\\ttext\":{\"positions\":[3],\"wdf\":1}}}",
 		    json_serialise(doc_to_json(doc, tmp2)));
 	CHECK_EQUAL(s.display_doc_as_string(doc), "{\"text\":[\"Some english text\"]}");
