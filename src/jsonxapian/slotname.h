@@ -39,6 +39,9 @@ class SlotName {
 
     static Xapian::valueno hash_slot(const char * ptr, size_t len)
     {
+	if (len == 0) {
+	    return Xapian::BAD_VALUENO;
+	}
 	const char * end = ptr + len;
 	unsigned long int h = 1;
 	for (; ptr != end; ++ptr) {

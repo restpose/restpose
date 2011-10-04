@@ -17,6 +17,7 @@ unittest_SOURCES = \
  unittests/schema.cc \
  unittests/search.cc \
  unittests/server/checkpoints.cc \
+ unittests/slotname.cc \
  unittests/threadsafequeue.cc
 
 unittest_SOURCES += \

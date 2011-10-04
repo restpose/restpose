@@ -40,17 +40,15 @@ SlotName::SlotName(unsigned long int slotnum)
 {}
 
 SlotName::SlotName(const string & slotname)
-	: name(slotname)
-{
-    num = hash_slot(name);
-}
+	: name(slotname), num(hash_slot(name))
+{}
 
 SlotName::SlotName(const Json::Value & value)
+	: name()
 {
     if (value.isNull()) {
-        throw InvalidValueError("Slot number missing");
-    }
-    if (value.isIntegral()) {
+	num = Xapian::BAD_VALUENO;
+    } else if (value.isIntegral()) {
 	if (value < Json::Value::Int(0)) {
 	    throw InvalidValueError("Value for slot number was negative");
 	}
@@ -73,7 +71,11 @@ Json::Value &
 SlotName::to_json(Json::Value & value) const
 {
     if (name.empty()) {
-	value = num;
+	if (num == Xapian::BAD_VALUENO) {
+	    value = Json::nullValue;
+	} else {
+	    value = num;
+	}
     } else {
 	value = name;
     }
