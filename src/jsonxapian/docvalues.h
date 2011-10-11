@@ -44,7 +44,7 @@ namespace RestPose {
 	    return values.end();
 	}
 
-	bool empty() {
+	bool empty() const {
 	    return values.empty();
 	}
 
@@ -81,6 +81,14 @@ namespace RestPose {
 
 	void add(Xapian::valueno slot, const std::string & value);
 	void remove(Xapian::valueno slot, const std::string & value);
+
+	bool empty(Xapian::valueno slot) const {
+	    const_iterator i = entries.find(slot);
+	    if (i == entries.end()) {
+		return true;
+	    }
+	    return i->second.empty();
+	}
 
 	void apply(Xapian::Document & doc) const;
     };
