@@ -64,6 +64,15 @@ MetaIndexer::~MetaIndexer()
 {}
 
 void
+MetaIndexer::add_entry(IndexingState & state, const std::string & entry) const
+{
+    state.doc.add_term(prefix + entry, 0);
+    if (entry.size() > 1) {
+	state.docvals.add(slot, entry);
+    }
+}
+
+void
 MetaIndexer::index(IndexingState & state,
 		   const string &,
 		   const Json::Value &) const
@@ -73,6 +82,8 @@ MetaIndexer::index(IndexingState & state,
     // N: fields which are non empty
     // M: fields which are empty
     // E: fields which had errors
+    //
+    // If a slot is supplied, also store the values in the slot.
     bool had_nonempty(false);
     bool had_empty(false);
     bool had_errors(false);
@@ -83,28 +94,28 @@ MetaIndexer::index(IndexingState & state,
 	    continue;
 	}
 	const string & fieldname(i->first);
-	state.doc.add_term(prefix + "F" + fieldname, 0);
+	add_entry(state, "F" + fieldname);
 	if (i->second.nonempty) {
-	    state.doc.add_term(prefix + "N" + fieldname, 0);
+	    add_entry(state, "N" + fieldname);
 	    had_nonempty = true;
 	}
 	if (i->second.empty) {
-	    state.doc.add_term(prefix + "M" + fieldname, 0);
+	    add_entry(state, "M" + fieldname);
 	    had_empty = true;
 	}
 	if (i->second.errors) {
-	    state.doc.add_term(prefix + "E" + fieldname, 0);
+	    add_entry(state, "E" + fieldname);
 	    had_errors = true;
 	}
     }
     if (had_nonempty) {
-	state.doc.add_term(prefix + "N", 0);
+	add_entry(state, "N");
     }
     if (had_empty) {
-	state.doc.add_term(prefix + "M", 0);
+	add_entry(state, "M");
     }
     if (had_errors) {
-	state.doc.add_term(prefix + "E", 0);
+	add_entry(state, "E");
     }
 }
 

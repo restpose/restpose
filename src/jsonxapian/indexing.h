@@ -180,6 +180,7 @@ namespace RestPose {
     class MetaIndexer : public FieldIndexer {
 	std::string prefix;
 	unsigned int slot;
+	void add_entry(IndexingState & state, const std::string & entry) const;
       public:
 	MetaIndexer(const std::string & prefix_,
 		    unsigned int slot_)
