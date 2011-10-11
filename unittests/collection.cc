@@ -49,14 +49,14 @@ using namespace RestPose;
     "[\"num\",{\"slot\":\"n\",\"store_field\":\"num\",\"type\":\"double\"}]," \
     "[\"*_time\",{\"slot\":\"d*\",\"store_field\":\"*_time\",\"type\":\"timestamp\"}]," \
     "[\"time\",{\"slot\":\"d\",\"store_field\":\"time\",\"type\":\"timestamp\"}]," \
-    "[\"*_tag\",{\"group\":\"g*\",\"max_length\":100,\"store_field\":\"*_tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"tag\",{\"group\":\"g\",\"max_length\":100,\"store_field\":\"tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"*_url\",{\"group\":\"u*\",\"max_length\":100,\"store_field\":\"*_url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"url\",{\"group\":\"u\",\"max_length\":100,\"store_field\":\"url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
-    "[\"*_cat\",{\"group\":\"c*\",\"max_length\":32,\"store_field\":\"*_cat\",\"taxonomy\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
-    "[\"cat\",{\"group\":\"c\",\"max_length\":32,\"store_field\":\"cat\",\"taxonomy\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"*_tag\",{\"group\":\"g*\",\"max_length\":100,\"slot\":\"g*\",\"store_field\":\"*_tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"tag\",{\"group\":\"g\",\"max_length\":100,\"slot\":\"g\",\"store_field\":\"tag\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"*_url\",{\"group\":\"u*\",\"max_length\":100,\"slot\":\"u*\",\"store_field\":\"*_url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"url\",{\"group\":\"u\",\"max_length\":100,\"slot\":\"u\",\"store_field\":\"url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
+    "[\"*_cat\",{\"group\":\"c*\",\"max_length\":32,\"slot\":\"c*\",\"store_field\":\"*_cat\",\"taxonomy\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"cat\",{\"group\":\"c\",\"max_length\":32,\"slot\":\"c\",\"store_field\":\"cat\",\"taxonomy\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
     "[\"id\",{\"store_field\":\"id\",\"type\":\"id\"}]," \
-    "[\"type\",{\"group\":\"!\",\"store_field\":\"type\",\"type\":\"exact\"}]," \
+    "[\"type\",{\"group\":\"!\",\"slot\":1,\"store_field\":\"type\",\"type\":\"exact\"}]," \
     "[\"_meta\",{\"group\":\"#\",\"slot\":0,\"type\":\"meta\"}]," \
     "[\"*\",{\"group\":\"t\",\"store_field\":\"*\",\"type\":\"text\"}]" \
   "]" \
@@ -555,7 +555,8 @@ TEST(MetaInfoSimple)
 			   "\"\\\\tdefault\\\\t0\":{},"
 			   "\"t\\\\thello\":{\"positions\":[1],\"wdf\":1}},"
 		"\"values\":{"
-		           "\"0\":\"\\\\x04Ffoo\\\\x04Nfoo\""
+		           "\"0\":\"\\\\x04Ffoo\\\\x04Nfoo\","
+		           "\"1\":\"\\\\x07default\""
 		"}}",
 		json_serialise(doc_to_json(xdoc, tmp)));
 }
@@ -618,7 +619,8 @@ TEST(MetaInfoMissing)
 				    "\\\\tMfoo_text"
 				    "\\\\tMfoo_time"
 				    "\\\\x08Mfoo_url"
-				"\""
+				"\","
+				"\"1\":\"\\\\x07default\""
 		    "}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
     }
