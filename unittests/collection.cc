@@ -553,7 +553,9 @@ TEST(MetaInfoSimple)
 			   "\"#\\\\tN\":{},"
 			   "\"#\\\\tNfoo\":{},"
 			   "\"\\\\tdefault\\\\t0\":{},"
-			   "\"t\\\\thello\":{\"positions\":[1],\"wdf\":1}"
+			   "\"t\\\\thello\":{\"positions\":[1],\"wdf\":1}},"
+		"\"values\":{"
+		           "\"0\":\"\\\\x04Ffoo\\\\x04Nfoo\""
 		"}}",
 		json_serialise(doc_to_json(xdoc, tmp)));
 }
@@ -603,6 +605,20 @@ TEST(MetaInfoMissing)
 				"\"#\\\\tMfoo_time\":{},"
 				"\"#\\\\tMfoo_url\":{},"
 				"\"\\\\tdefault\\\\t0\":{}"
+		     "},"
+		     "\"values\":{"
+		                "\"0\":\""
+				    "\\\\x08Ffoo_cat"
+				    "\\\\x08Ffoo_tag"
+				    "\\\\tFfoo_text"
+				    "\\\\tFfoo_time"
+				    "\\\\x08Ffoo_url"
+				    "\\\\x08Mfoo_cat"
+				    "\\\\x08Mfoo_tag"
+				    "\\\\tMfoo_text"
+				    "\\\\tMfoo_time"
+				    "\\\\x08Mfoo_url"
+				"\""
 		    "}}",
 		    json_serialise(doc_to_json(xdoc, tmp)));
     }
