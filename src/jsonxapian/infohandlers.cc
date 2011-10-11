@@ -26,6 +26,7 @@
 #include "jsonxapian/infohandlers.h"
 
 #include "jsonxapian/occurinfohandler.h"
+#include "jsonxapian/facetinfohandler.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 
@@ -78,9 +79,7 @@ InfoHandlers::add_handler(const Json::Value & handler,
     if (handler.isMember("cooccur")) {
 	handlers.back() = new CoOccurInfoHandler(handler["cooccur"], enq, db, check_at_least);
     }
-#if 0
-    if (handler.isMember("facet")) {
-	handlers.back() = new FacetInfoHandler(handler["facet"], enq, db, schema)
+    if (handler.isMember("facetcount")) {
+	handlers.back() = new FacetCountInfoHandler(handler["facetcount"], enq, db, check_at_least);
     }
-#endif
 }

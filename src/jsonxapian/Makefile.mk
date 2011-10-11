@@ -9,6 +9,7 @@ noinst_HEADERS += \
  src/jsonxapian/docdata.h \
  src/jsonxapian/docvalues.h \
  src/jsonxapian/doctojson.h \
+ src/jsonxapian/facetinfohandler.h \
  src/jsonxapian/indexing.h \
  src/jsonxapian/infohandlers.h \
  src/jsonxapian/occurinfohandler.h \
@@ -26,6 +27,7 @@ libjsonxapian_a_SOURCES = \
  src/jsonxapian/docdata.cc \
  src/jsonxapian/docvalues.cc \
  src/jsonxapian/doctojson.cc \
+ src/jsonxapian/facetinfohandler.cc \
  src/jsonxapian/indexing.cc \
  src/jsonxapian/infohandlers.cc \
  src/jsonxapian/occurinfohandler.cc \
