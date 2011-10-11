@@ -204,16 +204,18 @@ namespace RestPose {
 	unsigned int max_length;
 	MaxLenFieldConfig::TooLongAction too_long_action;
 	bool isid;
+	unsigned int slot;
       public:
 	ExactStringIndexer(const std::string & prefix_,
 			   const std::string & store_field_,
 			   unsigned int wdfinc_,
 			   unsigned int max_length_,
 			   MaxLenFieldConfig::TooLongAction too_long_action_,
-			   bool isid_)
+			   bool isid_,
+			   unsigned int slot_)
 		: prefix(prefix_), store_field(store_field_), wdfinc(wdfinc_),
 		  max_length(max_length_), too_long_action(too_long_action_),
-		  isid(isid_)
+		  isid(isid_), slot(slot_)
 	{}
 
 	virtual ~ExactStringIndexer();
@@ -321,16 +323,20 @@ namespace RestPose {
 	std::string store_field;
 	unsigned int max_length;
 	MaxLenFieldConfig::TooLongAction too_long_action;
+	unsigned int slot;
       public:
 	CategoryIndexer(const std::string & prefix_,
 			const std::string & taxonomy_name_,
 			const std::string & store_field_,
 			unsigned int max_length_,
-			MaxLenFieldConfig::TooLongAction too_long_action_)
+			MaxLenFieldConfig::TooLongAction too_long_action_,
+			unsigned int slot_)
 		: prefix(prefix_),
 		  taxonomy_name(taxonomy_name_),
 		  store_field(store_field_),
-		  max_length(max_length_), too_long_action(too_long_action_)
+		  max_length(max_length_),
+		  too_long_action(too_long_action_),
+		  slot(slot_)
 	{}
 
 	virtual ~CategoryIndexer();
@@ -348,13 +354,16 @@ namespace RestPose {
 	std::string prefix;
 	std::string store_field;
 	std::string stem_lang;
+	unsigned int slot;
       public:
 	TermGeneratorIndexer(const std::string & prefix_,
 			     const std::string & store_field_,
-			     const std::string & stem_lang_)
+			     const std::string & stem_lang_,
+			     unsigned int slot_)
 		: prefix(prefix_),
 		  store_field(store_field_),
-		  stem_lang(stem_lang_)
+		  stem_lang(stem_lang_),
+		  slot(slot_)
 	{}
 
 	virtual ~TermGeneratorIndexer();
@@ -370,10 +379,12 @@ namespace RestPose {
     class CJKIndexer : public FieldIndexer {
 	std::string prefix;
 	std::string store_field;
+	unsigned int slot;
       public:
 	CJKIndexer(const std::string & prefix_,
-		   const std::string & store_field_)
-		: prefix(prefix_), store_field(store_field_)
+		   const std::string & store_field_,
+		   unsigned int slot_)
+		: prefix(prefix_), store_field(store_field_), slot(slot_)
 	{}
 
 	virtual ~CJKIndexer();

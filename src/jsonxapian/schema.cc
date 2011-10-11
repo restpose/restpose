@@ -264,7 +264,8 @@ FieldIndexer *
 IDFieldConfig::indexer() const
 {
     return new ExactStringIndexer(prefix, store_field, 0,
-				  max_length, too_long_action, true);
+				  max_length, too_long_action, true,
+				  slot.get());
 }
 
 Xapian::Query
@@ -366,7 +367,8 @@ FieldIndexer *
 ExactFieldConfig::indexer() const
 {
     return new ExactStringIndexer(prefix, store_field, wdfinc,
-				  max_length, too_long_action, false);
+				  max_length, too_long_action, false,
+				  slot.get());
 }
 
 Xapian::Query
@@ -471,11 +473,13 @@ FieldIndexer *
 TextFieldConfig::indexer() const
 {
     if (processor == "cjk") {
-	return new CJKIndexer(prefix, store_field);
+	return new CJKIndexer(prefix, store_field, slot.get());
     } else if (startswith(processor, "stem_")) {
-	return new TermGeneratorIndexer(prefix, store_field, processor.substr(5));
+	return new TermGeneratorIndexer(prefix, store_field,
+					processor.substr(5), slot.get());
     } else {
-	return new TermGeneratorIndexer(prefix, store_field, string());
+	return new TermGeneratorIndexer(prefix, store_field,
+					string(), slot.get());
     }
 }
 
@@ -853,7 +857,7 @@ FieldIndexer *
 CategoryFieldConfig::indexer() const
 {
     return new CategoryIndexer(prefix, taxonomy_name, store_field,
-			       max_length, too_long_action);
+			       max_length, too_long_action, slot.get());
 }
 
 Xapian::Query
