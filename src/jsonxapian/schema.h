@@ -113,6 +113,7 @@ namespace RestPose {
 
 	/// Get a slot holiding a sortable representation of this field.
 	Xapian::valueno sort_slot() const {
+	    // No sortable slot held.
 	    return Xapian::BAD_VALUENO;
 	}
 
@@ -123,6 +124,9 @@ namespace RestPose {
     /** Configuration for fields which have a maximum length.
      */
     struct MaxLenFieldConfig : public FieldConfig {
+	/// The slot to use for the field.
+	SlotName slot;
+
 	/// An action to take if the term is too long.
 	enum TooLongAction {
 	    TOOLONG_HASH,
@@ -148,6 +152,11 @@ namespace RestPose {
 
 	/// Virtual destructor, to clean up subclasses correctly.
 	virtual ~MaxLenFieldConfig();
+
+	/// Get a slot holiding a sortable representation of this field.
+	Xapian::valueno sort_slot() const {
+	    return slot.get();
+	}
 
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
@@ -183,11 +192,6 @@ namespace RestPose {
 	/// Get the field that values are being stored under.
 	std::string stored_field() const {
 	    return store_field;
-	}
-
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
-	    return Xapian::BAD_VALUENO;
 	}
 
 	/// Add the configuration for a field to a JSON object.
@@ -233,11 +237,6 @@ namespace RestPose {
 	    return store_field;
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
-	    return Xapian::BAD_VALUENO;
-	}
-
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;
     };
@@ -245,6 +244,9 @@ namespace RestPose {
     struct TextFieldConfig : public FieldConfig {
 	/// The prefix to use for the field.
 	std::string prefix;
+
+	/// The slot to use for the field.
+	SlotName slot;
 
 	/// The fieldname to store field values under (empty to not store).
 	std::string store_field;
@@ -280,7 +282,7 @@ namespace RestPose {
 
 	/// Get a slot holiding a sortable representation of this field.
 	Xapian::valueno sort_slot() const {
-	    return Xapian::BAD_VALUENO;
+	    return slot.get();
 	}
 
 	/// Add the configuration for a field to a JSON object.
@@ -414,6 +416,9 @@ namespace RestPose {
     struct CategoryFieldConfig : public MaxLenFieldConfig {
 	/// The prefix that the category terms are stored under.
 	std::string prefix;
+
+	/// The slot to use for the field.
+	SlotName slot;
 
 	/// The name of the taxonomy that this category uses.
 	std::string taxonomy_name;

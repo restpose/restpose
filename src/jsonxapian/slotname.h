@@ -61,7 +61,7 @@ class SlotName {
     SlotName(const std::string & slotname);
     SlotName(const Json::Value & value);
 
-    Json::Value & to_json(Json::Value & value) const;
+    void to_json(Json::Value & value, const char * slotname) const;
 
     Xapian::valueno get() const { return num; }
 };

@@ -198,7 +198,7 @@ MetaFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "meta";
     value["group"] = prefix.substr(0, prefix.size() - 1);
-    slot.to_json(value["slot"]);
+    slot.to_json(value, "slot");
 }
 
 
@@ -218,6 +218,7 @@ MaxLenFieldConfig::MaxLenFieldConfig(const Json::Value & value)
 	throw InvalidValueError("Field configuration too_long_action \"" +
 				action_str + "\" is not supported");
     }
+    slot = value["slot"];
 }
 
 MaxLenFieldConfig::~MaxLenFieldConfig()
@@ -239,6 +240,7 @@ MaxLenFieldConfig::to_json(Json::Value & value) const
 	    value["too_long_action"] = "truncate";
 	    break;
     }
+    slot.to_json(value, "slot");
 }
 
 IDFieldConfig::IDFieldConfig(const Json::Value & value,
@@ -459,6 +461,7 @@ TextFieldConfig::TextFieldConfig(const Json::Value & value)
     prefix.append("\t");
     store_field = json_get_string_member(value, "store_field", string());
     processor = json_get_string_member(value, "processor", string());
+    slot = value["slot"];
 }
 
 TextFieldConfig::~TextFieldConfig()
@@ -657,6 +660,7 @@ TextFieldConfig::to_json(Json::Value & value) const
     value["group"] = prefix.substr(0, prefix.size() - 1);
     value["store_field"] = store_field;
     value["processor"] = processor;
+    slot.to_json(value, "slot");
 }
 
 
@@ -712,7 +716,7 @@ void
 DoubleFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "double";
-    slot.to_json(value["slot"]);
+    slot.to_json(value, "slot");
     value["store_field"] = store_field;
 }
 
@@ -756,7 +760,7 @@ void
 TimestampFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "timestamp";
-    slot.to_json(value["slot"]);
+    slot.to_json(value, "slot");
     value["store_field"] = store_field;
 }
 
@@ -807,7 +811,7 @@ void
 DateFieldConfig::to_json(Json::Value & value) const
 {
     value["type"] = "date";
-    slot.to_json(value["slot"]);
+    slot.to_json(value, "slot");
     value["store_field"] = store_field;
 }
 
@@ -839,6 +843,7 @@ CategoryFieldConfig::CategoryFieldConfig(const Json::Value & value)
     }
 
     store_field = json_get_string_member(value, "store_field", string());
+    slot = value["slot"];
 }
 
 CategoryFieldConfig::~CategoryFieldConfig()
@@ -933,6 +938,7 @@ CategoryFieldConfig::to_json(Json::Value & value) const
     value["group"] = prefix.substr(0, prefix.size() - 1);
     value["taxonomy"] = taxonomy_name;
     value["store_field"] = store_field;
+    slot.to_json(value, "slot");
 }
 
 

@@ -32,58 +32,76 @@ using namespace RestPose;
 
 TEST(SlotName)
 {
-    Json::Value tmp;
     {
+	Json::Value tmp(Json::objectValue);
 	SlotName slot;
 	CHECK_EQUAL(Xapian::BAD_VALUENO, slot.get());
-	CHECK_EQUAL("null", json_serialise(slot.to_json(tmp)));
+	slot.to_json(tmp, "out");
+	CHECK_EQUAL("{}", json_serialise(tmp));
     }
 
     {
+	Json::Value tmp(Json::objectValue);
 	SlotName slot(0u);
 	CHECK_EQUAL(0u, slot.get());
-	CHECK_EQUAL("0", json_serialise(slot.to_json(tmp)));
+	slot.to_json(tmp, "out");
+	CHECK_EQUAL("{\"out\":0}", json_serialise(tmp));
     }
 
     {
+	Json::Value tmp(Json::objectValue);
 	SlotName slot(1u);
 	CHECK_EQUAL(1u, slot.get());
-	CHECK_EQUAL("1", json_serialise(slot.to_json(tmp)));
+	slot.to_json(tmp, "out");
+	CHECK_EQUAL("{\"out\":1}", json_serialise(tmp));
     }
 
     {
+	Json::Value tmp(Json::objectValue);
 	SlotName slot(std::string("1"));
 	CHECK_EQUAL(268435538u, slot.get()); // hashed value of "1"
-	CHECK_EQUAL("\"1\"", json_serialise(slot.to_json(tmp)));
+	slot.to_json(tmp, "out");
+	CHECK_EQUAL("{\"out\":\"1\"}", json_serialise(tmp));
     }
 
     {
+	Json::Value tmp(Json::objectValue);
 	SlotName slot(std::string(""));
 	CHECK_EQUAL(Xapian::BAD_VALUENO, slot.get());
-	CHECK_EQUAL("null", json_serialise(slot.to_json(tmp)));
+	slot.to_json(tmp, "out");
+	CHECK_EQUAL("{}", json_serialise(tmp));
     }
 
     {
+	Json::Value tmp(Json::objectValue);
 	SlotName slot(std::string("hello world"));
 	CHECK_EQUAL(2061196861u, slot.get()); // hashed value of "hello world"
-	CHECK_EQUAL("\"hello world\"", json_serialise(slot.to_json(tmp)));
+	slot.to_json(tmp, "out");
+	CHECK_EQUAL("{\"out\":\"hello world\"}", json_serialise(tmp));
     }
 
     {
+	Json::Value tmp(Json::objectValue);
 	json_unserialise("1", tmp);
 	SlotName slot(tmp);
 	CHECK_EQUAL(1u, slot.get());
-	CHECK_EQUAL("1", json_serialise(slot.to_json(tmp)));
+	tmp = Json::objectValue;
+	slot.to_json(tmp, "out");
+	CHECK_EQUAL("{\"out\":1}", json_serialise(tmp));
     }
 
     {
+	Json::Value tmp(Json::objectValue);
 	json_unserialise("null", tmp);
 	SlotName slot(tmp);
 	CHECK_EQUAL(Xapian::BAD_VALUENO, slot.get());
-	CHECK_EQUAL("null", json_serialise(slot.to_json(tmp)));
+	tmp = Json::objectValue;
+	slot.to_json(tmp, "out");
+	CHECK_EQUAL("{}", json_serialise(tmp));
     }
 
     {
+	Json::Value tmp(Json::objectValue);
 	json_unserialise("-1", tmp);
 	CHECK_THROW(SlotName test(tmp), InvalidValueError);
 

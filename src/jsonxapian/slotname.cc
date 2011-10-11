@@ -67,17 +67,16 @@ SlotName::SlotName(const Json::Value & value)
     }
 }
 
-Json::Value &
-SlotName::to_json(Json::Value & value) const
+void
+SlotName::to_json(Json::Value & value, const char * slotname) const
 {
     if (name.empty()) {
 	if (num == Xapian::BAD_VALUENO) {
-	    value = Json::nullValue;
+	    return;
 	} else {
-	    value = num;
+	    value[slotname] = num;
 	}
     } else {
-	value = name;
+	value[slotname] = name;
     }
-    return value;
 }
