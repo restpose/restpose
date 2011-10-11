@@ -67,7 +67,7 @@ void
 MetaIndexer::add_entry(IndexingState & state, const std::string & entry) const
 {
     state.doc.add_term(prefix + entry, 0);
-    if (entry.size() > 1) {
+    if (entry.size() > 1 && slot != Xapian::BAD_VALUENO) {
 	state.docvals.add(slot, entry);
     }
 }
@@ -148,13 +148,15 @@ ExactStringIndexer::index(IndexingState & state,
 		return;
 	    }
 	}
+	if (slot != Xapian::BAD_VALUENO) {
+	    state.docvals.add(slot, val);
+	}
 	state.field_nonempty(fieldname);
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
 		    state.append_error(fieldname,
-			"Field value of length " +
-			str(val.size()) +
+			"Field value of length " + str(val.size()) +
 			" exceeds maximum permissible length for this field "
 			"of " + str(max_length));
 		     continue;
@@ -355,6 +357,9 @@ CategoryIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	    continue;
 	}
+	if (slot != Xapian::BAD_VALUENO) {
+	    state.docvals.add(slot, val);
+	}
 	state.field_nonempty(fieldname);
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
@@ -416,6 +421,11 @@ TermGeneratorIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	    continue;
 	}
+	if (slot != Xapian::BAD_VALUENO) {
+	    if (state.docvals.empty(slot)) {
+		state.docvals.add(slot, val);
+	    }
+	}
 	state.field_nonempty(fieldname);
 
 	Xapian::TermGenerator tg;
@@ -451,6 +461,11 @@ CJKIndexer::index(IndexingState & state,
 	if (val.empty()) {
 	    state.field_empty(fieldname);
 	    continue;
+	}
+	if (slot != Xapian::BAD_VALUENO) {
+	    if (state.docvals.empty(slot)) {
+		state.docvals.add(slot, val);
+	    }
 	}
 	state.field_nonempty(fieldname);
 
