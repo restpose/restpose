@@ -28,6 +28,7 @@
 #include <cstdio>
 #include "json/value.h"
 #include <map>
+#include "jsonxapian/docvalues.h"
 #include "jsonxapian/slotname.h"
 #include <string>
 #include <xapian.h>
@@ -51,11 +52,15 @@ namespace RestPose {
 	/// Get the field that values are being stored under. ("" if none).
 	virtual std::string stored_field() const = 0;
 
-	/** Get a slot holiding a sortable representation of this field.
+	/** Get the slot used by the field.
 	 *
-	 *  Return Xapian::BAD_VALUENO if none.
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
 	 */
-	virtual Xapian::valueno sort_slot() const = 0;
+	virtual Xapian::valueno get_slot(ValueEncoding & encoding) const = 0;
 
 	/** For fields which use taxonomies; if the taxonomy_name
 	 *  is as given, add the group to result.
@@ -111,10 +116,17 @@ namespace RestPose {
 	    return std::string();
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
-	    // No sortable slot held.
-	    return Xapian::BAD_VALUENO;
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding & encoding) const {
+	    encoding = ENC_VINT_LENGTHS;
+	    return slot.get();
 	}
 
 	/// Add the configuration for the field to a JSON object.
@@ -153,8 +165,16 @@ namespace RestPose {
 	/// Virtual destructor, to clean up subclasses correctly.
 	virtual ~MaxLenFieldConfig();
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding & encoding) const {
+	    encoding = ENC_VINT_LENGTHS;
 	    return slot.get();
 	}
 
@@ -280,8 +300,16 @@ namespace RestPose {
 	    return store_field;
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding & encoding) const {
+	    encoding = ENC_VINT_LENGTHS;
 	    return slot.get();
 	}
 
@@ -324,8 +352,16 @@ namespace RestPose {
 	    return store_field;
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding & encoding) const {
+	    encoding = ENC_VINT_LENGTHS;
 	    return slot.get();
 	}
 
@@ -364,8 +400,16 @@ namespace RestPose {
 	    return store_field;
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding & encoding) const {
+	    encoding = ENC_VINT_LENGTHS;
 	    return slot.get();
 	}
 
@@ -404,8 +448,16 @@ namespace RestPose {
 	    return store_field;
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding & encoding) const {
+	    encoding = ENC_VINT_LENGTHS;
 	    return slot.get();
 	}
 
@@ -455,9 +507,17 @@ namespace RestPose {
 	    return store_field;
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
-	    return Xapian::BAD_VALUENO;
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding & encoding) const {
+	    encoding = ENC_VINT_LENGTHS;
+	    return slot.get();
 	}
 
 	/// If the taxonomy_name is as given, add the group to result.
@@ -494,8 +554,15 @@ namespace RestPose {
 	    return store_field;
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding &) const {
 	    return Xapian::BAD_VALUENO;
 	}
 
@@ -518,8 +585,15 @@ namespace RestPose {
 	    return std::string();
 	}
 
-	/// Get a slot holiding a sortable representation of this field.
-	Xapian::valueno sort_slot() const {
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding &) const {
 	    return Xapian::BAD_VALUENO;
 	}
 
