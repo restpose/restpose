@@ -368,11 +368,11 @@ TEST(DoubleFields)
 
     Xapian::Database db = Xapian::InMemory::open();
     config.set_schema("test", s);
-    CollectionQueryBuilder builder;
+    CollectionQueryBuilder builder(config);
 
-    Xapian::Query q = builder.build(config, json_unserialise("{\"field\": [\"num\", \"range\", [-1, 1]]}", tmp));
+    Xapian::Query q = builder.build(json_unserialise("{\"field\": [\"num\", \"range\", [-1, 1]]}", tmp));
     CHECK_EQUAL("Xapian::Query(PostingSource(MultiValueRangeSource(7, 1, ^, \\xa0)))", q.get_description());
-    q = builder.build(config, json_unserialise("{\"field\": [\"num\", \"range\", [0, 1]]}", tmp));
+    q = builder.build(json_unserialise("{\"field\": [\"num\", \"range\", [0, 1]]}", tmp));
     CHECK_EQUAL("Xapian::Query(PostingSource(MultiValueRangeSource(7, 1, \\x80, \\xa0)))", q.get_description());
 }
 

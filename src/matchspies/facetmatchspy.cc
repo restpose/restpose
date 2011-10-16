@@ -32,16 +32,20 @@
 using namespace RestPose;
 using namespace std;
 
-BaseFacetMatchSpy::BaseFacetMatchSpy(const SlotName & slotname_,
-				     Xapian::doccount doc_limit_,
-				     const Xapian::Database * db_)
-	: slot(slotname_.get()),
-	  slotname(slotname_),
+BaseFacetMatchSpy::BaseFacetMatchSpy(SlotDecoder * decoder_,
+				     const string & fieldname_,
+				     Xapian::doccount doc_limit_)
+	: decoder(decoder_),
+	  fieldname(fieldname_),
 	  docs_seen(0),
 	  doc_limit(doc_limit_),
-	  values_seen(0),
-	  db(db_)
+	  values_seen(0)
 {
+}
+
+BaseFacetMatchSpy::~BaseFacetMatchSpy()
+{
+    delete decoder;
 }
 
 
@@ -50,11 +54,11 @@ FacetCountMatchSpy::operator()(const Xapian::Document &doc, Xapian::weight)
 {
     if (docs_seen >= doc_limit) return;
     ++docs_seen;
-    const string & val(doc.get_value(slot));
-    const char * pos = val.data();
-    const char * endpos = pos + val.size();
-    while (pos != endpos) {
-	size_t len = decode_length(&pos, endpos, true);
+    decoder->newdoc(doc);
+
+    const char * pos;
+    size_t len;
+    while (decoder->next(&pos, &len)) {
 	++values_seen;
 	++counts[string(pos, len)];
     }
@@ -80,8 +84,8 @@ void
 FacetCountMatchSpy::get_result(Json::Value & result) const
 {
     result = Json::objectValue;
-    result["type"] = "facetcount";
-    slotname.to_json(result, "slot");
+    result["type"] = "facet_count";
+    result["fieldname"] = fieldname;
     result["docs_seen"] = docs_seen;
     result["values_seen"] = values_seen;
     Json::Value & rcounts = result["counts"] = Json::arrayValue;

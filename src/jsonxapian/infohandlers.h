@@ -34,6 +34,8 @@ class Database;
 
 namespace RestPose {
 
+class QueryBuilder;
+
 class InfoHandler {
   public:
     virtual ~InfoHandler();
@@ -59,6 +61,7 @@ class InfoHandlers {
      *  object.
      */
     void add_handler(const Json::Value & params,
+		     const QueryBuilder & builder,
 		     Xapian::Enquire & enq,
 		     const Xapian::Database * db,
 		     Xapian::doccount & check_at_least);

@@ -26,7 +26,7 @@
 #define RESTPOSE_INCLUDED_FACETMATCHSPY_H
 
 #include <json/value.h>
-#include "jsonxapian/slotname.h"
+#include "jsonxapian/docvalues.h"
 #include <map>
 #include <set>
 #include <string>
@@ -38,11 +38,13 @@ class BaseFacetMatchSpy : public Xapian::MatchSpy {
   protected:
     /** Slot to read facets from.
      */
-    Xapian::valueno slot;
+    SlotDecoder * decoder;
 
-    /** Name of slot to read facets from.
+    /** Name of field to read facets from.
+     *
+     *  If this was not supplied, it will be empty.
      */
-    SlotName slotname;
+    std::string fieldname;
 
     /** Number of documents seen by the matchspy.
      */
@@ -57,14 +59,12 @@ class BaseFacetMatchSpy : public Xapian::MatchSpy {
      */
     Xapian::termcount values_seen;
 
-    /** The database being searched.
-     */
-    const Xapian::Database * db;
-
   public:
-    BaseFacetMatchSpy(const SlotName & slotname_,
-		      Xapian::doccount doc_limit_,
-		      const Xapian::Database * db_);
+    BaseFacetMatchSpy(SlotDecoder * decoder_,
+		      const std::string & fieldname_,
+		      Xapian::doccount doc_limit_);
+
+    virtual ~BaseFacetMatchSpy();
 
     virtual void operator()(const Xapian::Document &doc, Xapian::weight wt) = 0;
 
@@ -81,11 +81,11 @@ class FacetCountMatchSpy : public BaseFacetMatchSpy {
     std::map<std::string, Xapian::doccount> counts;
 
   public:
-    FacetCountMatchSpy(const SlotName & slotname_,
+    FacetCountMatchSpy(SlotDecoder * decoder_,
+		       const std::string & fieldname_,
 		       Xapian::doccount doc_limit_,
-		       Xapian::doccount result_limit_,
-		       const Xapian::Database * db_)
-	    : BaseFacetMatchSpy(slotname_, doc_limit_, db_),
+		       Xapian::doccount result_limit_)
+	    : BaseFacetMatchSpy(decoder_, fieldname_, doc_limit_),
 	      result_limit(result_limit_),
 	      counts()
     {}

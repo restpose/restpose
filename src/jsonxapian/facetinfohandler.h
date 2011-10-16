@@ -33,6 +33,7 @@
 namespace RestPose {
 
 class BaseFacetMatchSpy;
+class QueryBuilder;
 
 class BaseFacetInfoHandler : public InfoHandler {
   protected:
@@ -51,6 +52,7 @@ class BaseFacetInfoHandler : public InfoHandler {
 class FacetCountInfoHandler : public BaseFacetInfoHandler {
   public:
     FacetCountInfoHandler(const Json::Value & params,
+			  const QueryBuilder & builder,
 			  Xapian::Enquire & enq,
 			  const Xapian::Database * db,
 			  Xapian::doccount & check_at_least);

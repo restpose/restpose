@@ -61,6 +61,7 @@ InfoHandlers::write_results(Json::Value & results,
 
 void
 InfoHandlers::add_handler(const Json::Value & handler,
+			  const QueryBuilder & builder,
 			  Xapian::Enquire & enq,
 			  const Xapian::Database * db,
 			  Xapian::doccount & check_at_least)
@@ -79,7 +80,7 @@ InfoHandlers::add_handler(const Json::Value & handler,
     if (handler.isMember("cooccur")) {
 	handlers.back() = new CoOccurInfoHandler(handler["cooccur"], enq, db, check_at_least);
     }
-    if (handler.isMember("facetcount")) {
-	handlers.back() = new FacetCountInfoHandler(handler["facetcount"], enq, db, check_at_least);
+    if (handler.isMember("facet_count")) {
+	handlers.back() = new FacetCountInfoHandler(handler["facet_count"], builder, enq, db, check_at_least);
     }
 }
