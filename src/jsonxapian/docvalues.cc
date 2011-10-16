@@ -26,6 +26,7 @@
 #include "jsonxapian/docvalues.h"
 
 #include "serialise.h"
+#include "utils/rsperrors.h"
 
 using namespace RestPose;
 using namespace std;
@@ -94,4 +95,97 @@ DocumentValues::apply(Xapian::Document & doc) const
     for (const_iterator i = begin(); i != end(); ++i) {
 	doc.add_value(i->first, i->second.serialise());
     }
+}
+
+void
+SlotDecoder::read_value(const Xapian::Document & doc)
+{
+    value = doc.get_value(slot);
+}
+
+SlotDecoder *
+SlotDecoder::create(Xapian::valueno slot,
+		    ValueEncoding encoding)
+{
+    if (slot == Xapian::BAD_VALUENO) {
+	return NULL;
+    }
+    switch (encoding) {
+	case ENC_SINGLY_VALUED:
+	    return new SinglyValuedSlotDecoder(slot);
+	case ENC_VINT_LENGTHS:
+	    return new VintLengthSlotDecoder(slot);
+	case ENC_GEOENCODE:
+	    return new GeoEncodeSlotDecoder(slot);
+    }
+    return NULL;
+}
+
+SlotDecoder::~SlotDecoder()
+{
+}
+
+
+void
+SinglyValuedSlotDecoder::newdoc(const Xapian::Document & doc)
+{
+    read_value(doc);
+    read = false;
+}
+
+bool
+SinglyValuedSlotDecoder::next(const char ** begin_ptr, size_t * len_ptr)
+{
+    if (read) {
+	return false;
+    }
+    *begin_ptr = value.data();
+    *len_ptr = value.size();
+    read = true;
+    return true;
+}
+
+
+void
+VintLengthSlotDecoder::newdoc(const Xapian::Document & doc)
+{
+    read_value(doc);
+    pos = value.data();
+    endpos = pos + value.size();
+}
+
+bool
+VintLengthSlotDecoder::next(const char ** begin_ptr, size_t * len_ptr)
+{
+    if (pos == endpos) {
+	return false;
+    }
+    size_t len = decode_length(&pos, endpos, true);
+    *begin_ptr = pos;
+    *len_ptr = len;
+    pos += len;
+    return true;
+}
+
+void
+GeoEncodeSlotDecoder::newdoc(const Xapian::Document & doc)
+{
+    read_value(doc);
+    pos = value.data();
+    endpos = pos + value.size();
+}
+
+bool
+GeoEncodeSlotDecoder::next(const char ** begin_ptr, size_t * len_ptr)
+{
+    if (pos == endpos) {
+	return false;
+    }
+    if (endpos - pos < 6) {
+	throw RestPose::UnserialisationError("Bad geoencoded value: invalid encoded length");
+    }
+    *begin_ptr = pos;
+    *len_ptr = 6;
+    pos += 6;
+    return true;
 }

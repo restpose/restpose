@@ -92,6 +92,111 @@ namespace RestPose {
 
 	void apply(Xapian::Document & doc) const;
     };
+
+
+    /// Encodings for values.
+    enum ValueEncoding {
+	/// Slot contains a single value.
+	ENC_SINGLY_VALUED,
+
+	/// Values preceded by their length, as a vint.
+	ENC_VINT_LENGTHS,
+
+	/// Values encoded using the geoencode scheme (6 bytes per value).
+	ENC_GEOENCODE
+    };
+
+
+    /** A decoder for reading values from a slot in a document. */
+    class SlotDecoder {
+	/** The slot being decoded. */
+	Xapian::valueno slot;
+
+      protected:
+	/** The current value being decoded.
+	 */
+	std::string value;
+
+	/** Read the value from a new document.
+	 */
+	void read_value(const Xapian::Document & doc);
+
+      public:
+	/** Build a new SlotDecoder.
+	 *
+	 *  @param slot The slot to read from.
+	 */
+	SlotDecoder(Xapian::valueno slot_)
+		: slot(slot_)
+	{}
+
+	/** Create a slot decoder for a given slot and encoding.
+	 */
+	static SlotDecoder * create(Xapian::valueno slot,
+				    ValueEncoding encoding);
+
+	virtual ~SlotDecoder();
+
+	/** Start decoding the value from a new document.
+	 */
+	virtual void newdoc(const Xapian::Document & doc) = 0;
+
+	/** Return the next value in the slot (by reference).
+	 *
+	 *  Returns true if a value was found, false otherwise.
+	 */
+	virtual bool next(const char ** begin, size_t * len) = 0;
+    };
+
+
+    /** A decoder for slots which hold a single value.
+     */
+    class SinglyValuedSlotDecoder : public SlotDecoder {
+	bool read;
+	public:
+	SinglyValuedSlotDecoder(Xapian::valueno slot_)
+		: SlotDecoder(slot_), read(true)
+	{}
+
+	void newdoc(const Xapian::Document & doc);
+
+	bool next(const char ** begin_ptr, size_t * len_ptr);
+    };
+
+
+    /** A decoder for slots holding multiple values prefixed by their length.
+     *
+     *  The lengths are stored in standard Xapian vint form.
+     */
+    class VintLengthSlotDecoder : public SlotDecoder {
+	const char * pos;
+	const char * endpos;
+	public:
+	VintLengthSlotDecoder(Xapian::valueno slot_)
+		: SlotDecoder(slot_), pos(NULL), endpos(NULL)
+	{}
+
+	void newdoc(const Xapian::Document & doc);
+
+	bool next(const char ** begin_ptr, size_t * len_ptr);
+    };
+
+
+    /** A decoder for slots holding multiple geoencoded values.
+     */
+    class GeoEncodeSlotDecoder : public SlotDecoder {
+	const char * pos;
+	const char * endpos;
+	public:
+	GeoEncodeSlotDecoder(Xapian::valueno slot_)
+		: SlotDecoder(slot_), pos(NULL), endpos(NULL)
+	{}
+
+	void newdoc(const Xapian::Document & doc);
+
+	bool next(const char ** begin_ptr, size_t * len_ptr);
+    };
+
 };
 
 #endif /* RESTPOSE_INCLUDED_DOCVALUES_H */
