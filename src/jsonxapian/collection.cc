@@ -592,19 +592,19 @@ Collection::perform_search(const Json::Value & search,
 
     auto_ptr<QueryBuilder> builder;
     if (doc_type.empty()) {
-	builder = auto_ptr<QueryBuilder>(new CollectionQueryBuilder());
+	builder = auto_ptr<QueryBuilder>(new CollectionQueryBuilder(config));
     } else {
 	builder = auto_ptr<QueryBuilder>(
-		new DocumentTypeQueryBuilder(config.get_schema(doc_type)));
+		new DocumentTypeQueryBuilder(config, doc_type));
     }
 
     results = Json::objectValue;
-    Xapian::Query query(builder->build(config, search["query"]));
+    Xapian::Query query(builder->build(search["query"]));
 
     Xapian::Database db(get_db());
 
     Xapian::doccount total_docs, from, size, check_at_least;
-    total_docs = builder->total_docs(config, db);
+    total_docs = builder->total_docs(db);
     from = json_get_uint64_member(search, "from", Json::Value::maxUInt, 0);
 
     if (search["size"] == -1) {
@@ -673,53 +673,85 @@ Collection::perform_search(const Json::Value & search,
 	json_check_array(info, "list of info items to gather");
 	for (Json::Value::const_iterator i = info.begin();
 	     i != info.end(); ++i) {
-	    info_handlers.add_handler(*i, enq, &db, check_at_least);
+	    info_handlers.add_handler(*i, *(builder.get()),
+				      enq, &db, check_at_least);
 	}
     }
 
     // Internal document IDs are not under the user's control, so set this
     // option for potential (though probably slight) performance increases.
     enq.set_docid_order(enq.DONT_CARE);
-    auto_ptr<Xapian::KeyMaker> sorter;
+    auto_ptr<MultiValueKeyMaker> sorter;
 
     if (search.isMember("order_by")) {
 	const Json::Value & order_by = search["order_by"];
 	json_check_array(order_by, "list of ordering items");
-	if (order_by.size() != 1) {
-	    throw InvalidValueError("Invalid order_by array - must contain exactly 1 item");
+	bool score_first = false;
+	bool score_last = false;
+	for (unsigned i = 0; i != order_by.size(); ++i) {
+	    const Json::Value & order_by_item = order_by[i];
+	    json_check_object(order_by_item, "ordering item");
+
+	    if (order_by_item.isMember("field")) {
+		// Order by a field.  The field must have a slot associated with
+		// it, holding the sortable values.
+		string fieldname = json_get_string_member(order_by_item, "field",
+							  string());
+
+		auto_ptr<SlotDecoder> decoder(builder->get_slot_decoder(fieldname));
+		// FIXME - make it obvious why the sorting didn't happen; this
+		// shouldn't be an error, because it could just be that no
+		// documents have yet been indexed with the given field, but it
+		// should be reflected in the search results somehow (possibly only
+		// in an explain view).
+
+		if (decoder.get() != NULL) {
+		    if (sorter.get() == NULL) {
+			sorter = auto_ptr<MultiValueKeyMaker>(new MultiValueKeyMaker());
+		    }
+
+		    bool ascending = json_get_bool(order_by_item, "ascending", true);
+		    sorter->add_decoder(decoder.release(), !ascending);
+		}
+	    } else if (order_by_item.isMember("score")) {
+		// Order by the weights calculated in the query tree.
+		if (order_by_item["score"] != "weight") {
+		    throw InvalidValueError("Invalid score specification (only "
+					    "allowed value is \"weight\")");
+		}
+		if (json_get_bool(order_by_item, "ascending", false)) {
+		    throw InvalidValueError("Ascending order is not allowed when "
+					    "ordering by weight");
+		}
+		if (i == 0) {
+		    score_first = true;
+		} else if (i + 1 == order_by.size()) {
+		    score_last = true;
+		} else {
+		    throw InvalidValueError("Sorting by score is only allowed "
+					    "as the first or last sorting "
+					    "condition (was " + str(i) + " of "
+					    + str(order_by.size()) + ")");
+		}
+	    } else {
+		throw InvalidValueError("Invalid order_by item - neither contains "
+					"\"field\" or \"score\" member");
+	    }
 	}
-	const Json::Value & order_by_item = order_by[0];
-	json_check_object(order_by_item, "ordering item");
-	if (order_by_item.isMember("field")) {
-	    // Order by a field.  The field must have a slot associated with
-	    // it, holding the sortable values.
-	    string fieldname = json_get_string_member(order_by_item, "field",
-						      string());
-	    // If the fieldname is not known, ignore.  Otherwise, get the slot
-	    // number, and set the sort order on the enquire object.
-	    Xapian::valueno slot = config.sort_slot(fieldname);
-	    if (slot == Xapian::BAD_VALUENO) {
-		throw InvalidValueError("Sort field is not configured "
-		  "appropriately (does not have a sortable slot associated)");
-	    }
-	    bool ascending = json_get_bool(order_by_item, "ascending", true);
-	    enq.set_sort_by_value(slot, !ascending);
-	    sorter = auto_ptr<Xapian::KeyMaker>(new MultiValueKeyMaker(slot));
-	    enq.set_sort_by_key_then_relevance(sorter.get(), !ascending);
-	} else if (order_by_item.isMember("score")) {
-	    // Order by the weights calculated in the query tree.
-	    if (order_by_item["score"] != "weight") {
-		throw InvalidValueError("Invalid score specification (only "
-					"allowed value is \"weight\")");
-	    }
-	    if (json_get_bool(order_by_item, "ascending", false)) {
-		throw InvalidValueError("Ascending order is not allowed when "
-					"ordering by weight");
-	    }
+	if (score_first && score_last) {
+	    throw InvalidValueError("Sorting condition list may only contain "
+				    "sorting by score once.");
+	}
+	if (sorter.get() == NULL) {
 	    enq.set_sort_by_relevance();
 	} else {
-	    throw InvalidValueError("Invalid order_by item - neither contains "
-				    "\"field\" or \"score\" member");
+	    if (score_first) {
+		enq.set_sort_by_relevance_then_key(sorter.get(), false);
+	    } else if (score_last) {
+		enq.set_sort_by_key_then_relevance(sorter.get(), false);
+	    } else {
+		enq.set_sort_by_key(sorter.get(), false);
+	    }
 	}
     }
 
