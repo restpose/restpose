@@ -27,6 +27,7 @@
 
 #include "jsonxapian/collection.h"
 #include "jsonxapian/schema.h"
+#include "jsonxapian/slotname.h"
 #include "logger/logger.h"
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
@@ -37,8 +38,7 @@ using namespace RestPose;
 using namespace std;
 
 Xapian::Query
-QueryBuilder::build_query(const CollectionConfig & collconfig,
-			  const Json::Value & jsonquery) const
+QueryBuilder::build_query(const Json::Value & jsonquery) const
 {
     if (jsonquery.isNull()) {
 	return Xapian::Query::MatchNothing;
@@ -91,7 +91,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	string fieldname = queryparams[Json::UInt(0u)].asString();
 	string querytype = queryparams[Json::UInt(1u)].asString();
-	return field_query(collconfig, fieldname, querytype, queryparams[2u]);
+	return field_query(fieldname, querytype, queryparams[2u]);
     }
 
     if (jsonquery.isMember("meta")) {
@@ -112,7 +112,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	string fieldname = collconfig.get_meta_field();
 	string querytype = queryparams[Json::UInt(0u)].asString();
-	return field_query(collconfig, fieldname, querytype, queryparams[1u]);
+	return field_query(fieldname, querytype, queryparams[1u]);
     }
 
     if (jsonquery.isMember("and")) {
@@ -126,7 +126,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(collconfig, *i));
+	    queries.push_back(build_query(*i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND,
 			     queries.begin(), queries.end());
@@ -143,7 +143,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(collconfig, *i));
+	    queries.push_back(build_query(*i));
 	}
 	return Xapian::Query(Xapian::Query::OP_OR,
 			     queries.begin(), queries.end());
@@ -160,7 +160,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 
 	for (Json::Value::const_iterator i = queryparams.begin();
 	     i != queryparams.end(); ++i) {
-	    queries.push_back(build_query(collconfig, *i));
+	    queries.push_back(build_query(*i));
 	}
 	return Xapian::Query(Xapian::Query::OP_XOR,
 			     queries.begin(), queries.end());
@@ -177,14 +177,14 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	}
 
 	Json::Value::const_iterator i = queryparams.begin();
-	Xapian::Query posquery(build_query(collconfig, *i));
+	Xapian::Query posquery(build_query(*i));
 	++i;
 
 	vector<Xapian::Query> negqueries;
 	negqueries.reserve(queryparams.size() - 1);
 
 	for (; i != queryparams.end(); ++i) {
-	    negqueries.push_back(build_query(collconfig, *i));
+	    negqueries.push_back(build_query(*i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND_NOT,
 			     posquery,
@@ -203,14 +203,14 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	}
 
 	Json::Value::const_iterator i = queryparams.begin();
-	Xapian::Query mainquery(build_query(collconfig, *i));
+	Xapian::Query mainquery(build_query(*i));
 	++i;
 
 	vector<Xapian::Query> maybequeries;
 	maybequeries.reserve(queryparams.size() - 1);
 
 	for (; i != queryparams.end(); ++i) {
-	    maybequeries.push_back(build_query(collconfig, *i));
+	    maybequeries.push_back(build_query(*i));
 	}
 	return Xapian::Query(Xapian::Query::OP_AND_MAYBE,
 			     mainquery,
@@ -229,14 +229,14 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	}
 
 	Json::Value::const_iterator i = queryparams.begin();
-	Xapian::Query mainquery(build_query(collconfig, *i));
+	Xapian::Query mainquery(build_query(*i));
 	++i;
 
 	vector<Xapian::Query> filterqueries;
 	filterqueries.reserve(queryparams.size() - 1);
 
 	for (; i != queryparams.end(); ++i) {
-	    filterqueries.push_back(build_query(collconfig, *i));
+	    filterqueries.push_back(build_query(*i));
 	}
 	return Xapian::Query(Xapian::Query::OP_FILTER,
 			     mainquery,
@@ -253,7 +253,7 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
 	if (!queryparams.isMember("query")) {
 	    throw InvalidValueError("Scale query must contain a query member");
 	}
-	Xapian::Query subquery = build_query(collconfig, queryparams["query"]);
+	Xapian::Query subquery = build_query(queryparams["query"]);
 	return Xapian::Query(Xapian::Query::OP_SCALE_WEIGHT, subquery,
 	    json_get_double_member(queryparams, "factor", 0.0));
     }
@@ -261,14 +261,20 @@ QueryBuilder::build_query(const CollectionConfig & collconfig,
     throw InvalidValueError("Invalid query specification - no known members in query object (" + json_serialise(jsonquery) + ")");
 }
 
+QueryBuilder::QueryBuilder(const CollectionConfig & collconfig_)
+	: collconfig(collconfig_)
+{
+}
 
-CollectionQueryBuilder::CollectionQueryBuilder()
+
+CollectionQueryBuilder::CollectionQueryBuilder(
+    const CollectionConfig & collconfig_)
+	: QueryBuilder(collconfig_)
 {
 }
 
 Xapian::Query
-CollectionQueryBuilder::field_query(const CollectionConfig & collconfig,
-				    const std::string & fieldname,
+CollectionQueryBuilder::field_query(const std::string & fieldname,
 				    const std::string & querytype,
 				    const Json::Value & queryparams) const
 {
@@ -288,28 +294,67 @@ CollectionQueryBuilder::field_query(const CollectionConfig & collconfig,
 }
 
 Xapian::Query
-CollectionQueryBuilder::build(const CollectionConfig & collconfig,
-			      const Json::Value & jsonquery) const
+CollectionQueryBuilder::build(const Json::Value & jsonquery) const
 {
-    return build_query(collconfig, jsonquery);
+    return build_query(jsonquery);
 }
 
 Xapian::doccount
-CollectionQueryBuilder::total_docs(const CollectionConfig &,
-				   const Xapian::Database & db) const
+CollectionQueryBuilder::total_docs(const Xapian::Database & db) const
 {
     return db.get_doccount();
 }
 
+SlotDecoder *
+CollectionQueryBuilder::get_slot_decoder(const std::string & fieldname) const
+{
+    ValueEncoding encoding(ENC_VINT_LENGTHS);
+    Xapian::valueno slot(Xapian::BAD_VALUENO);
 
-DocumentTypeQueryBuilder::DocumentTypeQueryBuilder(const Schema * schema_)
-	: schema(schema_)
+    for (map<string, Schema *>::const_iterator i = collconfig.schema_begin();
+	 i != collconfig.schema_end(); ++i)
+    {
+	const FieldConfig * config = i->second->get(fieldname);
+	if (config != NULL) {
+	    ValueEncoding field_encoding;
+	    Xapian::valueno field_slot(config->get_slot(field_encoding));
+	    if (field_slot == Xapian::BAD_VALUENO) {
+		continue;
+	    }
+	    if (slot == Xapian::BAD_VALUENO) {
+		encoding = field_encoding;
+		slot = field_slot;
+	    } else {
+		if (slot != field_slot || encoding != field_encoding) {
+		    throw InvalidValueError("Field '" + fieldname +
+			"' has inconsistent configuration for its slot in "
+			"the types being searched - support for handling "
+			"this is not yet implemented");
+		    // Note; support could be added for this - we'd either need
+		    // to split the search into multiple sub-searches though,
+		    // and then merge the results, or use complicated
+		    // PostingSources, KeyMakers, or similar which check what
+		    // type a document is before getting and decoding entries
+		    // from slots.
+		}
+	    }
+	}
+    }
+
+    return SlotDecoder::create(slot, encoding);
+}
+
+
+DocumentTypeQueryBuilder::DocumentTypeQueryBuilder(
+    const CollectionConfig & collconfig_,
+    const std::string & doc_type)
+	: QueryBuilder(collconfig_),
+	  schema(collconfig_.get_schema(doc_type))
 {
 }
 
 Xapian::Query
-DocumentTypeQueryBuilder::field_query(const CollectionConfig &,
-				      const std::string & fieldname,
+DocumentTypeQueryBuilder::field_query(const std::string & fieldname,
 				      const std::string & querytype,
 				      const Json::Value & queryparams) const
 {
@@ -322,8 +367,7 @@ DocumentTypeQueryBuilder::field_query(const CollectionConfig &,
 }
 
 Xapian::Query
-DocumentTypeQueryBuilder::build(const CollectionConfig & collconfig,
-				const Json::Value & jsonquery) const
+DocumentTypeQueryBuilder::build(const Json::Value & jsonquery) const
 {
     if (schema == NULL) {
 	// Will happen if no documents have been added yet with this type, so
@@ -341,12 +385,11 @@ DocumentTypeQueryBuilder::build(const CollectionConfig & collconfig,
     Xapian::Query type_query(typeconfig->query("is", schema->get_doctype()));
 
     return Xapian::Query(Xapian::Query::OP_FILTER,
-			 build_query(collconfig, jsonquery), type_query);
+			 build_query(jsonquery), type_query);
 }
 
 Xapian::doccount
-DocumentTypeQueryBuilder::total_docs(const CollectionConfig & collconfig,
-				     const Xapian::Database & db) const
+DocumentTypeQueryBuilder::total_docs(const Xapian::Database & db) const
 {
     if (schema == NULL) {
 	return 0u;
@@ -366,4 +409,24 @@ DocumentTypeQueryBuilder::total_docs(const CollectionConfig & collconfig,
     enq.set_query(type_query);
     Xapian::MSet mset(enq.get_mset(0, 0));
     return mset.get_matches_upper_bound();
+}
+
+SlotDecoder *
+DocumentTypeQueryBuilder::get_slot_decoder(const std::string & fieldname) const
+{
+    if (schema == NULL) {
+	// Will happen if no documents have been added yet with this type, so
+	// this isn't an error.
+	return NULL;
+    }
+
+    const FieldConfig * fieldconfig = schema->get(fieldname);
+    if (fieldconfig == NULL) {
+	// No field configuration - so no slot.
+	return NULL;
+    }
+
+    ValueEncoding encoding;
+    Xapian::valueno slot = fieldconfig->get_slot(encoding);
+    return SlotDecoder::create(slot, encoding);
 }

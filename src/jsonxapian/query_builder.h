@@ -26,12 +26,14 @@
 #define RESTPOSE_INCLUDED_QUERY_BUILDER_H
 
 #include "json/value.h"
+#include "jsonxapian/slotname.h"
 #include <xapian.h>
 
 namespace RestPose {
     class Collection;
     class CollectionConfig;
     class Schema;
+    class SlotDecoder;
 
     /** Base class of query builders.
      *
@@ -40,31 +42,40 @@ namespace RestPose {
      */
     class QueryBuilder {
       protected:
+	/** The configuration for the collection being searched.. */
+	const CollectionConfig & collconfig;
+
 	/** Build a query from a JSON query specification.
 	 */
-	Xapian::Query build_query(const CollectionConfig & collconfig,
-				  const Json::Value & jsonquery) const;
+	Xapian::Query build_query(const Json::Value & jsonquery) const;
 
 	/** Build a query for a particular field.
 	 */
 	virtual Xapian::Query
-		field_query(const CollectionConfig & collconfig,
-			    const std::string & fieldname,
+		field_query(const std::string & fieldname,
 			    const std::string & querytype,
 			    const Json::Value & queryparams) const = 0;
 
       public:
+	QueryBuilder(const CollectionConfig & collconfig_);
+
 	/** Build a query from a JSON query specification.
 	 */
-	virtual Xapian::Query build(const CollectionConfig & collconfig,
-				    const Json::Value & jsonquery) const = 0;
+	virtual Xapian::Query build(const Json::Value & jsonquery) const = 0;
 
 	/** Get the total number of documents searched in the database
 	 *  specified by queries built by this builder.
 	 */
 	virtual Xapian::doccount
-		total_docs(const CollectionConfig & collconfig,
-			   const Xapian::Database & db) const = 0;
+		total_docs(const Xapian::Database & db) const = 0;
+
+	/** Get the a slot decoder to return the values stored in a given field.
+	 *
+	 *  Raise an exception if the slot used is inconsistent for the types
+	 *  that the query builder is for.
+	 */
+	virtual SlotDecoder *
+		get_slot_decoder(const std::string & fieldname) const = 0;
     };
 
     /** A query builder for searches across a whole collection.
@@ -74,21 +85,20 @@ namespace RestPose {
     class CollectionQueryBuilder : public QueryBuilder {
 	/** Build a query for a particular field.
 	 */
-	Xapian::Query field_query(const CollectionConfig & collconfig,
-				  const std::string & fieldname,
+	Xapian::Query field_query(const std::string & fieldname,
 				  const std::string & querytype,
 				  const Json::Value & queryparams) const;
 
       public:
-	CollectionQueryBuilder();
+	CollectionQueryBuilder(const CollectionConfig & collconfig_);
 
 	/** Build a query from a JSON query specification.
 	 */
-	Xapian::Query build(const CollectionConfig & collconfig,
-			    const Json::Value & jsonquery) const;
+	Xapian::Query build(const Json::Value & jsonquery) const;
 
-	Xapian::doccount total_docs(const CollectionConfig & collconfig,
-				    const Xapian::Database & db) const;
+	Xapian::doccount total_docs(const Xapian::Database & db) const;
+
+	SlotDecoder * get_slot_decoder(const std::string & fieldname) const;
     };
 
     /** A query builder for searching a particular document type.
@@ -101,19 +111,19 @@ namespace RestPose {
 
 	/** Build a query for a particular field.
 	 */
-	Xapian::Query field_query(const CollectionConfig & collconfig,
-				  const std::string & fieldname,
+	Xapian::Query field_query(const std::string & fieldname,
 				  const std::string & querytype,
 				  const Json::Value & queryparams) const;
 
       public:
-	DocumentTypeQueryBuilder(const Schema * schema_);
+	DocumentTypeQueryBuilder(const CollectionConfig & collconfig_,
+				 const std::string & doc_type);
 
-	Xapian::Query build(const CollectionConfig & collconfig,
-			    const Json::Value & jsonquery) const;
+	Xapian::Query build(const Json::Value & jsonquery) const;
 
-	Xapian::doccount total_docs(const CollectionConfig & collconfig,
-				    const Xapian::Database & db) const;
+	Xapian::doccount total_docs(const Xapian::Database & db) const;
+
+	SlotDecoder * get_slot_decoder(const std::string & fieldname) const;
     };
 };
 
