@@ -78,6 +78,9 @@ FacetCountInfoHandler::FacetCountInfoHandler(const Json::Value & params,
     // all types in the builder.
     auto_ptr<SlotDecoder> decoder(builder.get_slot_decoder(fieldname));
     if (decoder.get() == NULL) {
+	// Make a spy with no decoder, and don't add it to "enq", to get a
+	// suitable structure added to the results.
+	spy = new FacetCountMatchSpy(NULL, fieldname, doc_limit, result_limit);
 	return;
     }
 
