@@ -29,6 +29,8 @@
 #include <string>
 #include <xapian.h>
 
+namespace RestPose {
+
 /** A named slot.  */
 class SlotName {
     std::string name;
@@ -65,5 +67,7 @@ class SlotName {
 
     Xapian::valueno get() const { return num; }
 };
+
+}
 
 #endif /* RESTPOSE_INCLUDED_SLOTNAME_H */
