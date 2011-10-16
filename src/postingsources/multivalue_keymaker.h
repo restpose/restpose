@@ -25,15 +25,17 @@
 #ifndef RESTPOSE_INCLUDED_MULTIVALUE_KEYMAKER_H
 #define RESTPOSE_INCLUDED_MULTIVALUE_KEYMAKER_H
 
-#include <string>
 #include <xapian.h>
+#include <vector>
 
 namespace RestPose {
+    class SlotDecoder;
 
     class MultiValueKeyMaker : public Xapian::KeyMaker {
-	Xapian::valueno slot;
+	std::vector<std::pair<SlotDecoder *, bool> > decoders;
       public:
-	MultiValueKeyMaker(Xapian::valueno slot_) : slot(slot_) {}
+	MultiValueKeyMaker() : decoders() {}
+	void add_decoder(SlotDecoder * decoder, bool reverse = false);
 	std::string operator()(const Xapian::Document & doc) const;
     };
 

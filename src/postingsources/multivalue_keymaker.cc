@@ -25,6 +25,9 @@
 #include <config.h>
 #include "postingsources/multivalue_keymaker.h"
 
+#include <cstring>
+#include "jsonxapian/docvalues.h"
+#include <memory>
 #include "serialise.h"
 #include <string>
 #include <xapian.h>
@@ -32,12 +35,58 @@
 using namespace RestPose;
 using namespace std;
 
+void
+MultiValueKeyMaker::add_decoder(SlotDecoder * decoder, bool reverse)
+{
+    auto_ptr<SlotDecoder> decoder_ptr(decoder);
+    decoders.push_back(std::pair<SlotDecoder *, bool>(NULL, reverse));
+    decoders[decoders.size() - 1].first = decoder_ptr.release();
+}
+
 string
 MultiValueKeyMaker::operator()(const Xapian::Document & doc) const
 {
-    string value(doc.get_value(slot));
-    const char * pos = value.data();
-    const char * endpos = pos + value.size();
-    size_t len = decode_length(&pos, endpos, true);
-    return string(pos, len);;
+    const char * begin;
+    string::size_type len;
+    string result;
+    for (std::vector<std::pair<SlotDecoder *, bool> >::const_iterator
+	 i = decoders.begin(); i != decoders.end(); ++i) {
+	i->first->newdoc(doc);
+	if (i->first->next(&begin, &len)) {
+	    if (i->second) {
+		// Reverse sort order.
+		// Subtract all bytes from \xff, except for zero bytes which
+		// are converted to \xff\0.  Terminate with \xff\xff
+		const char * end = begin + len;
+		while (begin != end) {
+		    unsigned char ch(*begin);
+		    result += char(255 - ch);
+		    if (ch == 0) {
+			result += char(0);
+		    }
+		    ++begin;
+		}
+		result.append(2, '\xff');
+	    } else {
+		// Forward sort order.
+		// Convert zero bytes to \0\xff.  Terminate with \0\0.
+		while (len > 0) {
+		    const char * zero =
+			    static_cast<const char *>(memchr(begin, 0, len));
+		    if (zero == NULL) {
+			result.append(string(begin, len));
+			break;
+		    }
+		    if (zero != begin) {
+			result.append(string(begin, zero - begin));
+			begin = zero;
+			len -= (zero - begin);
+		    }
+		    result += char(0);
+		}
+		result.append(2, '\0');
+	    }
+	}
+    }
+    return result;
 }
