@@ -1,6 +1,8 @@
 TODO
 ====
 
+ - Test sort_by support for multiple keys.
+
  - Make query_phrase support window parameter, for phrase size.
 
    - Python client: uncomment the test of setting window size in query_text.
@@ -42,8 +44,6 @@ Further future
    - Allow sorting by items other than the first in a slot. (eg, by the item at
      index N, and support negative subscripting).
 
-   - Add sort_by support for multiple keys.
-
  - Highlighting:
    - Add support for highlighting fields returned from a search.
 
@@ -54,8 +54,6 @@ Further future
    supports.
 
  - Allow Occur and CoOccur handlers to be given a group name, instead of a prefix.
-
- - Add faceting support.
 
  - More options about where to log to (logging to files, syslog, support for
    log rotation setups).
