@@ -133,6 +133,7 @@ CheckPoints::expire(double max_age)
 	    points.erase(i++);
 	} else if (i->second->seconds_since_touched() >= max_age) {
 	    LOG_INFO("expiring old checkpoint: " + i->first);
+	    std::auto_ptr<CheckPoint> oldpoint(i->second);
 	    points.erase(i++);
 	} else {
 	    ++i;
