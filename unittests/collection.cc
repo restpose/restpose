@@ -291,7 +291,7 @@ TEST(CollectionAddViaPipe)
 
     c->close();
     CHECK_THROW(c->doc_count(), InvalidStateError);
-    delete c;
+    pool.release(c);
 }
 
 /// Test using a categoriser in a collection.
@@ -418,6 +418,8 @@ TEST(CollectionCategoriser)
 		 "},"
 		 "\"terms\":{\"\\\\tdefault\\\\t2\":{}}"
 		"}", json_serialise(tmp));
+
+    pool.release(c);
 }
 
 /// Test using a taxonomy in a collection.
@@ -524,6 +526,8 @@ TEST(CollectionCategory)
 	CHECK_EQUAL("{\"data\":{\"foo\":[\"world\",\"child\"]},\"terms\":{\"\\\\tdefault\\\\t1\":{},\"foo\\\\tAgrand\":{},\"foo\\\\tAparent\":{},\"foo\\\\tCchild\":{},\"foo\\\\tCworld\":{}}}",
 		    json_serialise(tmp2));
     }
+
+    pool.release(c);
 }
 
 /// Test storing of meta info
