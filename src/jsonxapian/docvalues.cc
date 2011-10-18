@@ -25,6 +25,8 @@
 #include <config.h>
 #include "jsonxapian/docvalues.h"
 
+#include <memory>
+#include "omassert.h"
 #include "serialise.h"
 #include "utils/rsperrors.h"
 
@@ -32,7 +34,17 @@ using namespace RestPose;
 using namespace std;
 
 string
-DocumentValue::serialise() const
+SinglyValuedDocumentValue::serialise() const
+{
+    if (values.empty()) {
+	return string();
+    }
+    return *(values.begin());
+}
+
+
+string
+VintLengthDocumentValue::serialise() const
 {
     string result;
     for (const_iterator i = begin(); i != end(); ++i) {
@@ -42,25 +54,25 @@ DocumentValue::serialise() const
     return result;
 }
 
-void
-DocumentValue::unserialise(const string & s)
+
+string
+GeoEncodeDocumentValue::serialise() const
 {
-    values.clear();
-    const char * pos = s.data();
-    const char * endpos = pos + s.size();
-    while (pos != endpos) {
-	size_t len = decode_length(&pos, endpos, true);
-	if (values.empty()) {
-	    values.insert(string(pos, len));
-	} else {
-	    set<string>::iterator insertpos = values.end();
-	    --insertpos;
-	    values.insert(insertpos, string(pos, len));
-	}
-	pos += len;
+    string result;
+    for (const_iterator i = begin(); i != end(); ++i) {
+	Assert(i->size() == 6);
+	result += *i;
     }
+    return result;
 }
 
+
+DocumentValues::~DocumentValues()
+{
+    for (iterator i = entries.begin(); i != entries.end(); ++i) {
+	delete i->second;
+    }
+}
 
 void
 DocumentValues::add(Xapian::valueno slot, const std::string & value)
@@ -68,9 +80,16 @@ DocumentValues::add(Xapian::valueno slot, const std::string & value)
     DocumentValue * valptr;
     iterator i = entries.find(slot);
     if (i == entries.end()) {
-	valptr = &(entries[slot]);
+	auto_ptr<DocumentValue> newvalue(NULL);
+	newvalue = auto_ptr<DocumentValue>(new VintLengthDocumentValue);
+
+	pair<iterator, bool> ret;
+	pair<Xapian::valueno, DocumentValue *> item(slot, NULL);
+	ret = entries.insert(item);
+	valptr = newvalue.get();
+	ret.first->second = newvalue.release();
     } else {
-	valptr = &(i->second);
+	valptr = i->second;
     }
     valptr->add(value);
 }
@@ -82,7 +101,7 @@ DocumentValues::remove(Xapian::valueno slot, const std::string & value)
     if (i == entries.end()) {
 	return;
     }
-    DocumentValue & val(i->second);
+    DocumentValue & val(*(i->second));
     val.remove(value);
     if (val.empty()) {
 	entries.erase(i);
@@ -93,9 +112,10 @@ void
 DocumentValues::apply(Xapian::Document & doc) const
 {
     for (const_iterator i = begin(); i != end(); ++i) {
-	doc.add_value(i->first, i->second.serialise());
+	doc.add_value(i->first, i->second->serialise());
     }
 }
+
 
 void
 SlotDecoder::read_value(const Xapian::Document & doc)

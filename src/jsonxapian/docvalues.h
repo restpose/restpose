@@ -30,9 +30,24 @@
 #include <xapian.h>
 
 namespace RestPose {
+
+    /// Encodings for values.
+    enum ValueEncoding {
+	/// Slot contains a single value.
+	ENC_SINGLY_VALUED,
+
+	/// Values preceded by their length, as a vint.
+	ENC_VINT_LENGTHS,
+
+	/// Values encoded using the geoencode scheme (6 bytes per value).
+	ENC_GEOENCODE
+    };
+
+
     /** A set of values stored in a document slot.
      */
     class DocumentValue {
+      protected:
 	std::set<std::string> values;
 
       public:
@@ -44,6 +59,7 @@ namespace RestPose {
 	    return values.end();
 	}
 
+	/// Return true iff no values are stored in the slot.
 	bool empty() const {
 	    return values.empty();
 	}
@@ -59,18 +75,44 @@ namespace RestPose {
 	}
 
 	/** Convert the values to a string, for storage. */
-	std::string serialise() const;
-
-	/** Unserialise the values from a string produced by serialise(). */
-	void unserialise(const std::string &s);
+	virtual std::string serialise() const = 0;
     };
 
-    class DocumentValues {
-        std::map<Xapian::valueno, DocumentValue> entries;
+
+    /** A document value holder for slots which hold a single value.
+     */
+    class SinglyValuedDocumentValue : public DocumentValue {
       public:
-	typedef std::map<Xapian::valueno, DocumentValue>::const_iterator
+	std::string serialise() const;
+    };
+
+
+    /** A document value holder for slots which hold values prefixed by length.
+     *
+     *  The lengths are stored in standard Xapian vint form.
+     */
+    class VintLengthDocumentValue : public DocumentValue {
+      public:
+	std::string serialise() const;
+    };
+
+
+    /** A document value holder for slots holding multiple geoencoded values.
+     */
+    class GeoEncodeDocumentValue : public DocumentValue {
+      public:
+	std::string serialise() const;
+    };
+
+
+    class DocumentValues {
+        std::map<Xapian::valueno, DocumentValue *> entries;
+      public:
+	typedef std::map<Xapian::valueno, DocumentValue *>::const_iterator
 		const_iterator;
-	typedef std::map<Xapian::valueno, DocumentValue>::iterator iterator;
+	typedef std::map<Xapian::valueno, DocumentValue *>::iterator iterator;
+
+	~DocumentValues();
 
 	const_iterator begin() const {
 	    return entries.begin();
@@ -79,31 +121,31 @@ namespace RestPose {
 	    return entries.end();
 	}
 
+	/** Set the encoding used to store values in a slot.
+	 */
+	void set_slot_format(Xapian::valueno slot, ValueEncoding encoding);
+
+	/** Add a value to a slot.
+	 */
 	void add(Xapian::valueno slot, const std::string & value);
+
+	/** Remove a value from a slot.
+	 */
 	void remove(Xapian::valueno slot, const std::string & value);
 
+	/** Check if a value slot is empty.
+	 */
 	bool empty(Xapian::valueno slot) const {
 	    const_iterator i = entries.find(slot);
 	    if (i == entries.end()) {
 		return true;
 	    }
-	    return i->second.empty();
+	    return i->second->empty();
 	}
 
+	/** Apply the values to a document.
+	 */
 	void apply(Xapian::Document & doc) const;
-    };
-
-
-    /// Encodings for values.
-    enum ValueEncoding {
-	/// Slot contains a single value.
-	ENC_SINGLY_VALUED,
-
-	/// Values preceded by their length, as a vint.
-	ENC_VINT_LENGTHS,
-
-	/// Values encoded using the geoencode scheme (6 bytes per value).
-	ENC_GEOENCODE
     };
 
 
