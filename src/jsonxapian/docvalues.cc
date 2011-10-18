@@ -75,13 +75,39 @@ DocumentValues::~DocumentValues()
 }
 
 void
+DocumentValues::set_slot_format(Xapian::valueno slot, ValueEncoding encoding)
+{
+    formats[slot] = encoding;
+}
+
+void
 DocumentValues::add(Xapian::valueno slot, const std::string & value)
 {
     DocumentValue * valptr;
     iterator i = entries.find(slot);
     if (i == entries.end()) {
+	ValueEncoding encoding(ENC_VINT_LENGTHS);
+	map<Xapian::valueno, ValueEncoding>::const_iterator format =
+		formats.find(slot);
+	if (format != formats.end()) {
+	    encoding = format->second;
+	}
+
 	auto_ptr<DocumentValue> newvalue(NULL);
-	newvalue = auto_ptr<DocumentValue>(new VintLengthDocumentValue);
+	switch (encoding) {
+	    case ENC_VINT_LENGTHS:
+		newvalue =
+			auto_ptr<DocumentValue>(new VintLengthDocumentValue);
+		break;
+	    case ENC_SINGLY_VALUED:
+		newvalue =
+			auto_ptr<DocumentValue>(new SinglyValuedDocumentValue);
+		break;
+	    case ENC_GEOENCODE:
+		newvalue =
+			auto_ptr<DocumentValue>(new GeoEncodeDocumentValue);
+		break;
+	}
 
 	pair<iterator, bool> ret;
 	pair<Xapian::valueno, DocumentValue *> item(slot, NULL);

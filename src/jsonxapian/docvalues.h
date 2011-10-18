@@ -33,11 +33,11 @@ namespace RestPose {
 
     /// Encodings for values.
     enum ValueEncoding {
+	/// Values preceded by their length, as a vint.  (Default encoding.)
+	ENC_VINT_LENGTHS,
+
 	/// Slot contains a single value.
 	ENC_SINGLY_VALUED,
-
-	/// Values preceded by their length, as a vint.
-	ENC_VINT_LENGTHS,
 
 	/// Values encoded using the geoencode scheme (6 bytes per value).
 	ENC_GEOENCODE
@@ -107,6 +107,7 @@ namespace RestPose {
 
     class DocumentValues {
         std::map<Xapian::valueno, DocumentValue *> entries;
+	std::map<Xapian::valueno, ValueEncoding> formats;
       public:
 	typedef std::map<Xapian::valueno, DocumentValue *>::const_iterator
 		const_iterator;
