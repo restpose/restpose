@@ -42,6 +42,7 @@
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 #include "utils/validation.h"
+#include "xapian/geospatial.h"
 
 using namespace RestPose;
 using namespace std;
@@ -389,6 +390,37 @@ CategoryIndexer::index(IndexingState & state,
 		    state.doc.add_term(prefix + "A" + *j, 0);
 		}
 	    }
+	}
+    }
+
+    if (!store_field.empty()) {
+	state.docdata.set(store_field, json_serialise(values));
+    }
+}
+
+
+LonLatIndexer::~LonLatIndexer()
+{}
+
+void
+LonLatIndexer::index(IndexingState & state,
+		     const std::string & fieldname,
+		     const Json::Value & values) const
+{
+    state.docvals.set_slot_format(slot, ENC_GEOENCODE);
+    for (Json::Value::const_iterator i = values.begin();
+	 i != values.end(); ++i) {
+	std::string error;
+	double longitude;
+	double latitude;
+	error = json_get_lonlat(*i, &longitude, &latitude);
+
+	if (!error.empty()) {
+	    state.append_error(fieldname, error);
+	} else {
+	    state.field_nonempty(fieldname);
+	    Xapian::LatLongCoord coord(latitude, longitude);
+	    state.docvals.add(slot, coord.serialise());
 	}
     }
 

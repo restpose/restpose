@@ -963,7 +963,7 @@ LonLatFieldConfig::~LonLatFieldConfig()
 FieldIndexer *
 LonLatFieldConfig::indexer() const
 {
-    return NULL; //return new LonLatIndexer(slot.get(), store_field);
+    return new LonLatIndexer(slot.get(), store_field);
 }
 
 Xapian::Query

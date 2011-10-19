@@ -347,6 +347,25 @@ namespace RestPose {
     };
 
 
+    /** A field indexer which expects a geospatial coordinate.
+     */
+    class LonLatIndexer : public FieldIndexer {
+	unsigned int slot;
+	std::string store_field;
+      public:
+	LonLatIndexer(unsigned int slot_,
+		      const std::string & store_field_)
+		: slot(slot_), store_field(store_field_)
+	{}
+
+	virtual ~LonLatIndexer();
+
+	void index(IndexingState & state,
+		   const std::string & fieldname,
+		   const Json::Value & values) const;
+    };
+
+
     /** A field indexer which expects an array of strings as input, and
      *  indexes them using the Xapian TermGenerator.
      */
