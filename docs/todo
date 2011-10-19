@@ -3,7 +3,6 @@ TODO
 
  - Test sort_by support for multiple keys.
  - Test lonlat support.
- - Document lonlat support.
 
  - Make query_phrase support window parameter, for phrase size.
 

@@ -86,6 +86,18 @@ Various types of search are possible:
    This type is currently available only for "double", "date" and "timestamp"
    field types.
 
+ - "distscore": searches for documents within a given range of a center point,
+   and returns a score which increases the closer a document is to that point.
+   The value to search for must be an object holding the following parameters
+   (or, at least, those parameters which are marked as required):
+
+    - "centre": Required.  The coordinate of the center point for the query;
+      expressed either as a (longitude, latitude) pair, or as an object with
+      "lon" and "lat" properties.
+    - "max_range": Optional.  The maximum distance, in meters, that a
+      document's coordinate may be from the center for that document to match
+      the query.  Defaults to an unlimited distance.
+
  - "text": searches for a piece of text in a text field.  The value to search
    for may be a single string, or an object holding the following parameters:
 

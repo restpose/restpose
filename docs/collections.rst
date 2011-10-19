@@ -250,12 +250,28 @@ or name of the slot that dates will be stored in.  Each date that should be
 searchable should be given a distinct value for the "slot" parameter.  See the
 `slot_numbers`_ section for more details about slot numbers.
 
-Geo fields
-----------
+LonLat fields (geospatial)
+--------------------------
 
-(`type` = `geo`)
+(`type` = `lonlat`)
 
-.. todo: Design and implement support for geo fields.
+LonLat fields expect to be given geographic coordinates (as longitude, latitude
+pairs, expressed in degrees).  Multiple coordinates may be given in a field;
+each coordinate may be expressed either as an array of numbers of length 2 (in
+which case, the longitude must be given first), or as an object with "lon" and
+"lat" properties, holding the longitude and latitude respectively, as numbers.
+
+They have one additional parameter: the "slot" parameter, which is the number
+or name of the slot that the coordinates will be stored in.  Each field
+containing coordinates that should be separately searchable should be given a
+distinct value for the "slot" parameter.  See the `slot_numbers`_ section for
+more details about slot numbers.
+
+LonLat fields allow searches to be performed which:
+
+ - return only documents within a given range.
+ - return results in order of closest distance from a set of points.
+ - return results in a combined order of distance and other scores from the query.
 
 Stored fields
 -------------
