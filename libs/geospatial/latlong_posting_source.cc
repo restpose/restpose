@@ -221,8 +221,17 @@ LatLongDistancePostingSource::unserialise_with_registry(const string &s,
     LatLongCoords new_centre;
     new_centre.unserialise(new_serialised_centre);
 
+#if 0 // Requires a Xapian with geospatial support, in which case we wouldn't be here anyway.
     const Xapian::LatLongMetric * metric_type =
 	    registry.get_lat_long_metric(new_metric_name);
+#else
+    (void) registry;
+    const Xapian::LatLongMetric * metric_type = NULL;
+    Xapian::GreatCircleMetric great_circle_metric;
+    if (new_metric_name == "Xapian::GreatCircleMetric") {
+	metric_type = &great_circle_metric;
+    }
+#endif
     if (metric_type == NULL) {
 	string msg("LatLongMetric ");
 	msg += new_metric_name;
