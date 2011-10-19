@@ -55,6 +55,8 @@ using namespace RestPose;
     "[\"url\",{\"group\":\"u\",\"max_length\":100,\"slot\":\"u\",\"store_field\":\"url\",\"too_long_action\":\"hash\",\"type\":\"exact\"}]," \
     "[\"*_cat\",{\"group\":\"c*\",\"max_length\":32,\"slot\":\"c*\",\"store_field\":\"*_cat\",\"taxonomy\":\"*_cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
     "[\"cat\",{\"group\":\"c\",\"max_length\":32,\"slot\":\"c\",\"store_field\":\"cat\",\"taxonomy\":\"cat\",\"too_long_action\":\"hash\",\"type\":\"cat\"}]," \
+    "[\"*_lonlat\",{\"slot\":\"l*\",\"store_field\":\"*_lonlat\",\"type\":\"lonlat\"}]," \
+    "[\"lonlat\",{\"slot\":\"l\",\"store_field\":\"lonlat\",\"type\":\"lonlat\"}]," \
     "[\"id\",{\"store_field\":\"id\",\"type\":\"id\"}]," \
     "[\"type\",{\"group\":\"!\",\"slot\":1,\"store_field\":\"type\",\"type\":\"exact\"}]," \
     "[\"_meta\",{\"group\":\"#\",\"slot\":0,\"type\":\"meta\"}]," \

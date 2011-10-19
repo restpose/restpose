@@ -126,6 +126,8 @@ CollectionConfig::set_default_schema()
 "    [ \"url\", { \"type\": \"exact\", \"group\": \"u\", \"slot\": \"u\", \"store_field\": \"url\", \"max_length\": 100, \"too_long_action\": \"hash\" } ],"
 "    [ \"*_cat\", { \"type\": \"cat\", \"group\": \"c*\", \"slot\": \"c*\", \"store_field\": \"*_cat\", \"taxonomy\": \"*_cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
 "    [ \"cat\", { \"type\": \"cat\", \"group\": \"c\", \"slot\": \"c\", \"store_field\": \"cat\", \"taxonomy\": \"cat\", \"max_length\": 32, \"too_long_action\": \"hash\" } ],"
+"    [ \"*_lonlat\", { \"type\": \"lonlat\", \"slot\": \"l*\", \"store_field\": \"*_lonlat\" } ],"
+"    [ \"lonlat\", { \"type\": \"lonlat\", \"slot\": \"l\", \"store_field\": \"lonlat\" } ],"
 "    [ \"id\", { \"type\": \"id\", \"store_field\": \"id\" } ],"
 "    [ \"type\", { \"type\": \"exact\", \"group\": \"!\", \"slot\": 1, \"store_field\": \"type\" } ],"
 "    [ \"_meta\", { \"type\": \"meta\", \"group\": \"#\", \"slot\": 0 } ],"
