@@ -60,6 +60,7 @@ noinst_HEADERS += \
  libs/xapiancommon/safeuuid.h \
  libs/xapiancommon/safewindows.h \
  libs/xapiancommon/serialise.h \
+ libs/xapiancommon/serialise-double.h \
  libs/xapiancommon/str.h \
  libs/xapiancommon/utils.h
 
@@ -68,6 +69,7 @@ libxapiancommon_a_SOURCES = \
  libs/xapiancommon/hashterm.cc \
  libs/xapiancommon/loadfile.cc \
  libs/xapiancommon/serialise.cc \
+ libs/xapiancommon/serialise-double.cc \
  libs/xapiancommon/utils.cc
 
 # Windows-specific files
@@ -164,3 +166,18 @@ EXTRA_DIST += \
  libs/mongo-c-driver/APACHE-2.0.txt \
  libs/mongo-c-driver/HISTORY.md \
  libs/mongo-c-driver/README.md
+
+# Geospatial files
+noinst_LIBRARIES += libgeospatial.a
+INCLUDES += \
+ -I$(top_srcdir)/libs/geospatial
+noinst_HEADERS += \
+ libs/geospatial/geoencode.h \
+ libs/geospatial/xapian/geospatial.h
+
+libgeospatial_a_SOURCES = \
+ libs/geospatial/geoencode.cc \
+ libs/geospatial/latlong_distance_keymaker.cc \
+ libs/geospatial/latlong_metrics.cc \
+ libs/geospatial/latlong_posting_source.cc \
+ libs/geospatial/latlongcoord.cc
