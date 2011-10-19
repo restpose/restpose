@@ -38,6 +38,7 @@ unittest_LDADD = \
  liblogger.a \
  libpostingsources.a \
  libmatchspies.a \
+ libgeospatial.a \
  libxapiancommon.a \
  libs/libmicrohttpd/src/daemon/libmicrohttpd.la \
  $(XAPIAN_LIBS)

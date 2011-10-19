@@ -20,6 +20,7 @@ restpose_LDADD = \
  libutils.a \
  libpostingsources.a \
  libmatchspies.a \
+ libgeospatial.a \
  libxapiancommon.a \
  libmongocdriver.a \
  libcli.a \
