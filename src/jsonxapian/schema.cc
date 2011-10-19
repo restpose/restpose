@@ -47,6 +47,7 @@
 #include "utils/stringutils.h"
 #include "utils/utils.h"
 #include <xapian.h>
+#include "xapian/geospatial.h"
 
 using namespace RestPose;
 using namespace std;
@@ -974,31 +975,34 @@ LonLatFieldConfig::query(const string & qtype,
 				"\" for lonlat field");
     }
     json_check_object(value, "distscore filter value");
-    if (!value.isMember("center")) {
-	throw InvalidValueError("distscore query must specify center "
+    if (!value.isMember("centre")) {
+	throw InvalidValueError("distscore query must specify centre "
 				"parameter");
     }
 
-    double longitude, latitude;
-    string error = json_get_lonlat(value["center"], &longitude, &latitude);
-    if (!error.empty()) {
-	throw InvalidValueError(error);
-    }
-
-    if (value.isMember("maxdist")) {
-	if (!value["maxdist"].isDouble()) {
-	    throw InvalidValueError("\"maxdist\" for \"distscore\" search must be a double");
+    Xapian::LatLongCoord centre;
+    {
+	double longitude, latitude;
+	string error = json_get_lonlat(value["centre"], &longitude, &latitude);
+	if (!error.empty()) {
+	    throw InvalidValueError(error);
 	}
-	double range = value[1u].asDouble();
-	(void)range;
-	return Xapian::Query();
+	centre.longitude = longitude;
+	centre.latitude = latitude;
     }
 
-    return Xapian::Query();
-    /*
-    LonLatSource source(slot.get(), longitude, latitude, range);
+    double range = 0;
+    if (value.isMember("max_range")) {
+	if (!value["max_range"].isDouble()) {
+	    throw InvalidValueError("\"max_range\" for \"distscore\" search must be a double");
+	}
+	range = value["max_range"].asDouble();
+    }
+
+    Xapian::GreatCircleMetric metric;
+    Xapian::LatLongDistancePostingSource source(slot.get(), centre,
+						metric, range);
     return Xapian::Query(&source);
-    */
 }
 
 void
