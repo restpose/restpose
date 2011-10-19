@@ -528,6 +528,51 @@ namespace RestPose {
 	void to_json(Json::Value & value) const;
     };
 
+
+    /** Configuration for a field holding longitude-latitude coordinates.
+     */
+    struct LonLatFieldConfig : public FieldConfig {
+	/// The slot to use for the field.
+	SlotName slot;
+
+	/// The fieldname to store field values under (empty to not store).
+	std::string store_field;
+
+	/// Create from a JSON object.
+	LonLatFieldConfig(const Json::Value & value);
+
+	virtual ~LonLatFieldConfig();
+
+	/// Create an indexer for the field.
+	FieldIndexer * indexer() const;
+
+	/// Create a query to search this field.
+	Xapian::Query query(const std::string & qtype,
+			    const Json::Value & value) const;
+
+	/// Get the field that values are being stored under.
+	std::string stored_field() const {
+	    return store_field;
+	}
+
+	/** Get the slot used by the field.
+	 *
+	 *  @param encoding A reference used to return the type of encoding
+	 *  used in the slot.
+	 *
+	 *  Returns BAD_VALUENO if the field doesn't have a slot stored for the
+	 *  purpose, and doesn't set the encoding parameter in this case.
+	 */
+	Xapian::valueno get_slot(ValueEncoding & encoding) const {
+	    encoding = ENC_GEOENCODE;
+	    return slot.get();
+	}
+
+	/// Add the configuration for a field to a JSON object.
+	void to_json(Json::Value & value) const;
+    };
+
+
     struct StoredFieldConfig : public FieldConfig {
 	/// The fieldname to store field values under (empty to not store).
 	std::string store_field;

@@ -79,6 +79,9 @@ FieldConfig::from_json(const Json::Value & value,
 		if (type == "id") return new IDFieldConfig(value, doc_type);
 		if (type == "ignore") return new IgnoredFieldConfig();
 		break;
+	    case 'l':
+		if (type == "lonlat") return new LonLatFieldConfig(value);
+		break;
 	    case 'm':
 		if (type == "meta") return new MetaFieldConfig(value);
 		break;
@@ -943,6 +946,67 @@ CategoryFieldConfig::to_json(Json::Value & value) const
     value["taxonomy"] = taxonomy_name;
     value["store_field"] = store_field;
     slot.to_json(value, "slot");
+}
+
+
+LonLatFieldConfig::LonLatFieldConfig(const Json::Value & value)
+{
+    json_check_object(value, "schema object");
+    slot = value["slot"];
+    store_field = json_get_string_member(value, "store_field", string());
+}
+
+LonLatFieldConfig::~LonLatFieldConfig()
+{}
+
+FieldIndexer *
+LonLatFieldConfig::indexer() const
+{
+    return NULL; //return new LonLatIndexer(slot.get(), store_field);
+}
+
+Xapian::Query
+LonLatFieldConfig::query(const string & qtype,
+		       const Json::Value & value) const
+{
+    if (qtype != "distscore") {
+	throw InvalidValueError("Invalid query type \"" + qtype +
+				"\" for lonlat field");
+    }
+    json_check_object(value, "distscore filter value");
+    if (!value.isMember("center")) {
+	throw InvalidValueError("distscore query must specify center "
+				"parameter");
+    }
+
+    double longitude, latitude;
+    string error = json_get_lonlat(value["center"], &longitude, &latitude);
+    if (!error.empty()) {
+	throw InvalidValueError(error);
+    }
+
+    if (value.isMember("maxdist")) {
+	if (!value["maxdist"].isDouble()) {
+	    throw InvalidValueError("\"maxdist\" for \"distscore\" search must be a double");
+	}
+	double range = value[1u].asDouble();
+	(void)range;
+	return Xapian::Query();
+    }
+
+    return Xapian::Query();
+    /*
+    LonLatSource source(slot.get(), longitude, latitude, range);
+    return Xapian::Query(&source);
+    */
+}
+
+void
+LonLatFieldConfig::to_json(Json::Value & value) const
+{
+    value["type"] = "lonlat";
+    slot.to_json(value, "slot");
+    value["store_field"] = store_field;
 }
 
 
