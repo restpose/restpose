@@ -103,6 +103,12 @@ namespace RestPose {
 				  const char * key,
 				  double def);
 
+    /** Convert a Json value to a double value.
+     *
+     *  Raise an exception if the value is not a double.
+     */
+    double json_get_double(const Json::Value & value);
+
     /** Get a boolean value from a JSON object, raising an exception if the
      *  member with the given key is not boolean.
      *
@@ -135,6 +141,14 @@ namespace RestPose {
      *  Returns a reference to the value supplied, to allow easier use inline.
      */
     Json::Value & json_unserialise(const std::string & serialised, Json::Value & value);
+
+    /** Read a longitude-latitude coordinate from a Json value.
+     *
+     *  Returns an error string if the value was invalid - otherwise, assigns
+     *  the coordinates found to the longitude and latitude parameters.
+     */
+    std::string json_get_lonlat(const Json::Value & value,
+				double * longitude, double * latitude);
 };
 
 #endif /* RESTPOSE_INCLUDED_JSONUTILS_H */

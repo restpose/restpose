@@ -167,6 +167,15 @@ json_get_double_member(const Json::Value & value, const char * key,
     return member.asDouble();
 }
 
+double
+json_get_double(const Json::Value & value)
+{
+    if (!value.isConvertibleTo(Json::realValue)) {
+	throw InvalidValueError("JSON value was not convertible to a double");
+    }
+    return value.asDouble();
+}
+
 bool
 json_get_bool(const Json::Value & value, const char * key, bool def)
 {
@@ -224,6 +233,38 @@ json_unserialise(const std::string & serialised, Json::Value & value)
 				reader.getFormatedErrorMessages());
     }
     return value;
+}
+
+std::string
+json_get_lonlat(const Json::Value & value,
+		double * longitude, double * latitude)
+{
+    if (value.isArray()) {
+	if (value.size() != 2) {
+	    return "Invalid lonlat value - array length not 2";
+	}
+	if (!value[0u].isConvertibleTo(Json::realValue)) {
+	    return "Invalid longitude component - not convertible to double";
+	}
+	if (!value[1u].isConvertibleTo(Json::realValue)) {
+	    return "Invalid latitude component - not convertible to double";
+	}
+	*longitude = value[0u].asDouble();
+	*latitude = value[1u].asDouble();
+	return std::string();
+    }
+    if (value.isObject()) {
+	if (!value["lon"].isConvertibleTo(Json::realValue)) {
+	    return "Invalid \"lon\" component - not convertible to double";
+	}
+	if (!value["lat"].isConvertibleTo(Json::realValue)) {
+	    return "Invalid \"lat\" component - not convertible to double";
+	}
+	*longitude = value["lon"].asDouble();
+	*latitude = value["lat"].asDouble();
+	return std::string();
+    }
+    return "Invalid format for longitude-latitude coordinate";
 }
 
 };
