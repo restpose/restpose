@@ -12,3 +12,5 @@ Dependency libraries:
    https://unittest-cpp.svn.sourceforge.net/svnroot/unittest-cpp
  - xapiancommon: Some routines ripped from Xapian, that aren't exposed in
    Xapian's API.
+ - geospatial: Geospatial routines ripped from Xapian; for use with Xapian
+   versions which don't have this built-in yet.
