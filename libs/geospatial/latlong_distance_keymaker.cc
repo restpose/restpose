@@ -38,7 +38,7 @@ LatLongDistanceKeyMaker::operator()(const Document &doc) const
     if (doccoords.empty()) {
 	return defkey;
     }
-    double distance = (*metric)(centre, doccoords);
+    double distance = (*metric)(center, doccoords);
     return sortable_serialise(distance);
 }
 

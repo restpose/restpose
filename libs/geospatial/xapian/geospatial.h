@@ -405,17 +405,17 @@ class XAPIAN_VISIBILITY_DEFAULT GreatCircleMetric : public LatLongMetric {
  *
  *  (Where k1 and k2 are (strictly) positive, floating point, constants, and
  *  default to 1000 and 1, respectively.  Distance is measured in metres, so
- *  this means that something at the centre gets a weight of 1.0, something 1km
+ *  this means that something at the center gets a weight of 1.0, something 1km
  *  away gets a weight of 0.5, and something 3km away gets a weight of 0.25,
  *  etc)
  */
 class XAPIAN_VISIBILITY_DEFAULT LatLongDistancePostingSource : public ValuePostingSource
 {
-    /// Current distance from centre.
+    /// Current distance from center.
     double dist;
 
-    /// Centre, to compute distance from.
-    LatLongCoords centre;
+    /// center, to compute distance from.
+    LatLongCoords center;
 
     /// Metric to compute the distance with.
     const LatLongMetric * metric;
@@ -439,7 +439,7 @@ class XAPIAN_VISIBILITY_DEFAULT LatLongDistancePostingSource : public ValuePosti
 
     /// Internal constructor; used by clone() and serialise().
     LatLongDistancePostingSource(Xapian::valueno slot_,
-				 const LatLongCoords & centre_,
+				 const LatLongCoords & center_,
 				 const LatLongMetric * metric_,
 				 double max_range_,
 				 double k1_,
@@ -451,14 +451,14 @@ class XAPIAN_VISIBILITY_DEFAULT LatLongDistancePostingSource : public ValuePosti
      *
      *  @param db_ The database to read values from.
      *  @param slot_ The value slot to read values from.
-     *  @param centre_ The centre point to use for distance calculations.
+     *  @param center_ The center point to use for distance calculations.
      *  @param metric_ The metric to use for distance calculations.
      *  @param max_range_ The maximum distance for documents which are returned.
      *  @param k1_ The k1 constant to use in the weighting function.
      *  @param k2_ The k2 constant to use in the weighting function.
      */
     LatLongDistancePostingSource(Xapian::valueno slot_,
-				 const LatLongCoords & centre_,
+				 const LatLongCoords & center_,
 				 const LatLongMetric & metric_,
 				 double max_range_ = 0.0,
 				 double k1_ = 1000.0,
@@ -498,8 +498,8 @@ class XAPIAN_VISIBILITY_DEFAULT LatLongDistanceKeyMaker : public KeyMaker {
     /// The value slot to read.
     Xapian::valueno valno;
 
-    /// The centre point (or points) for distance calculation.
-    LatLongCoords centre;
+    /// The center point (or points) for distance calculation.
+    LatLongCoords center;
 
     /// The metric to use when calculating distances.
     const LatLongMetric * metric;
@@ -509,25 +509,25 @@ class XAPIAN_VISIBILITY_DEFAULT LatLongDistanceKeyMaker : public KeyMaker {
 
   public:
     LatLongDistanceKeyMaker(Xapian::valueno valno_,
-			    const LatLongCoords & centre_,
+			    const LatLongCoords & center_,
 			    const LatLongMetric & metric_,
 			    double defdistance = 10E10)
 	    : valno(valno_),
-	      centre(centre_),
+	      center(center_),
 	      metric(metric_.clone()),
 	      defkey(sortable_serialise(defdistance))
     {}
 
     LatLongDistanceKeyMaker(Xapian::valueno valno_,
-			    const LatLongCoord & centre_,
+			    const LatLongCoord & center_,
 			    const LatLongMetric & metric_,
 			    double defdistance = 10E10)
 	    : valno(valno_),
-	      centre(),
+	      center(),
 	      metric(metric_.clone()),
 	      defkey(sortable_serialise(defdistance))
     {
-	centre.append(centre_);
+	center.append(center_);
     }
 
     ~LatLongDistanceKeyMaker();

@@ -975,20 +975,20 @@ LonLatFieldConfig::query(const string & qtype,
 				"\" for lonlat field");
     }
     json_check_object(value, "distscore filter value");
-    if (!value.isMember("centre")) {
-	throw InvalidValueError("distscore query must specify centre "
+    if (!value.isMember("center")) {
+	throw InvalidValueError("distscore query must specify center "
 				"parameter");
     }
 
-    Xapian::LatLongCoord centre;
+    Xapian::LatLongCoord center;
     {
 	double longitude, latitude;
-	string error = json_get_lonlat(value["centre"], &longitude, &latitude);
+	string error = json_get_lonlat(value["center"], &longitude, &latitude);
 	if (!error.empty()) {
 	    throw InvalidValueError(error);
 	}
-	centre.longitude = longitude;
-	centre.latitude = latitude;
+	center.longitude = longitude;
+	center.latitude = latitude;
     }
 
     double range = 0;
@@ -1000,7 +1000,7 @@ LonLatFieldConfig::query(const string & qtype,
     }
 
     Xapian::GreatCircleMetric metric;
-    Xapian::LatLongDistancePostingSource source(slot.get(), centre,
+    Xapian::LatLongDistancePostingSource source(slot.get(), center,
 						metric, range);
     return Xapian::Query(&source);
 }

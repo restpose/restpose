@@ -91,7 +91,7 @@ Various types of search are possible:
    The value to search for must be an object holding the following parameters
    (or, at least, those parameters which are marked as required):
 
-    - "centre": Required.  The coordinate of the center point for the query;
+    - "center": Required.  The coordinate of the center point for the query;
       expressed either as a (longitude, latitude) pair, or as an object with
       "lon" and "lat" properties.
     - "max_range": Optional.  The maximum distance, in meters, that a

@@ -46,7 +46,7 @@ weight_from_distance(double dist, double k1, double k2)
 void
 LatLongDistancePostingSource::calc_distance()
 {
-    dist = (*metric)(centre, *value_it);
+    dist = (*metric)(center, *value_it);
 }
 
 /// Validate the parameters supplied to LatLongDistancePostingSource.
@@ -68,13 +68,13 @@ validate_postingsource_params(double k1, double k2) {
 
 LatLongDistancePostingSource::LatLongDistancePostingSource(
 	valueno slot_,
-	const LatLongCoords & centre_,
+	const LatLongCoords & center_,
 	const LatLongMetric * metric_,
 	double max_range_,
 	double k1_,
 	double k2_)
 	: ValuePostingSource(slot_),
-	  centre(centre_),
+	  center(center_),
 	  metric(metric_),
 	  max_range(max_range_),
 	  k1(k1_),
@@ -86,13 +86,13 @@ LatLongDistancePostingSource::LatLongDistancePostingSource(
 
 LatLongDistancePostingSource::LatLongDistancePostingSource(
 	valueno slot_,
-	const LatLongCoords & centre_,
+	const LatLongCoords & center_,
 	const LatLongMetric & metric_,
 	double max_range_,
 	double k1_,
 	double k2_)
 	: ValuePostingSource(slot_),
-	  centre(centre_),
+	  center(center_),
 	  metric(metric_.clone()),
 	  max_range(max_range_),
 	  k1(k1_),
@@ -163,7 +163,7 @@ LatLongDistancePostingSource::get_weight() const
 LatLongDistancePostingSource *
 LatLongDistancePostingSource::clone() const
 {
-    return new LatLongDistancePostingSource(slot, centre,
+    return new LatLongDistancePostingSource(slot, center,
 					    metric->clone(),
 					    max_range, k1, k2);
 }
@@ -177,13 +177,13 @@ LatLongDistancePostingSource::name() const
 string
 LatLongDistancePostingSource::serialise() const
 {
-    string serialised_centre = centre.serialise();
+    string serialised_center = center.serialise();
     string metric_name = metric->name();
     string serialised_metric = metric->serialise();
 
     string result = encode_length(slot);
-    result += encode_length(serialised_centre.size());
-    result += serialised_centre;
+    result += encode_length(serialised_center.size());
+    result += serialised_center;
     result += encode_length(metric_name.size());
     result += metric_name;
     result += encode_length(serialised_metric.size());
@@ -203,7 +203,7 @@ LatLongDistancePostingSource::unserialise_with_registry(const string &s,
 
     valueno new_slot = decode_length(&p, end, false);
     size_t len = decode_length(&p, end, true);
-    string new_serialised_centre(p, len);
+    string new_serialised_center(p, len);
     p += len;
     len = decode_length(&p, end, true);
     string new_metric_name(p, len);
@@ -218,8 +218,8 @@ LatLongDistancePostingSource::unserialise_with_registry(const string &s,
 	throw NetworkError("Bad serialised LatLongDistancePostingSource - junk at end");
     }
 
-    LatLongCoords new_centre;
-    new_centre.unserialise(new_serialised_centre);
+    LatLongCoords new_center;
+    new_center.unserialise(new_serialised_center);
 
 #if 0 // Requires a Xapian with geospatial support, in which case we wouldn't be here anyway.
     const Xapian::LatLongMetric * metric_type =
@@ -241,7 +241,7 @@ LatLongDistancePostingSource::unserialise_with_registry(const string &s,
     LatLongMetric * new_metric =
 	    metric_type->unserialise(new_serialised_metric);
 
-    return new LatLongDistancePostingSource(new_slot, new_centre,
+    return new LatLongDistancePostingSource(new_slot, new_center,
 					    new_metric,
 					    new_max_range, new_k1, new_k2);
 }
