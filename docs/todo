@@ -1,7 +1,6 @@
 TODO
 ====
 
- - Test sort_by support for multiple keys.
  - Test lonlat support.
 
  - Make query_phrase support window parameter, for phrase size.
@@ -10,6 +9,9 @@ TODO
 
  - Ensure that new field configurations get saved, even if a parallel thread
    makes alterations to the same schema.
+
+ - Display a message on startup (ideally once the server is listening), so
+   users know it's started.
 
 Next release
 ------------
