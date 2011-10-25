@@ -267,7 +267,7 @@ relationships.
 
    :statuscode 404: If the collection, taxonomy or category do not exist.
 
-.. http:get:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
+.. http:get:: /coll/(collection_name)/taxonomy/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
 
    Check if a category has a given parent, in the named taxonomy in the
    collection.
@@ -287,7 +287,7 @@ relationships.
    :statuscode 404: If the collection, taxonomy, category or parent do not
                exist, or the parent is not a parent of the category.
 
-.. http:get:: /coll/(collection_name)/category/(taxonomy_name)/top
+.. http:get:: /coll/(collection_name)/taxonomy/(taxonomy_name)/top
 
    Get the top level categories (ie, categories which have no parents) in the
    named taxonomy in the collection.
@@ -307,7 +307,7 @@ relationships.
 
    :statuscode 404: If the collection or taxonomy do not exist.
 
-.. http:put:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)
+.. http:put:: /coll/(collection_name)/taxonomy/(taxonomy_name)/id/(cat_id)
 
    Add a category, creating the collection, taxonomy and category if needed.
 
@@ -333,7 +333,7 @@ relationships.
 		 which they're sending documents is ``high_load`` messages
 		 persist.
 
-.. http:put:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
+.. http:put:: /coll/(collection_name)/taxonomy/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
 
    Add a parent to a category, creating the collection, taxonomy, category and
    parent if needed.
@@ -358,7 +358,7 @@ relationships.
 		 which they're sending documents is ``high_load`` messages
 		 persist.
 
-.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)
+.. http:delete:: /coll/(collection_name)/taxonomy/(taxonomy_name)
 
    Delete an entire taxonomy.
 
@@ -379,7 +379,7 @@ relationships.
 		 persist.
 
 
-.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)
+.. http:delete:: /coll/(collection_name)/taxonomy/(taxonomy_name)/id/(cat_id)
 
    Remove a category.  Will create the collection and taxonomy if they don't
    already exist.
@@ -403,7 +403,7 @@ relationships.
 		 persist.
 
 
-.. http:delete:: /coll/(collection_name)/category/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
+.. http:delete:: /coll/(collection_name)/taxonomy/(taxonomy_name)/id/(cat_id)/parent/(parent_id)
 
    Remove a parent from a category.  Will create the collection and taxonomy if
    they don't already exist.
