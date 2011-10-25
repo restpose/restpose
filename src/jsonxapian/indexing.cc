@@ -313,7 +313,8 @@ DateIndexer::parse_date(const Json::Value & value, std::string & error)
     int month = floor(strtod(endptr, &endptr));
     LOG_DEBUG("Month: " + str(month));
     if (month <= 0 || month > 12) {
-	error = "Unable to parse date value; got month value (" + str(month) +
+	error = "Unable to parse date value '" + json_serialise(value) +
+		"'; got month value (" + str(month) +
 		") out of range";
 	return std::string();
     }
@@ -324,7 +325,8 @@ DateIndexer::parse_date(const Json::Value & value, std::string & error)
     int day = floor(strtod(endptr, &endptr));
     LOG_DEBUG("Day: " + str(day));
     if (day <= 0 || day > 31) {
-	error = "Unable to parse date value; got day value (" + str(day) +
+	error = "Unable to parse date value '" + json_serialise(value) +
+		"'; got day value (" + str(day) +
 		") out of range";
 	return std::string();
     }
