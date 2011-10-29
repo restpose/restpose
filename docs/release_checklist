@@ -8,6 +8,8 @@ Before release.
 
  - update version number in restpose-py/restpose/version.py to remove "dev"
 
+ - update version number in restpose-py/setup.py to match
+
  - review restpose-py/setup.py - in particular, check classifiers still correct.
 
  - check all tests run
