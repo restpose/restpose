@@ -53,6 +53,8 @@ MultiValueKeyMaker::operator()(const Xapian::Document & doc) const
 	 i = decoders.begin(); i != decoders.end(); ++i) {
 	i->first->newdoc(doc);
 	if (i->first->next(&begin, &len)) {
+	    // Add a leading 0 byte to sort before empty keys.
+	    result += char(0);
 	    if (i->second) {
 		// Reverse sort order.
 		// Subtract all bytes from \xff, except for zero bytes which
@@ -86,6 +88,9 @@ MultiValueKeyMaker::operator()(const Xapian::Document & doc) const
 		}
 		result.append(2, '\0');
 	    }
+	} else {
+	    // Sort empty keys to the end.
+	    result += char(1);
 	}
     }
     return result;
