@@ -35,6 +35,7 @@
 
 namespace RestPose {
     // Forward declaration
+    class BaseFacetMatchSpy;
     class CollectionConfig;
     class FieldIndexer;
     struct IndexingErrors;
@@ -67,6 +68,15 @@ namespace RestPose {
 	 */
 	virtual void add_group_if_taxonomy(const std::string & taxonomy_name,
 		std::set<std::string> & result) const;
+
+	/** Create a facet spy for this field.
+	 */
+	virtual BaseFacetMatchSpy *
+		new_facet_spy(SlotDecoder * decoder,
+			      const std::string & fieldname,
+			      Xapian::doccount doc_limit,
+			      Xapian::doccount result_limit,
+			      const Json::Value & params) const;
 
 	/// Add the configuration for a field to a JSON object.
 	virtual void to_json(Json::Value & value) const = 0;
@@ -460,6 +470,14 @@ namespace RestPose {
 	    encoding = ENC_VINT_LENGTHS;
 	    return slot.get();
 	}
+
+	/** Create a facet spy for this field.
+	 */
+	BaseFacetMatchSpy * new_facet_spy(SlotDecoder * decoder,
+					  const std::string & fieldname,
+					  Xapian::doccount doc_limit,
+					  Xapian::doccount result_limit,
+					  const Json::Value & params) const;
 
 	/// Add the configuration for a field to a JSON object.
 	void to_json(Json::Value & value) const;

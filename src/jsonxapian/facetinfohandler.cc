@@ -26,6 +26,7 @@
 #include "jsonxapian/facetinfohandler.h"
 
 #include "jsonxapian/query_builder.h"
+#include "jsonxapian/schema.h"
 #include "jsonxapian/slotname.h"
 #include <limits.h>
 #include "logger/logger.h"
@@ -77,15 +78,15 @@ FacetCountInfoHandler::FacetCountInfoHandler(const Json::Value & params,
     // Raises an exception if there is no single slot used for the field by
     // all types in the builder.
     auto_ptr<SlotDecoder> decoder(builder.get_slot_decoder(fieldname));
-    if (decoder.get() == NULL) {
+    const FieldConfig * field_config = builder.get_field_config(fieldname);
+    if (decoder.get() == NULL || field_config == NULL) {
 	// Make a spy with no decoder, and don't add it to "enq", to get a
 	// suitable structure added to the results.
 	spy = new FacetCountMatchSpy(NULL, fieldname, doc_limit, result_limit);
 	return;
     }
 
-    spy = new FacetCountMatchSpy(decoder.release(), fieldname, doc_limit,
-				 result_limit);
+    spy = field_config->new_facet_spy(decoder.release(), fieldname, doc_limit, result_limit, params);
 
     if (check_at_least < doc_limit) {
 	check_at_least = doc_limit;

@@ -36,6 +36,7 @@
 #include "jsonxapian/collconfig.h"
 #include "jsonxapian/indexing.h"
 #include "logger/logger.h"
+#include "matchspies/facetmatchspy.h"
 #include <memory>
 #include "postingsources/multivaluerange_source.h"
 #include <set>
@@ -56,6 +57,18 @@ void
 FieldConfig::add_group_if_taxonomy(const std::string &,
 				   std::set<std::string> &) const
 {
+}
+
+BaseFacetMatchSpy *
+FieldConfig::new_facet_spy(SlotDecoder * decoder_,
+			   const std::string & fieldname,
+			   Xapian::doccount doc_limit,
+			   Xapian::doccount result_limit,
+			   const Json::Value &) const
+{
+    auto_ptr<SlotDecoder> decoder(decoder_);
+    return new FacetCountMatchSpy(decoder.release(), fieldname, doc_limit,
+				  result_limit);
 }
 
 FieldConfig *
@@ -813,6 +826,18 @@ DateFieldConfig::query(const string & qtype,
 
     MultiValueRangeSource source(slot.get(), 1.0, start, end);
     return Xapian::Query(&source);
+}
+
+BaseFacetMatchSpy *
+DateFieldConfig::new_facet_spy(SlotDecoder * decoder_,
+			       const std::string & fieldname,
+			       Xapian::doccount doc_limit,
+			       Xapian::doccount result_limit,
+			       const Json::Value &) const
+{
+    auto_ptr<SlotDecoder> decoder(decoder_);
+    return new FacetCountMatchSpy(decoder.release(), fieldname, doc_limit,
+				  result_limit);
 }
 
 void
