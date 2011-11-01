@@ -305,6 +305,20 @@ CollectionQueryBuilder::total_docs(const Xapian::Database & db) const
     return db.get_doccount();
 }
 
+const FieldConfig *
+CollectionQueryBuilder::get_field_config(const std::string & fieldname) const
+{
+    for (map<string, Schema *>::const_iterator i = collconfig.schema_begin();
+	 i != collconfig.schema_end(); ++i)
+    {
+	const FieldConfig * config = i->second->get(fieldname);
+	if (config != NULL) {
+	    return config;
+	}
+    }
+    return NULL;
+}
+
 SlotDecoder *
 CollectionQueryBuilder::get_slot_decoder(const std::string & fieldname) const
 {
@@ -409,6 +423,12 @@ DocumentTypeQueryBuilder::total_docs(const Xapian::Database & db) const
     enq.set_query(type_query);
     Xapian::MSet mset(enq.get_mset(0, 0));
     return mset.get_matches_upper_bound();
+}
+
+const FieldConfig *
+DocumentTypeQueryBuilder::get_field_config(const std::string & fieldname) const
+{
+    return schema->get(fieldname);
 }
 
 SlotDecoder *

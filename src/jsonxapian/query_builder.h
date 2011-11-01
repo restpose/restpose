@@ -32,6 +32,7 @@
 namespace RestPose {
     class Collection;
     class CollectionConfig;
+    class FieldConfig;
     class Schema;
     class SlotDecoder;
 
@@ -69,7 +70,17 @@ namespace RestPose {
 	virtual Xapian::doccount
 		total_docs(const Xapian::Database & db) const = 0;
 
-	/** Get the a slot decoder to return the values stored in a given field.
+	/** Get the config for a given field.
+	 *
+	 *  If the configuration for the field varies for different document
+	 *  types, an arbitrary one of the configurations is used.
+	 *
+	 *  Returns NULL if there is no config for the field.
+	 */
+	virtual const FieldConfig *
+		get_field_config(const std::string & fieldname) const = 0;
+
+	/** Get a slot decoder to return the values stored in a given field.
 	 *
 	 *  Raise an exception if the slot used is inconsistent for the types
 	 *  that the query builder is for.
@@ -98,6 +109,9 @@ namespace RestPose {
 
 	Xapian::doccount total_docs(const Xapian::Database & db) const;
 
+	const FieldConfig *
+		get_field_config(const std::string & fieldname) const;
+
 	SlotDecoder * get_slot_decoder(const std::string & fieldname) const;
     };
 
@@ -122,6 +136,9 @@ namespace RestPose {
 	Xapian::Query build(const Json::Value & jsonquery) const;
 
 	Xapian::doccount total_docs(const Xapian::Database & db) const;
+
+	const FieldConfig *
+		get_field_config(const std::string & fieldname) const;
 
 	SlotDecoder * get_slot_decoder(const std::string & fieldname) const;
     };
