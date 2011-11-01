@@ -712,6 +712,9 @@ Collection::perform_search(const Json::Value & search,
 
 		    bool ascending = json_get_bool(order_by_item, "ascending", true);
 		    sorter->add_decoder(decoder.release(), !ascending);
+		} else {
+		    LOG_WARN("Unable to apply requested sort by \"" +
+			     fieldname + "\" - no field config found.");
 		}
 	    } else if (order_by_item.isMember("score")) {
 		// Order by the weights calculated in the query tree.
