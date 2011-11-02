@@ -131,8 +131,8 @@ DateFacetCountMatchSpy::append_value(Json::Value & rcounts,
 {
     Json::Value tmp(Json::arrayValue);
     if (str.size() > 2) {
-	int day = str[str.size() - 1] - '0';
-	int month = str[str.size() - 2] - '0';
+	int day = str[str.size() - 1] - ' ';
+	int month = str[str.size() - 2] - ' ';
 	Json::Value & tmp2(tmp.append(Json::arrayValue));
 	// Unpack the date
 	tmp2.append(int(Xapian::sortable_unserialise(str)));
