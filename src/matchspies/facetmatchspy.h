@@ -72,6 +72,7 @@ class BaseFacetMatchSpy : public Xapian::MatchSpy {
 };
 
 class FacetCountMatchSpy : public BaseFacetMatchSpy {
+  protected:
     /** Maximum number of resulting facet values to return.
      */
     Xapian::doccount result_limit;
@@ -79,6 +80,12 @@ class FacetCountMatchSpy : public BaseFacetMatchSpy {
     /** Count of number of times each facet value has been seen;
      */
     std::map<std::string, Xapian::doccount> counts;
+
+    /** Append a value to the result count array.
+     */
+    virtual void append_value(Json::Value & rcounts,
+			      const std::string & str,
+			      Xapian::doccount freq) const;
 
   public:
     FacetCountMatchSpy(SlotDecoder * decoder_,
@@ -93,6 +100,22 @@ class FacetCountMatchSpy : public BaseFacetMatchSpy {
     void operator()(const Xapian::Document &doc, Xapian::weight wt);
 
     void get_result(Json::Value & result) const;
+};
+
+class DateFacetCountMatchSpy : public FacetCountMatchSpy {
+    void append_value(Json::Value & rcounts,
+		      const std::string & str,
+		      Xapian::doccount freq) const;
+
+  public:
+    DateFacetCountMatchSpy(SlotDecoder * decoder_,
+			   const std::string & fieldname_,
+			   Xapian::doccount doc_limit_,
+			   Xapian::doccount result_limit_)
+	    : FacetCountMatchSpy(decoder_, fieldname_, doc_limit_,
+				 result_limit_)
+    {}
+
 };
 
 }

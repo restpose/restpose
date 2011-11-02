@@ -836,8 +836,8 @@ DateFieldConfig::new_facet_spy(SlotDecoder * decoder_,
 			       const Json::Value &) const
 {
     auto_ptr<SlotDecoder> decoder(decoder_);
-    return new FacetCountMatchSpy(decoder.release(), fieldname, doc_limit,
-				  result_limit);
+    return new DateFacetCountMatchSpy(decoder.release(), fieldname, doc_limit,
+				      result_limit);
 }
 
 void

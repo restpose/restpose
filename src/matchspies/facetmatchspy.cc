@@ -27,6 +27,7 @@
 
 #include <algorithm>
 #include "serialise.h"
+#include "utils/stringutils.h"
 #include <vector>
 
 using namespace RestPose;
@@ -81,6 +82,17 @@ struct StringAndFreq {
 };
 
 void
+FacetCountMatchSpy::append_value(Json::Value & rcounts,
+				 const std::string & str,
+				 Xapian::doccount freq) const
+{
+    Json::Value tmp(Json::arrayValue);
+    tmp.append(str);
+    tmp.append(freq);
+    rcounts.append(tmp);
+}
+
+void
 FacetCountMatchSpy::get_result(Json::Value & result) const
 {
     result = Json::objectValue;
@@ -108,9 +120,28 @@ FacetCountMatchSpy::get_result(Json::Value & result) const
     for (j = 0, k = sorted.begin();
 	 j != result_limit && k != sorted.end();
 	 ++j, ++k) {
-	Json::Value tmp(Json::arrayValue);
-	tmp.append(k->str);
-	tmp.append(k->freq);
-	rcounts.append(tmp);
+	append_value(rcounts, k->str, k->freq);
     }
+}
+
+void
+DateFacetCountMatchSpy::append_value(Json::Value & rcounts,
+				     const std::string & str,
+				     Xapian::doccount freq) const
+{
+    Json::Value tmp(Json::arrayValue);
+    if (str.size() > 2) {
+	int day = str[str.size() - 1] - '0';
+	int month = str[str.size() - 2] - '0';
+	Json::Value & tmp2(tmp.append(Json::arrayValue));
+	// Unpack the date
+	tmp2.append(int(Xapian::sortable_unserialise(str)));
+	tmp2.append(month);
+	tmp2.append(day);
+    } else {
+	// Shouldn't happen, but hexesc will ensure it's a valid JSON output.
+	tmp.append(hexesc(str));
+    }
+    tmp.append(freq);
+    rcounts.append(tmp);
 }
