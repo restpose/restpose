@@ -1,6 +1,10 @@
 TODO
 ====
 
+ - Add support for the various different waiting levels at which requests
+   should return.  Once added, reduce the default queue sizes in
+   task_manager.cc to sensible values, and make them configurable.
+
  - Test lonlat support.
 
  - Add faceting by lonlat distance.

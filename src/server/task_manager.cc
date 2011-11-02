@@ -40,11 +40,11 @@ TaskManager::TaskManager(CollectionPool & collections_)
 	  nudge_read_end(-1),
 	  started(false),
 	  stopping(false),
-	  indexing_queues(100, 1000), // FIXME - pull out magic constants
+	  indexing_queues(100000, 101000), // FIXME - pull out magic constants
 	  indexing_threads(),
-	  processing_queues(100, 1000), // FIXME - pull out magic constants
+	  processing_queues(100000, 101000), // FIXME - pull out magic constants
 	  processing_threads(),
-	  search_queues(100, 1000), // FIXME - pull out magic constants
+	  search_queues(1000, 2000), // FIXME - pull out magic constants
 	  search_threads(),
 	  collections(collections_),
 	  collconfigs(collections),
