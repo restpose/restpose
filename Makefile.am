@@ -67,7 +67,20 @@ nobase_dist_pkgdata_DATA += \
  static/static/status/index.html \
  static/static/status/status.js
 
-dist-hook:
+SPHINXBUILD   = sphinx-build
+
+# Internal variables.
+ALLSPHINXOPTS   = -d $(top_builddir)/doc/_build/doctrees $(top_srcdir)/docs/
+
+.PHONY:
+	sphinx-docs
+
+sphinx-docs:
+	pip install -r $(top_srcdir)/docs/requirements.txt
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(top_builddir)/docs/_build/html
+	
+
+dist-hook: sphinx-docs
 	@if test -d "$(srcdir)/.git"; \
 	then \
 		echo Creating ChangeLog && \
@@ -80,5 +93,5 @@ dist-hook:
 	else \
 		echo A git clone is required to generate a ChangeLog >&2; \
 	fi
-	(cd docs && make html) && mkdir "$(distdir)/docs/html" \
-	&& cp -r docs/_build/html/* "$(distdir)/docs/html"
+	mkdir "$(distdir)/docs/html" \
+	&& cp -r $(top_builddir)/docs/_build/html/* "$(distdir)/docs/html"
