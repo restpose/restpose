@@ -1,4 +1,12 @@
-0.7.3 - unreleased
+0.7.6 - 10th November 2011
+
+ - Initial geospatial search support.
+ - Initial faceting support.
+ - Rework access to collection configuration when parallel indexing.
+ - Allow slots to be associated with most field types, to allow sorting and
+   faceting by them.
+
+0.7.3,0.7.4,0.7.5 - never released
 
 0.7.2 - 24th August 2011
 
