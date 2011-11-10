@@ -205,6 +205,7 @@ namespace RestPose {
 	MaxLenFieldConfig::TooLongAction too_long_action;
 	bool isid;
 	unsigned int slot;
+	bool lowercase;
       public:
 	ExactStringIndexer(const std::string & prefix_,
 			   const std::string & store_field_,
@@ -212,10 +213,11 @@ namespace RestPose {
 			   unsigned int max_length_,
 			   MaxLenFieldConfig::TooLongAction too_long_action_,
 			   bool isid_,
-			   unsigned int slot_)
+			   unsigned int slot_,
+			   bool lowercase_)
 		: prefix(prefix_), store_field(store_field_), wdfinc(wdfinc_),
 		  max_length(max_length_), too_long_action(too_long_action_),
-		  isid(isid_), slot(slot_)
+		  isid(isid_), slot(slot_), lowercase(lowercase_)
 	{}
 
 	virtual ~ExactStringIndexer();

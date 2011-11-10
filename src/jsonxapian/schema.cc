@@ -282,7 +282,7 @@ IDFieldConfig::indexer() const
 {
     return new ExactStringIndexer(prefix, store_field, 0,
 				  max_length, too_long_action, true,
-				  slot.get());
+				  slot.get(), false);
 }
 
 Xapian::Query
@@ -378,6 +378,7 @@ ExactFieldConfig::ExactFieldConfig(const Json::Value & value)
 
     store_field = json_get_string_member(value, "store_field", string());
     wdfinc = json_get_uint64_member(value, "wdfinc", Json::Value::maxUInt64, 0);
+    lowercase = json_get_bool(value, "lowercase", false);
 }
 
 FieldIndexer *
@@ -385,7 +386,7 @@ ExactFieldConfig::indexer() const
 {
     return new ExactStringIndexer(prefix, store_field, wdfinc,
 				  max_length, too_long_action, false,
-				  slot.get());
+				  slot.get(), lowercase);
 }
 
 Xapian::Query
@@ -427,6 +428,9 @@ ExactFieldConfig::query(const string & qtype,
 	    }
 	    termtext = Json::valueToString((*iter).asUInt64());
 	}
+	if (lowercase) {
+	    termtext = Xapian::Unicode::tolower(termtext);
+	}
 	if (termtext.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
@@ -460,6 +464,7 @@ ExactFieldConfig::to_json(Json::Value & value) const
     value["group"] = prefix.substr(0, prefix.size() - 1);
     value["store_field"] = store_field;
     value["wdfinc"] = wdfinc;
+    value["lowercase"] = lowercase;
 }
 
 ExactFieldConfig::~ExactFieldConfig()

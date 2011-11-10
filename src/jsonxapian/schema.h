@@ -238,6 +238,12 @@ namespace RestPose {
 	/// The wdf increment to perform for each field value.
 	unsigned int wdfinc;
 
+	/** Flag, true if generated terms should be lowercased.
+	 *
+	 *  The stored value and the value in the slot are never lowercased.
+	 */
+	bool lowercase;
+
 	/// Create from a JSON object.
 	ExactFieldConfig(const Json::Value & value);
 

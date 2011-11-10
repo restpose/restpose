@@ -66,6 +66,7 @@ TEST(SchemaParams)
 		        "\"too_long_action\":\"error\",\"type\":\"id\"},"
 		"\"url\":{"
 		         "\"group\":\"url\","
+			 "\"lowercase\":false,"
 			 "\"max_length\":120,"
 		         "\"store_field\":\"url\","
 		         "\"too_long_action\":\"hash\","
@@ -236,7 +237,7 @@ TEST(IntegerExactFields)
     Schema s2("");
     s2.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
 
-    CHECK_EQUAL("{\"fields\":{\"intid\":{\"group\":\"intid\",\"max_length\":30,\"store_field\":\"intid\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}},\"patterns\":[]}",
+    CHECK_EQUAL("{\"fields\":{\"intid\":{\"group\":\"intid\",\"lowercase\":false,\"max_length\":30,\"store_field\":\"intid\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));
 
     Schema s("");

@@ -184,6 +184,13 @@ can be one of:
 
  - `truncate`: Truncate the field value to the `max_length` value.
 
+Exact fiels also have a `lowercase` parameter. This defaults to ``false``, but
+if it is set to ``true`` it causes the text supplied to the field to be
+lowercased before being used to generate terms.  It has no effect on the
+contents stored in the document data, or in the slot for the field.  It will
+also be used at search time to lowercase terms generated in the query, so
+searches will be case insensitive.
+
 Numeric (double) fields
 -----------------------
 

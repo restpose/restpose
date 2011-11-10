@@ -152,6 +152,9 @@ ExactStringIndexer::index(IndexingState & state,
 	if (slot != Xapian::BAD_VALUENO) {
 	    state.docvals.add(slot, val);
 	}
+	if (lowercase) {
+	    val = Xapian::Unicode::tolower(val);
+	}
 	state.field_nonempty(fieldname);
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
