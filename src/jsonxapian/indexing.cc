@@ -141,6 +141,7 @@ ExactStringIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	    continue;
 	}
+	state.field_nonempty(fieldname);
 	if (isid) {
 	    error = validate_doc_id(val);
 	    if (!error.empty()) {
@@ -155,7 +156,6 @@ ExactStringIndexer::index(IndexingState & state,
 	if (lowercase) {
 	    val = Xapian::Unicode::tolower(val);
 	}
-	state.field_nonempty(fieldname);
 	if (val.size() > max_length) {
 	    switch (too_long_action) {
 		case MaxLenFieldConfig::TOOLONG_ERROR:
@@ -222,7 +222,9 @@ DoubleIndexer::index(IndexingState & state,
 	    state.docvals.add(slot,
 			      Xapian::sortable_serialise((*i).asDouble()));
 	} else {
-	    state.append_error(fieldname, "Double field must be numeric");
+	    state.field_nonempty(fieldname);
+	    state.append_error(fieldname, "Double field must be numeric; was "
+			       + json_serialise(*i));
 	}
     }
 
@@ -249,7 +251,9 @@ TimeStampIndexer::index(IndexingState & state,
 	    state.docvals.add(slot,
 			      Xapian::sortable_serialise((*i).asDouble()));
 	} else {
-	    state.append_error(fieldname, "Timestamp field must be numeric");
+	    state.field_nonempty(fieldname);
+	    state.append_error(fieldname, "Timestamp field must be numeric; "
+			       "was " + json_serialise(*i));
 	}
     }
 
@@ -272,6 +276,7 @@ DateIndexer::index(IndexingState & state,
 	std::string error;
 	std::string parsed = parse_date(*i, error);
 	if (!error.empty()) {
+	    state.field_nonempty(fieldname);
 	    state.append_error(fieldname, error);
 	} else if (parsed.empty()) {
 	    state.field_empty(fieldname);
@@ -356,6 +361,7 @@ CategoryIndexer::index(IndexingState & state,
 	std::string error;
 	std::string val = json_get_idstyle_value(*i, error);
 	if (!error.empty()) {
+	    state.field_nonempty(fieldname);
 	    state.append_error(fieldname, error);
 	    continue;
 	}
@@ -421,7 +427,9 @@ LonLatIndexer::index(IndexingState & state,
 	error = json_get_lonlat(*i, &longitude, &latitude);
 
 	if (!error.empty()) {
-	    state.append_error(fieldname, error);
+	    state.field_nonempty(fieldname);
+	    state.append_error(fieldname, error + " value was "
+			       + json_serialise(*i));
 	} else {
 	    state.field_nonempty(fieldname);
 	    Xapian::LatLongCoord coord(latitude, longitude);
@@ -449,8 +457,10 @@ TermGeneratorIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	    continue;
 	} else if (!(*i).isString()) {
+	    state.field_nonempty(fieldname);
 	    state.append_error(fieldname,
-			       "Field value for text field must be a string");
+			       "Field value for text field must be a string; "
+			       "was " + json_serialise(*i));
 	    continue;
 	}
 	std::string val = (*i).asString();
@@ -490,8 +500,10 @@ CJKIndexer::index(IndexingState & state,
 	    state.field_empty(fieldname);
 	    continue;
 	} else if (!(*i).isString()) {
+	    state.field_nonempty(fieldname);
 	    state.append_error(fieldname,
-			       "Field value for text field must be a string");
+			       "Field value for text field must be a string; "
+			       "was " + json_serialise(*i));
 	    continue;
 	}
 	std::string val = (*i).asString();
