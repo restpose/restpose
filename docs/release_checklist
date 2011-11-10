@@ -1,6 +1,9 @@
 Before release.
 
- - update NEWS and ChangeLog with details of changes since last release.
+ - update NEWS and ChangeLog in restpose with details of changes since last
+   release.
+
+ - update NEWS in restpose-py.
 
  - review README files in restpose and restpose-py.  Update version numbers.
 
@@ -41,8 +44,9 @@ Before release.
        (cd docs && make html)
        python setup.py upload_docs --upload-dir docs/build/html/
 
- - update version number in configure.ac and restpose-py/restpose/version.py to
-   be the next release number, with "dev" appended.  commit this.
+ - update version number in configure.ac, restpose-py/setup.py and
+   restpose-py/restpose/version.py to be the next release number, with "dev"
+   appended.  commit this.
 
  - update freshmeat
 
