@@ -25,6 +25,9 @@
 #include <config.h>
 #include "signals.h"
 
+// We implement signal operations as no-ops on windows.
+#ifndef __WIN32__
+
 #include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -162,3 +165,11 @@ release_signal_handlers()
     (void) sigaction(SIGINT, &act, NULL);
     (void) sigaction(SIGCHLD, &act, NULL);
 }
+
+#else
+
+// Stub implementations for windows.
+void set_up_signal_handlers(Server * ) {}
+void release_signal_handlers() {}
+
+#endif
