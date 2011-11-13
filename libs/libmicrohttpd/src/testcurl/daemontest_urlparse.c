@@ -1,7 +1,6 @@
-
 /*
      This file is part of libmicrohttpd
-     (C) 2007 Christian Grothoff
+     (C) 2007, 2009, 2011 Christian Grothoff
 
      libmicrohttpd is free software; you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published
@@ -20,8 +19,8 @@
 */
 
 /**
- * @file daemontest_process_arguments.c
- * @brief  Testcase for HTTP URI arguments
+ * @file daemontest_urlparse.c
+ * @brief  Testcase for libmicrohttpd url parsing
  * @author Christian Grothoff
  */
 
@@ -33,11 +32,18 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef __MINGW32__
+#define usleep(usec) (Sleep ((usec) / 1000),0)
+#endif
+
 #ifndef WINDOWS
 #include <unistd.h>
+#include <sys/socket.h>
 #endif
 
 static int oneone;
+
+static int matches;
 
 struct CBC
 {
@@ -58,6 +64,24 @@ copyBuffer (void *ptr, size_t size, size_t nmemb, void *ctx)
   return size * nmemb;
 }
 
+static int 
+test_values (void *cls,
+	     enum MHD_ValueKind kind,
+	     const char *key,
+	     const char *value)
+{
+  if ( (0 == strcmp (key, "a")) &&
+       (0 == strcmp (value, "b")) )
+    matches += 1;
+  if ( (0 == strcmp (key, "c")) &&
+       (0 == strcmp (value, "")) )
+    matches += 2;
+  if ( (0 == strcmp (key, "d")) &&
+       (NULL == value) )
+    matches += 4;
+  return MHD_YES;
+}
+
 static int
 ahc_echo (void *cls,
           struct MHD_Connection *connection,
@@ -71,7 +95,6 @@ ahc_echo (void *cls,
   const char *me = cls;
   struct MHD_Response *response;
   int ret;
-  const char *hdr;
 
   if (0 != strcmp (me, method))
     return MHD_NO;              /* unexpected method */
@@ -80,16 +103,13 @@ ahc_echo (void *cls,
       *unused = &ptr;
       return MHD_YES;
     }
+  MHD_get_connection_values (connection,
+			     MHD_GET_ARGUMENT_KIND,
+			     &test_values,
+			     NULL);
   *unused = NULL;
-  hdr = MHD_lookup_connection_value (connection, MHD_GET_ARGUMENT_KIND, "k");
-  if ((hdr == NULL) || (0 != strcmp (hdr, "v x")))
-    abort ();
-  hdr = MHD_lookup_connection_value (connection,
-                                     MHD_GET_ARGUMENT_KIND, "hash");
-  if ((hdr == NULL) || (0 != strcmp (hdr, "#")))
-    abort ();
   response = MHD_create_response_from_buffer (strlen (url),
-					      (void *) url, 
+					      (void *) url,
 					      MHD_RESPMEM_MUST_COPY);
   ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
   MHD_destroy_response (response);
@@ -98,129 +118,57 @@ ahc_echo (void *cls,
   return ret;
 }
 
+
 static int
-testExternalGet ()
+testInternalGet (int poll_flag)
 {
   struct MHD_Daemon *d;
   CURL *c;
   char buf[2048];
   struct CBC cbc;
-  CURLM *multi;
-  CURLMcode mret;
-  fd_set rs;
-  fd_set ws;
-  fd_set es;
-  int max;
-  int running;
-  struct CURLMsg *msg;
-  time_t start;
-  struct timeval tv;
+  CURLcode errornum;
 
-  multi = NULL;
   cbc.buf = buf;
   cbc.size = 2048;
   cbc.pos = 0;
-  d = MHD_start_daemon (MHD_USE_DEBUG,
-                        21080, NULL, NULL, &ahc_echo, "GET", MHD_OPTION_END);
+  d = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY | MHD_USE_DEBUG  | poll_flag,
+                        11080, NULL, NULL, &ahc_echo, "GET", MHD_OPTION_END);
   if (d == NULL)
-    return 256;
+    return 1;
   c = curl_easy_init ();
-  curl_easy_setopt (c, CURLOPT_URL,
-                    "http://127.0.0.1:21080/hello_world?k=v+x&hash=%23");
+  curl_easy_setopt (c, CURLOPT_URL, "http://127.0.0.1:11080/hello_world?a=b&c=&d");
   curl_easy_setopt (c, CURLOPT_WRITEFUNCTION, &copyBuffer);
   curl_easy_setopt (c, CURLOPT_WRITEDATA, &cbc);
   curl_easy_setopt (c, CURLOPT_FAILONERROR, 1);
+  curl_easy_setopt (c, CURLOPT_TIMEOUT, 150L);
+  curl_easy_setopt (c, CURLOPT_CONNECTTIMEOUT, 15L);
   if (oneone)
     curl_easy_setopt (c, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
   else
     curl_easy_setopt (c, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
-  curl_easy_setopt (c, CURLOPT_TIMEOUT, 150L);
-  curl_easy_setopt (c, CURLOPT_CONNECTTIMEOUT, 15L);
   /* NOTE: use of CONNECTTIMEOUT without also
      setting NOSIGNAL results in really weird
-     crashes on my system! */
+     crashes on my system!*/
   curl_easy_setopt (c, CURLOPT_NOSIGNAL, 1);
-
-
-  multi = curl_multi_init ();
-  if (multi == NULL)
+  if (CURLE_OK != (errornum = curl_easy_perform (c)))
     {
+      fprintf (stderr,
+               "curl_easy_perform failed: `%s'\n",
+               curl_easy_strerror (errornum));
       curl_easy_cleanup (c);
       MHD_stop_daemon (d);
-      return 512;
+      return 2;
     }
-  mret = curl_multi_add_handle (multi, c);
-  if (mret != CURLM_OK)
-    {
-      curl_multi_cleanup (multi);
-      curl_easy_cleanup (c);
-      MHD_stop_daemon (d);
-      return 1024;
-    }
-  start = time (NULL);
-  while ((time (NULL) - start < 5) && (multi != NULL))
-    {
-      max = 0;
-      FD_ZERO (&rs);
-      FD_ZERO (&ws);
-      FD_ZERO (&es);
-      curl_multi_perform (multi, &running);
-      mret = curl_multi_fdset (multi, &rs, &ws, &es, &max);
-      if (mret != CURLM_OK)
-        {
-          curl_multi_remove_handle (multi, c);
-          curl_multi_cleanup (multi);
-          curl_easy_cleanup (c);
-          MHD_stop_daemon (d);
-          return 2048;
-        }
-      if (MHD_YES != MHD_get_fdset (d, &rs, &ws, &es, &max))
-        {
-          curl_multi_remove_handle (multi, c);
-          curl_multi_cleanup (multi);
-          curl_easy_cleanup (c);
-          MHD_stop_daemon (d);
-          return 4096;
-        }
-      tv.tv_sec = 0;
-      tv.tv_usec = 1000;
-      select (max + 1, &rs, &ws, &es, &tv);
-      curl_multi_perform (multi, &running);
-      if (running == 0)
-        {
-          msg = curl_multi_info_read (multi, &running);
-          if (msg == NULL)
-            break;
-          if (msg->msg == CURLMSG_DONE)
-            {
-              if (msg->data.result != CURLE_OK)
-                printf ("%s failed at %s:%d: `%s'\n",
-                        "curl_multi_perform",
-                        __FILE__,
-                        __LINE__, curl_easy_strerror (msg->data.result));
-              curl_multi_remove_handle (multi, c);
-              curl_multi_cleanup (multi);
-              curl_easy_cleanup (c);
-              c = NULL;
-              multi = NULL;
-            }
-        }
-      MHD_run (d);
-    }
-  if (multi != NULL)
-    {
-      curl_multi_remove_handle (multi, c);
-      curl_easy_cleanup (c);
-      curl_multi_cleanup (multi);
-    }
+  curl_easy_cleanup (c);
   MHD_stop_daemon (d);
   if (cbc.pos != strlen ("/hello_world"))
-    return 8192;
+    return 4;
   if (0 != strncmp ("/hello_world", cbc.buf, strlen ("/hello_world")))
-    return 16384;
+    return 8;
+  if (matches != 7)
+    return 16;
   return 0;
 }
-
 
 
 int
@@ -231,7 +179,7 @@ main (int argc, char *const *argv)
   oneone = NULL != strstr (argv[0], "11");
   if (0 != curl_global_init (CURL_GLOBAL_WIN32))
     return 2;
-  errorCount += testExternalGet ();
+  errorCount += testInternalGet (0);
   if (errorCount != 0)
     fprintf (stderr, "Error (code: %u)\n", errorCount);
   curl_global_cleanup ();

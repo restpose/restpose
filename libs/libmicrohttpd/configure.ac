@@ -21,15 +21,15 @@
 #
 #
 AC_PREREQ(2.57)
-AC_INIT([libmicrohttpd], [0.9.9],[libmicrohttpd@gnu.org])
-AM_INIT_AUTOMAKE([libmicrohttpd], [0.9.9])
+AC_INIT([libmicrohttpd], [0.9.16],[libmicrohttpd@gnu.org])
+AM_INIT_AUTOMAKE([libmicrohttpd], [0.9.16])
 AM_CONFIG_HEADER([MHD_config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AH_TOP([#define _GNU_SOURCE  1])
 
-LIB_VERSION_CURRENT=17
+LIB_VERSION_CURRENT=23
 LIB_VERSION_REVISION=0
-LIB_VERSION_AGE=7
+LIB_VERSION_AGE=13
 AC_SUBST(LIB_VERSION_CURRENT)
 AC_SUBST(LIB_VERSION_REVISION)
 AC_SUBST(LIB_VERSION_AGE)
@@ -64,6 +64,9 @@ AM_PROG_CC_C_O
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AC_C_BIGENDIAN
+AC_CHECK_PROG(HAVE_CURL_BINARY,[curl],true,false)
+AM_CONDITIONAL(HAVE_CURL_BINARY,$HAVE_CURL_BINARY)
+
 
 # set GCC options
 # use '-fno-strict-aliasing', but only if the compiler can take it
@@ -81,52 +84,57 @@ case "$host_os" in
      AC_DEFINE_UNQUOTED(OSX,1,[This is an OS X system])
      CFLAGS="-no-cpp-precomp -fno-common $CFLAGS"
      AM_CONDITIONAL(HAVE_GNU_LD, false)    
+     AM_CONDITIONAL(HAVE_W32, false)        
      ;;
 linux*)
      AC_DEFINE_UNQUOTED(LINUX,1,[This is a Linux system])
+     AC_DEFINE_UNQUOTED(HAVE_LISTEN_SHUTDOWN,1,[can use shutdown on listen sockets])
      AM_CONDITIONAL(HAVE_GNU_LD, true)    
+     AM_CONDITIONAL(HAVE_W32, false)        
      ;;
 freebsd*)
      AC_DEFINE_UNQUOTED(SOMEBSD,1,[This is a BSD system])
      AC_DEFINE_UNQUOTED(FREEBSD,1,[This is a FreeBSD system])
      AM_CONDITIONAL(HAVE_GNU_LD, true)    
+     AM_CONDITIONAL(HAVE_W32, false)        
      CFLAGS="-D_THREAD_SAFE $CFLAGS"
      ;;
 openbsd*)
      AC_DEFINE_UNQUOTED(SOMEBSD,1,[This is a BSD system])
      AC_DEFINE_UNQUOTED(OPENBSD,1,[This is an OpenBSD system])
      AM_CONDITIONAL(HAVE_GNU_LD, true)    
+     AM_CONDITIONAL(HAVE_W32, false)        
      ;;
 netbsd*)
      AC_DEFINE_UNQUOTED(SOMEBSD,1,[This is a BSD system])
      AC_DEFINE_UNQUOTED(NETBSD,1,[This is a NetBSD system])
      AM_CONDITIONAL(HAVE_GNU_LD, true)    
+     AM_CONDITIONAL(HAVE_W32, false)        
      ;;
 *solaris*)
      AC_DEFINE_UNQUOTED(SOLARIS,1,[This is a Solaris system])
      AC_DEFINE_UNQUOTED(_REENTRANT,1,[Need with solaris or errno doesnt work])
      AM_CONDITIONAL(HAVE_GNU_LD, false)    
+     AM_CONDITIONAL(HAVE_W32, false)        
      LDFLAGS="$LDFLAGS -lpthread"
      ;;
 *arm-linux*)
      AC_DEFINE_UNQUOTED(LINUX,1,[This is a Linux system])
+     AC_DEFINE_UNQUOTED(HAVE_LISTEN_SHUTDOWN,1,[can use shutdown on listen sockets])
      CFLAGS="-D_REENTRANT -fPIC -pipe $CFLAGS"
      AM_CONDITIONAL(HAVE_GNU_LD, true)    
+     AM_CONDITIONAL(HAVE_W32, false)        
      ;;
 *cygwin*)
      AC_DEFINE_UNQUOTED(CYGWIN,1,[This is a Cygwin system])
-     AM_CONDITIONAL(HAVE_GNU_LD, false)    
+     AM_CONDITIONAL(HAVE_GNU_LD, false)
+     AM_CONDITIONAL(HAVE_W32, false)        
      LDFLAGS="$LDFLAGS -no-undefined"
-     # check if PlibC is available
-     CHECK_PLIBC
-     LIBS="$PLIBC_LIBS $LIBS"
-     AC_SUBST(PLIBC_LIBS)
-     AC_SUBST(PLIBC_LDFLAGS)
-     AC_SUBST(PLIBC_CPPFLAGS)
      ;;
 *mingw*)
      AC_DEFINE_UNQUOTED(MINGW,1,[This is a MinGW system])
      AC_DEFINE_UNQUOTED(WINDOWS,1,[This is a Windows system])
+     AM_CONDITIONAL(HAVE_W32, true)    
      LDFLAGS="$LDFLAGS -no-undefined -Wl,--export-all-symbols -lws2_32"
      AM_CONDITIONAL(HAVE_GNU_LD, true)    
      # check if PlibC is available
@@ -139,11 +147,17 @@ netbsd*)
 *openedition*)
      AC_DEFINE_UNQUOTED(OS390,1,[This is a OS/390 system])
      AM_CONDITIONAL(HAVE_GNU_LD, false)    
+     AM_CONDITIONAL(HAVE_W32, false)        
     ;;
 *)
      AC_MSG_RESULT(Unrecognised OS $host_os)
      AC_DEFINE_UNQUOTED(OTHEROS,1,[Some strange OS])
+#    You might want to find out if your OS supports shutdown on listen sockets,
+#    and extend the switch statement; if we do not have 'HAVE_LISTEN_SHUTDOWN',
+#    pipes are used instead to signal 'select'.
+#    AC_DEFINE_UNQUOTED(HAVE_LISTEN_SHUTDOWN,1,[can use shutdown on listen sockets])
      AM_CONDITIONAL(HAVE_GNU_LD, false)    
+     AM_CONDITIONAL(HAVE_W32, false)        
 ;;
 esac
 
@@ -157,7 +171,7 @@ AC_SUBST(PTHREAD_CPPFLAGS)
 AC_CHECK_HEADERS([fcntl.h math.h errno.h limits.h stdio.h locale.h sys/stat.h sys/types.h pthread.h],,AC_MSG_ERROR([Compiling libmicrohttpd requires standard UNIX headers files]))
 
 # Check for optional headers
-AC_CHECK_HEADERS([sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h])
+AC_CHECK_HEADERS([sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h winsock2.h ws2tcpip.h])
 
 # Check for plibc.h from system, if not found, use our own
 AC_CHECK_HEADERS([plibc.h],our_private_plibc_h=0,our_private_plibc_h=1)
@@ -174,6 +188,12 @@ AC_TRY_COMPILE([
 #endif
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#if HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#if HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
 #endif
 ],[
 int af=AF_INET6;
@@ -268,7 +288,7 @@ AC_DEFINE_UNQUOTED([MHD_GCRYPT_VERSION], "$MHD_GCRYPT_VERSION", [gcrypt lib vers
 
 # gnutls
 gnutls=0
-AC_MSG_CHECKING([for gnutls])
+AC_MSG_CHECKING(for gnutls)
 AC_ARG_WITH(gnutls,
    [  --with-gnutls=PFX   base of gnutls installation],
    [AC_MSG_RESULT([$with_gnutls])
@@ -356,11 +376,13 @@ AC_CACHE_CHECK([whether -export-symbols-regex works],
 
 
 # gcov compilation
+AC_MSG_CHECKING(whether to compile with support for code coverage analysis)
 AC_ARG_ENABLE([coverage], 
               AS_HELP_STRING([--enable-coverage],
                              [compile the library with code coverage support]),
               [use_gcov=${enableval}], 
               [use_gcov=no])
+AC_MSG_RESULT($use_gcov)
 AM_CONDITIONAL([USE_COVERAGE], [test "x$use_gcov" = "xyes"])
 
 
