@@ -3,6 +3,7 @@
 *.la
 *.lo
 *.pyc
+*.exe
 .libs
 .deps
 aclocal.m4
