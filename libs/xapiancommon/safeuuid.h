@@ -23,7 +23,7 @@
 #define XAPIAN_INCLUDED_SAFEUUID_H
 
 #if defined __CYGWIN__ || defined __WIN32__
-# include "xapiancommon/win32_uuid.h"
+# include "win32_uuid.h"
 #elif defined HAVE_UUID_UUID_H
 # include <uuid/uuid.h>
 
