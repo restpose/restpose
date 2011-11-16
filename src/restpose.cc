@@ -33,6 +33,7 @@
 #include "httpserver/httpserver.h"
 // #include "importer/filesystem/filesystem_import.h"
 #include "importer/mongo/mongo_import.h"
+#include <pthread.h>
 #include "rest/routes.h"
 #include "rest/router.h"
 #include "safeerrno.h"
@@ -65,6 +66,8 @@ main_do(int argc, char * const* argv)
     Router router(taskman, &server);
     setup_routes(router);
     g_log.start();
+
+    try {
 
     if (opts.action == CliOptions::ACT_SERVE) {
 	server.add("httpserver", new HTTPServer(opts.port, opts.pedantic, &router));
@@ -126,25 +129,49 @@ main_do(int argc, char * const* argv)
 	printf("%s", json_serialise(tmp).c_str());
     }
 
+    } catch(...) {
+	g_log.stop();
+	g_log.join();
+	throw;
+    }
+
     g_log.stop();
     g_log.join();
 
     return ret;
 }
 
+#ifdef PTW32_STATIC_LIB
+extern "C" {
+int ptw32_processInitialize();
+};
+#endif
+
 int
 main(int argc, char * const* argv)
 {
-    try {
-	return main_do(argc, argv);
-    } catch(const RestPose::Error & e) {
-	fprintf(stderr, "Error: %s\n", e.what());
-	return 1;
-    } catch(const Xapian::Error & e) {
-	fprintf(stderr, "Error: %s\n", e.get_description().c_str());
-	return 1;
-    } catch(const std::bad_alloc) {
-	fprintf(stderr, "Error: out of memory\n");
+#ifdef PTW32_STATIC_LIB
+    ptw32_processInitialize();
+    if (!pthread_win32_process_attach_np()) {
+	fprintf(stderr, "Unable to initialise threading\n");
 	return 1;
     }
+#endif
+    int result;
+    try {
+	result = main_do(argc, argv);
+    } catch(const RestPose::Error & e) {
+	fprintf(stderr, "Error: %s - server exiting\n", e.what());
+	result = 1;
+    } catch(const Xapian::Error & e) {
+	fprintf(stderr, "Error: %s - server exiting\n", e.get_description().c_str());
+	result = 1;
+    } catch(const std::bad_alloc) {
+	fprintf(stderr, "Error: out of memory\n");
+	result = 1;
+    }
+#ifdef PTW32_STATIC_LIB
+    pthread_win32_process_detach_np();
+#endif
+    return result;
 }
