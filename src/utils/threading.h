@@ -28,6 +28,7 @@
 #include <pthread.h>
 #include "rsperrors.h"
 #include "safeerrno.h"
+#include "utils/utils.h"
 
 // Forward declaration, within this file.
 class Condition;
@@ -45,13 +46,17 @@ class Mutex {
 	pthread_mutex_destroy(&mutex);
     }
     void lock() {
-	if (pthread_mutex_lock(&mutex) != 0) {
-	    throw RestPose::ThreadError("Can't lock mutex");
+	int err = pthread_mutex_lock(&mutex);
+	if (err != 0) {
+	    throw RestPose::ThreadError("Can't lock mutex: " +
+					get_sys_error(err));
 	}
     }
     void unlock() {
-	if (pthread_mutex_unlock(&mutex) != 0) {
-	    throw RestPose::ThreadError("Can't unlock mutex");
+	int err = pthread_mutex_unlock(&mutex);
+	if (err != 0) {
+	    throw RestPose::ThreadError("Can't unlock mutex: " +
+					get_sys_error(err));
 	}
     }
 };
