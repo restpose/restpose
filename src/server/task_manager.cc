@@ -28,8 +28,8 @@
 #include "logger/logger.h"
 #include "safeerrno.h"
 #include "str.h"
-#include <sys/select.h>
-#include <sys/socket.h>
+#include "safesysselect.h"
+#include "socketpair.h"
 #include "utils/jsonutils.h"
 
 using namespace std;
@@ -51,8 +51,8 @@ TaskManager::TaskManager(CollectionPool & collections_)
 	  checkpoints(100, 24 * 60 * 60) // Keep up to 100 log messages per checkpoint, and keep checkpoints for a day.  FIXME - pull out magic constants
 {
     // Create the nudge socket.
-    int fds[2];
-    int ret = socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, fds);
+    SOCKET fds[2];
+    int ret = dumb_socketpair(fds, 1);
     if (ret == -1) {
 	throw RestPose::SysError("Couldn't create internal socketpair", errno);
     }
