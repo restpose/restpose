@@ -25,6 +25,8 @@
  */
 
 #include <config.h>
+
+#ifndef __WIN32__
 #include "ignore_sigpipe.h"
 #include "utils/rsperrors.h"
 
@@ -56,3 +58,4 @@ ignore_sigpipe()
 	throw RestPose::SysError("Failed to install SIGPIPE handler", errno);
     }
 }
+#endif
