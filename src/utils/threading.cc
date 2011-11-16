@@ -26,11 +26,15 @@
 #include "threading.h"
 
 #include <cstdio>
+#include <pthread.h>
 #include <xapian.h>
 
 static void *
 run_thread(void * arg_ptr)
 {
+#ifdef PTW32_STATIC_LIB
+    pthread_win32_thread_attach_np();
+#endif
     Thread * thread = static_cast<Thread *>(arg_ptr);
     try {
 	try {
@@ -50,6 +54,9 @@ run_thread(void * arg_ptr)
 	fprintf(stderr, "Thread died: unhandled exception\n");
     }
 
+#ifdef PTW32_STATIC_LIB
+    pthread_win32_thread_detach_np();
+#endif
     return NULL;
 }
 
