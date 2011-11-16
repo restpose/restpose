@@ -50,6 +50,7 @@ TEST(DocumentDataSerialise)
     docdata.unserialise("");
     CHECK_EQUAL(docdata.get("foo"), "");
     CHECK_THROW(docdata.unserialise(s.substr(s.size() - 1)), UnserialisationError);
+    CHECK_EQUAL(docdata.get("foo"), "");
     docdata.set("foo", "bar");
     docdata.set("food", "bard");
     CHECK_EQUAL(docdata.get("foo"), "bar");
