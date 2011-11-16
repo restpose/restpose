@@ -24,7 +24,7 @@
 #ifndef RESTPOSE_INCLUDED_SERVER_H
 #define RESTPOSE_INCLUDED_SERVER_H
 
-#include <sys/select.h>
+#include "safesysselect.h"
 #include <string>
 #include <map>
 #include "json/value.h"
