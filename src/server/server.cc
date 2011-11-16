@@ -30,8 +30,8 @@
 #include <cerrno>
 #include <memory>
 #include <sys/types.h>
-#include <sys/select.h>
-#include <sys/socket.h>
+#include "safesysselect.h"
+#include "socketpair.h"
 
 #include "utils/io_wrappers.h"
 #include "utils/rsperrors.h"
@@ -81,8 +81,8 @@ Server::run()
 
     // Create the socket used for signalling a shutdown request.
     {
-	int fds[2];
-	int ret = socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, fds);
+	SOCKET fds[2];
+	int ret = dumb_socketpair(fds, 1);
 	if (ret == -1) {
 	    throw RestPose::SysError("Couldn't create internal socketpair",
 				     errno);
