@@ -116,7 +116,8 @@ inline int dumb_socketpair(SOCKET socks[2], int make_overlapped)
     return SOCKET_ERROR;
 }
 #else
-inline int dumb_socketpair(int socks[2], int dummy)
+typedef int SOCKET;
+inline int dumb_socketpair(SOCKET socks[2], int dummy)
 {
     (void) dummy;
     return socketpair(AF_LOCAL, SOCK_STREAM, 0, socks);
