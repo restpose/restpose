@@ -22,8 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef RESTPOSE_INCLUDED_UTILS_H
-#define RESTPOSE_INCLUDED_UTILS_H
+#ifndef RESTPOSE_INCLUDED_RMDIR_H
+#define RESTPOSE_INCLUDED_RMDIR_H
 
 #include <string>
 
@@ -31,4 +31,4 @@
  */
 void rmdir_recursive(const std::string & dirname);
 
-#endif /* RESTPOSE_INCLUDED_UTILS_H */
+#endif /* RESTPOSE_INCLUDED_RMDIR_H */
