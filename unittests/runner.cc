@@ -23,15 +23,34 @@
  */
 
 #include <config.h>
-#include "UnitTest++.h"
-#include "TestReporterStdout.h"
+
+#include <cstdio>
 #include "logger/logger.h"
+#include <pthread.h>
+#include "TestReporterStdout.h"
+#include "UnitTest++.h"
+
+#ifdef PTW32_STATIC_LIB
+extern "C" {
+int ptw32_processInitialize();
+};
+#endif
 
 int main(int, char const **)
 {
+#ifdef PTW32_STATIC_LIB
+    ptw32_processInitialize();
+    if (!pthread_win32_process_attach_np()) {
+	fprintf(stderr, "Unable to initialise threading\n");
+	return 1;
+    }
+#endif
     RestPose::g_log.start();
     int result = UnitTest::RunAllTests();
     RestPose::g_log.stop();
     RestPose::g_log.join();
+#ifdef PTW32_STATIC_LIB
+    pthread_win32_process_detach_np();
+#endif
     return result;
 }
