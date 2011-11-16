@@ -46,6 +46,8 @@ run_thread(void * arg_ptr)
 	fprintf(stderr, "Thread died: %s\n", e.get_description().c_str());
     } catch(const std::bad_alloc) {
 	fprintf(stderr, "Thread died: out of memory\n");
+    } catch(...) {
+	fprintf(stderr, "Thread died: unhandled exception\n");
     }
 
     return NULL;
