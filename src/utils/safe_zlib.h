@@ -25,6 +25,12 @@
 #ifndef RESTPOSE_INCLUDED_SAFE_ZLIB_H
 #define RESTPOSE_INCLUDED_SAFE_ZLIB_H
 
+#ifdef __WIN32__
+   typedef __int64 int64_t;
+#else
+   #include <stdint.h>
+#endif
+
 /** zlib 1.2.4 and 1.2.5 cause compiler warnings in some environments (observed
  *  on OSX), due to constructs of the form "FOO-0", where FOO is not defined.
  *
