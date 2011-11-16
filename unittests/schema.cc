@@ -59,7 +59,7 @@ TEST(SchemaParams)
 		"},\"patterns\":[]}",
 		json_serialise(s.to_json(tmp)));
 
-    s.set("url", new ExactFieldConfig("url", 120, ExactFieldConfig::TOOLONG_HASH, "url", 0));
+    s.set("url", new ExactFieldConfig("url", 120, ExactFieldConfig::TOOLONG_HASH, "url", 0, false));
     CHECK_EQUAL("{\"fields\":{"
 		"\"id\":{\"max_length\":64,"
 		        "\"store_field\":\"\","
@@ -91,8 +91,8 @@ TEST(SchemaToDoc)
     CollectionConfig config("test"); // dummy config, used for testing.
     Schema s("");
     s.set("id", new IDFieldConfig(""));
-    s.set("url", new ExactFieldConfig("url", 120, ExactFieldConfig::TOOLONG_HASH, "url", 0));
-    s.set("nostore", new ExactFieldConfig("ns", 120, ExactFieldConfig::TOOLONG_ERROR, "", 0));
+    s.set("url", new ExactFieldConfig("url", 120, ExactFieldConfig::TOOLONG_HASH, "url", 0, false));
+    s.set("nostore", new ExactFieldConfig("ns", 120, ExactFieldConfig::TOOLONG_ERROR, "", 0, false));
 
     {
 	Json::Value v(Json::objectValue);
@@ -150,9 +150,9 @@ TEST(LongExactFields)
     CollectionConfig config("test"); // dummy config, used for testing.
     Schema s2("");
     s2.set("id", new IDFieldConfig("")); // ID terms have a default max length of 64
-    s2.set("url", new ExactFieldConfig("url", 30, ExactFieldConfig::TOOLONG_HASH, "url", 0));
-    s2.set("tags", new ExactFieldConfig("tags", 30, ExactFieldConfig::TOOLONG_TRUNCATE, "tags", 0));
-    s2.set("valuable", new ExactFieldConfig("valuable", 30, ExactFieldConfig::TOOLONG_ERROR, "valuable", 0));
+    s2.set("url", new ExactFieldConfig("url", 30, ExactFieldConfig::TOOLONG_HASH, "url", 0, false));
+    s2.set("tags", new ExactFieldConfig("tags", 30, ExactFieldConfig::TOOLONG_TRUNCATE, "tags", 0, false));
+    s2.set("valuable", new ExactFieldConfig("valuable", 30, ExactFieldConfig::TOOLONG_ERROR, "valuable", 0, false));
 
     Schema s("");
     Json::Value tmp;
@@ -235,7 +235,7 @@ TEST(IntegerExactFields)
     CollectionConfig config("test"); // dummy config, used for testing.
     Json::Value tmp, tmp2;
     Schema s2("");
-    s2.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
+    s2.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0, false));
 
     CHECK_EQUAL("{\"fields\":{\"intid\":{\"group\":\"intid\",\"lowercase\":false,\"max_length\":30,\"store_field\":\"intid\",\"too_long_action\":\"error\",\"type\":\"exact\",\"wdfinc\":0}},\"patterns\":[]}",
 		json_serialise(s2.to_json(tmp2)));

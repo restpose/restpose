@@ -252,11 +252,13 @@ namespace RestPose {
 			 unsigned int max_length_,
 			 MaxLenFieldConfig::TooLongAction action_,
 			 const std::string & store_field_,
-			 unsigned int wdfinc_)
+			 unsigned int wdfinc_,
+			 bool lowercase_)
 		: MaxLenFieldConfig(max_length_, action_),
 		  prefix(prefix_ + "\t"),
 		  store_field(store_field_),
-		  wdfinc(wdfinc_)
+		  wdfinc(wdfinc_),
+		  lowercase(lowercase_)
 	{}
 
 	virtual ~ExactFieldConfig();

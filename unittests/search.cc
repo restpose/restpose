@@ -46,8 +46,8 @@ TEST(SearchIntegerExactFields)
     Json::Value tmp;
     Schema s("testtype");
     s.set("id", new IDFieldConfig(""));
-    s.set("type", new ExactFieldConfig("type", 30, ExactFieldConfig::TOOLONG_ERROR, "", 0));
-    s.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0));
+    s.set("type", new ExactFieldConfig("type", 30, ExactFieldConfig::TOOLONG_ERROR, "", 0, false));
+    s.set("intid", new ExactFieldConfig("intid", 30, ExactFieldConfig::TOOLONG_ERROR, "intid", 0, false));
     coll.open_writable();
     coll.set_schema("testtype", s);
     CollectionConfig & config(coll.get_config());
@@ -143,5 +143,6 @@ TEST(SearchIntegerExactFields)
 	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size_requested\":10,\"total_docs\":2}",
 		    json_serialise(search_results));
     }
+    coll.close();
     rmdir_recursive("tmp_testdir");
 }
