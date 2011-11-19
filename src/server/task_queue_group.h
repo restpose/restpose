@@ -486,7 +486,7 @@ class TaskQueueGroup {
 	lock.unlock();
 	if (nudge_fd_copy != -1) {
 	    // Nudge when size is about to drop below throttle_size
-	    (void) io_write_byte(nudge_fd_copy, nudge_byte_copy);
+	    (void) io_send_byte(nudge_fd_copy, nudge_byte_copy);
 	}
 
 	return resultptr.release();
@@ -562,7 +562,7 @@ class TaskQueueGroup {
 	lock.unlock();
 	if (nudge_fd_copy != -1) {
 	    // Nudge when size is about to drop below throttle_size
-	    (void) io_write_byte(nudge_fd_copy, nudge_byte_copy);
+	    (void) io_send_byte(nudge_fd_copy, nudge_byte_copy);
 	}
 
 	return resultptr.release();

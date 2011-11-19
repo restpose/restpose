@@ -66,8 +66,8 @@ TaskManager::TaskManager(CollectionPool & collections_)
 
 TaskManager::~TaskManager()
 {
-    (void)io_close(nudge_write_end);
-    (void)io_close(nudge_read_end);
+    (void)io_close_socket(nudge_write_end);
+    (void)io_close_socket(nudge_read_end);
     search_queues.close();
     processing_queues.close();
     processing_queues.wait_for_empty();
@@ -295,7 +295,7 @@ TaskManager::serve(fd_set * read_fd_set, fd_set *, fd_set *, bool timed_out)
     // to be active for any indexing queue which is no longer full.
     if (!timed_out && FD_ISSET(nudge_read_end, read_fd_set)) {
 	std::string nudge_content;
-	if (!io_read_append(nudge_content, nudge_read_end)) {
+	if (!io_recv_append(nudge_content, nudge_read_end)) {
 	    LOG_ERROR("TaskManager: failure to read from nudge pipe: " + str(errno));
 	}
 

@@ -106,7 +106,7 @@ ResultHandle::set_ready() {
     internal->is_ready = true;
     lock.unlock();
     // Unlock before writing, just in case the io_write_byte() blocks.
-    (void) io_write_byte(internal->nudge_fd, internal->nudge_byte);
+    (void) io_send_byte(internal->nudge_fd, internal->nudge_byte);
 }
 
 bool

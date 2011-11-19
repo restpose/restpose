@@ -115,11 +115,11 @@ Server::run()
 	join_children();
 
 	release_signal_handlers();
-	if (!io_close(nudge_write_end)) {
+	if (!io_close_socket(nudge_write_end)) {
 	    throw RestPose::SysError("Couldn't close internal socketpair",
 				     errno);
 	}
-	if (!io_close(nudge_read_end)) {
+	if (!io_close_socket(nudge_read_end)) {
 	    throw RestPose::SysError("Couldn't close internal socketpair",
 				     errno);
 	}
@@ -129,8 +129,8 @@ Server::run()
 	join_children(true);
 
 	release_signal_handlers();
-	(void)io_close(nudge_write_end);
-	(void)io_close(nudge_read_end);
+	(void)io_close_socket(nudge_write_end);
+	(void)io_close_socket(nudge_read_end);
 	throw;
     }
 }
@@ -138,7 +138,7 @@ Server::run()
 void
 Server::shutdown()
 {
-    (void) io_write(nudge_write_end, "S");
+    (void) io_send_byte(nudge_write_end, 'S');
 }
 
 void
@@ -290,7 +290,7 @@ Server::mainloop()
         // Check the nudge pipe
         if (!timed_out && FD_ISSET(nudge_read_end, &rfds)) {
             string result;
-            if (!io_read_append(result, nudge_read_end)) {
+            if (!io_recv_append(result, nudge_read_end)) {
                 throw RestPose::SysError("Couldn't read from internal socket",
 					 errno);
             }
