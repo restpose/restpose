@@ -32,6 +32,30 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef WIN32
+#include <winsock2.h>
+#include <winerror.h>
+#endif
+
+static void
+set_errno_from_winsock_error()
+{
+#ifdef WIN32
+    switch(WSAGetLastError()) {
+	case 0:
+	    errno = 0;
+	case WSAEINTR:
+	    errno = EINTR;
+	case WSAEFAULT:
+	    errno = EFAULT;
+	case WSAEINVAL:
+	    errno = EINVAL;
+	default:
+	    errno = EINVAL;
+    }
+#endif
+}
+
 int
 io_open_append_create(const char * filename, bool truncate)
 {
@@ -44,6 +68,8 @@ io_open_append_create(const char * filename, bool truncate)
 	fd = open(filename, flags, 0666);
 	// Repeat open if we got interrupted by a signal
 	// (probably only possible if filename is a FIFO).
+	if (fd == -1)
+	    set_errno_from_winsock_error();
     } while (fd == -1 && errno == EINTR);
     return fd;
 }
@@ -56,6 +82,8 @@ io_open_read(const char * filename)
 	fd = open(filename, O_RDONLY);
 	// Repeat open if we got interrupted by a signal
 	// (probably only possible if filename is a FIFO).
+	if (fd == -1)
+	    set_errno_from_winsock_error();
     } while (fd == -1 && errno == EINTR);
     return fd;
 }
@@ -66,6 +94,7 @@ io_write(int fd, const char * data, ssize_t len)
     while (len) {
 	ssize_t c = write(fd, data, len);
 	if (c < 0) {
+	    set_errno_from_winsock_error();
 	    if (errno == EINTR) continue;
 	    return false;
 	}
@@ -76,10 +105,10 @@ io_write(int fd, const char * data, ssize_t len)
 }
 
 bool
-io_write_byte(int fd, char byte)
+io_write_byte(int fd, char byte_)
 {
     char buf[1];
-    buf[0] = byte;
+    buf[0] = byte_;
     return io_write(fd, buf, 1);
 }
 
@@ -90,6 +119,7 @@ io_write_some(int fd, const char * data, ssize_t len)
     while (true) {
 	ssize_t c = write(fd, data, len);
 	if (c < 0) {
+	    set_errno_from_winsock_error();
 	    if (errno == EINTR) continue;
 	    return -1;
 	}
@@ -97,15 +127,56 @@ io_write_some(int fd, const char * data, ssize_t len)
     }
 }
 
+
+static bool
+io_send(int fd, const char * data, ssize_t len)
+{
+    while (len) {
+	ssize_t c = send(fd, data, len, 0);
+	if (c < 0) {
+	    set_errno_from_winsock_error();
+	    if (errno == EINTR) continue;
+	    return false;
+	}
+	data += c;
+	len -= c;
+    }
+    return true;
+}
+
+bool
+io_send_byte(int fd, char byte_)
+{
+    char buf[1];
+    buf[0] = byte_;
+    return io_send(fd, buf, 1);
+}
+
+
 bool
 io_close(int fd)
 {
     int ret;
     do {
 	ret = close(fd);
+	if (ret == -1)
+	    set_errno_from_winsock_error();
     } while(ret == -1 && errno == EINTR);
     return (ret != -1);
 }
+
+bool
+io_close_socket(int fd)
+{
+    int ret;
+    do {
+	ret = closesocket(fd);
+	if (ret == -1)
+	    set_errno_from_winsock_error();
+    } while(ret == -1 && errno == EINTR);
+    return (ret != -1);
+}
+
 
 #define CHUNKSIZE 4096
 
@@ -131,6 +202,7 @@ io_read_exact(std::string & result, int fd, size_t to_read)
 	    continue;
 	}
 
+	set_errno_from_winsock_error();
 	if (errno != EINTR) return false;
     }
     return true;
@@ -149,6 +221,7 @@ io_read_append(std::string & result, int fd, size_t max_to_read)
 	    result.append(buf, bytes_read);
 	    return bytes_read;
 	} else {
+	    set_errno_from_winsock_error();
 	    if (errno != EINTR) return -1;
 	}
     }
@@ -158,4 +231,30 @@ bool
 io_read_append(std::string & result, int fd)
 {
     return io_read_append(result, fd, CHUNKSIZE);
+}
+
+
+static int
+io_recv_append(std::string & result, int fd, size_t max_to_read)
+{
+    while (true) {
+	char buf[max_to_read];
+	ssize_t bytes_read = recv(fd, buf, max_to_read, 0);
+
+	if (bytes_read == 0) {
+	    return bytes_read;
+	} else if (bytes_read > 0) {
+	    result.append(buf, bytes_read);
+	    return bytes_read;
+	} else {
+	    set_errno_from_winsock_error();
+	    if (errno != EINTR) return -1;
+	}
+    }
+}
+
+bool
+io_recv_append(std::string & result, int fd)
+{
+    return io_recv_append(result, fd, CHUNKSIZE);
 }

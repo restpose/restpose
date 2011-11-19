@@ -109,12 +109,35 @@ inline int io_write_some(int fd, const std::string & data)
     return io_write_some(fd, data.data(), data.size());
 }
 
+
+/** Write a byte to a socket.
+ *
+ *  Guarantees to write the byte, unless an error occurs.  Handles interrupts
+ *  due to signals.
+ *
+ *  @param fd The file descriptor to write to.
+ *  @param byte The byte to write.
+ *
+ *  @returns true if written successfully, false otherwise.  Errno will be set
+ *  if false is returned.
+ */
+bool io_send_byte(int fd, char byte);
+
+
 /** Close a file descriptor.
  *
  *  @returns true if closed successfully, false otherwise.  Errno will be set
  *  if false is returned.
  */
 bool io_close(int fd);
+
+/** Close a socket.
+ *
+ *  @returns true if closed successfully, false otherwise.  Errno will be set
+ *  if false is returned.
+ */
+bool io_close_socket(int fd);
+
 
 /** Read an exact number of bytes, blocking until all the bytes are read.
  *
@@ -156,5 +179,20 @@ int io_read_append(std::string & result, int fd, size_t max_to_read);
  *  false otherwise.  Errno will be set if false is returned.
  */
 bool io_read_append(std::string & result, int fd);
+
+
+/** Read some bytes from a socket, and append to a string.
+ *
+ *  This will read a chunk of data from the socket, but will not exhaustively
+ *  read until EOF.
+ *
+ *  @param result A string to which the bytes which have been read will be
+ *  appended.
+ *  @param fd The file descriptor to read from.
+ *
+ *  @returns true if read without error (though possibly having reached EOF),
+ *  false otherwise.  Errno will be set if false is returned.
+ */
+bool io_recv_append(std::string & result, int fd);
 
 #endif /* XAPSRV_INCLUDED_IO_WRAPPERS_H */
