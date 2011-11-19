@@ -41,6 +41,10 @@
 #include "server/server.h"
 #include "utils/rsperrors.h"
 
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+
 // For training; this should probably be in a separate file
 #include "ngramcat/categoriser.h"
 #include "utils/io_wrappers.h"
@@ -157,6 +161,20 @@ main(int argc, char * const* argv)
 	return 1;
     }
 #endif
+#ifdef WIN32
+    WORD wVersionRequested = MAKEWORD(2, 2);
+    WSADATA wsaData;
+    int err = WSAStartup(wVersionRequested, &wsaData);
+    if (err != 0) {
+	fprintf(stderr, "Unable to initalise winsock: error code %d\n", err);
+	return 1;
+    }
+    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+	fprintf(stderr, "Could not find a usable version of winsock\n");
+	WSACleanup();
+	return 1;
+    }
+#endif
     int result;
     try {
 	result = main_do(argc, argv);
@@ -170,6 +188,9 @@ main(int argc, char * const* argv)
 	fprintf(stderr, "Error: out of memory\n");
 	result = 1;
     }
+#ifdef WIN32
+    WSACleanup();
+#endif
 #ifdef PTW32_STATIC_LIB
     pthread_win32_process_detach_np();
 #endif

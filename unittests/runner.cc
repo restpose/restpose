@@ -30,6 +30,10 @@
 #include "TestReporterStdout.h"
 #include "UnitTest++.h"
 
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+
 #ifdef PTW32_STATIC_LIB
 extern "C" {
 int ptw32_processInitialize();
@@ -45,10 +49,27 @@ int main(int, char const **)
 	return 1;
     }
 #endif
+#ifdef WIN32
+    WORD wVersionRequested = MAKEWORD(2, 2);
+    WSADATA wsaData;
+    int err = WSAStartup(wVersionRequested, &wsaData);
+    if (err != 0) {
+	fprintf(stderr, "Unable to initalise winsock: error code %d\n", err);
+	return 1;
+    }
+    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+	fprintf(stderr, "Could not find a usable version of winsock\n");
+	WSACleanup();
+	return 1;
+    }
+#endif
     RestPose::g_log.start();
     int result = UnitTest::RunAllTests();
     RestPose::g_log.stop();
     RestPose::g_log.join();
+#ifdef WIN32
+    WSACleanup();
+#endif
 #ifdef PTW32_STATIC_LIB
     pthread_win32_process_detach_np();
 #endif
