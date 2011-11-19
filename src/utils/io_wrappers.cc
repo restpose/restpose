@@ -35,6 +35,8 @@
 #ifdef WIN32
 #include <winsock2.h>
 #include <winerror.h>
+#else
+#include <sys/socket.h>
 #endif
 
 static void
@@ -170,7 +172,11 @@ io_close_socket(int fd)
 {
     int ret;
     do {
+#ifdef WIN32
 	ret = closesocket(fd);
+#else
+	ret = close(fd);
+#endif
 	if (ret == -1)
 	    set_errno_from_winsock_error();
     } while(ret == -1 && errno == EINTR);
