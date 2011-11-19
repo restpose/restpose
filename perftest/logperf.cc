@@ -27,7 +27,7 @@
 
 #include "realtime.h"
 #include <stdio.h>
-#include <sys/socket.h>
+#include "socketpair.h"
 #include <sys/types.h>
 
 using namespace RestPose;
@@ -35,8 +35,8 @@ using namespace RestPose;
 int main(int argc, const char ** argv) {
     (void) argc;
     (void) argv;
-    int fds[2];
-    int ret = socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, fds);
+    SOCKET fds[2];
+    int ret = dumb_socketpair(fds, 1);
     if (ret == -1) {
 	fprintf(stderr, "Couldn't create internal socketpair: %d", errno);
     }
