@@ -2,11 +2,8 @@ dnl Process this file with autoconf to produce a configure script.
 dnl Note - large parts of this file are copied from Xapian.
 
 AC_INIT([restpose], [0.7.7dev], [http://github.com/rboulton/restpose])
-dnl We require the same version of autoconf as xapian does, for convenience.
-AC_PREREQ([2.64])
-
-dnl We require the same version of automake as xapian does, for convenience.
-AM_INIT_AUTOMAKE([1.10.2 -Wportability tar-ustar std-options])
+AC_PREREQ([2.61])
+AM_INIT_AUTOMAKE([1.10 -Wportability tar-ustar std-options])
 
 AC_CONFIG_SRCDIR([src/jsonxapian/indexing.cc])
 AC_CONFIG_HEADERS([config.h])
