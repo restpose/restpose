@@ -44,7 +44,7 @@ C-style escaping.  More precisely:
 
  * Carriage return (hex code 0x0d) will be represented as \\r
 
- * Characters from 0x32 to 0x7f (inclusive) will be represented as
+ * Characters from 0x20 to 0x7f (inclusive) will be represented as
    themselves.
 
  * Any other characters will be represented as \\xXX, where XX is the hex
