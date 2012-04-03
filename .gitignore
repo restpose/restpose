@@ -48,6 +48,7 @@ libs/libmicrohttpd/doc/stamp-vti
 libs/libmicrohttpd/doc/version.texi
 libs/libmicrohttpd/libmicrohttpd.pc
 libs/libmicrohttpd/libtool
+libs/libmicrohttpd/MHD_config.h.in
 libs/libmicrohttpd/MHD_config.h.in~
 libs/libmicrohttpd/m4/Makefile
 libs/libmicrohttpd/m4/libtool.m4
