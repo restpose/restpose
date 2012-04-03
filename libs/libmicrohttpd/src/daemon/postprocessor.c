@@ -1,6 +1,6 @@
 /*
      This file is part of libmicrohttpd
-     (C) 2007, 2009 Daniel Pittman and Christian Grothoff
+     (C) 2007, 2009, 2010, 2011, 2012 Daniel Pittman and Christian Grothoff
 
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Lesser General Public
@@ -39,6 +39,7 @@ enum PP_State
   PP_Error,
   PP_Done,
   PP_Init,
+  PP_NextBoundary,
 
   /* url encoding-states */
   PP_ProcessValue,
@@ -280,6 +281,12 @@ MHD_create_post_processor (struct MHD_Connection *connection,
       blen = strlen (boundary);
       if ((blen == 0) || (blen * 2 + 2 > buffer_size))
         return NULL;            /* (will be) out of memory or invalid boundary */
+      if ( (boundary[0] == '"') && (boundary[blen - 1] == '"') )
+	{
+	  /* remove enclosing quotes */
+	  ++boundary;
+	  blen -= 2;
+	} 
     }
   else
     blen = 0;
@@ -486,7 +493,8 @@ find_boundary (struct MHD_PostProcessor *pp,
     }
   if ((0 != memcmp ("--", buf, 2)) || (0 != memcmp (&buf[2], boundary, blen)))
     {
-      pp->state = PP_Error;
+      if (pp->state != PP_Init)
+        pp->state = PP_Error;
       return MHD_NO;            /* expected boundary */
     }
   /* remove boundary from buffer */
@@ -817,6 +825,25 @@ post_process_multipart (struct MHD_PostProcessor *pp,
           pp->state = PP_Error;
           return MHD_NO;
         case PP_Init:
+          /**
+           * Per RFC2046 5.1.1 NOTE TO IMPLEMENTORS, consume anything
+           * prior to the first multipart boundary:
+           *
+           * > There appears to be room for additional information prior
+           * > to the first boundary delimiter line and following the
+           * > final boundary delimiter line.  These areas should
+           * > generally be left blank, and implementations must ignore
+           * > anything that appears before the first boundary delimiter
+           * > line or after the last one.
+           */
+          if (MHD_NO == find_boundary (pp,
+                                       pp->boundary,
+                                       pp->blen,
+                                       &ioff,
+                                       PP_ProcessEntryHeaders, PP_Done))
+            ++ioff;
+          break;
+        case PP_NextBoundary:
           if (MHD_NO == find_boundary (pp,
                                        pp->boundary,
                                        pp->blen,
@@ -908,7 +935,7 @@ post_process_multipart (struct MHD_PostProcessor *pp,
                                        pp->nlen,
                                        &ioff,
                                        PP_Nested_PerformMarking,
-                                       PP_Init /* or PP_Error? */ ))
+                                       PP_NextBoundary /* or PP_Error? */ ))
             {
               if (pp->state == PP_Error)
                 return MHD_NO;
@@ -949,7 +976,7 @@ post_process_multipart (struct MHD_PostProcessor *pp,
                                                    pp->nested_boundary,
                                                    pp->nlen,
                                                    PP_Nested_PerformCleanup,
-                                                   PP_Init))
+                                                   PP_NextBoundary))
             {
               if (pp->state == PP_Error)
                 return MHD_NO;
@@ -1028,6 +1055,8 @@ MHD_destroy_post_processor (struct MHD_PostProcessor *pp)
 {
   int ret;
 
+  if (NULL == pp)
+    return MHD_YES;
   /* These internal strings need cleaning up since
      the post-processing may have been interrupted
      at any stage */

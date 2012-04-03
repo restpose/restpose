@@ -91,6 +91,9 @@
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
 
+/* Do we have sockaddr_in.sin_len? */
+#undef HAVE_SOCKADDR_IN_SIN_LEN
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 

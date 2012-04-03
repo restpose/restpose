@@ -1,5 +1,5 @@
 # This file is part of libmicrohttpd.
-# (C) 2006, 2007, 2008, 2009, 2010, 2011 Christian Grothoff (and other contributing authors)
+# (C) 2006-2012 Christian Grothoff (and other contributing authors)
 #
 # libmicrohttpd is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published
@@ -21,15 +21,15 @@
 #
 #
 AC_PREREQ(2.57)
-AC_INIT([libmicrohttpd], [0.9.16],[libmicrohttpd@gnu.org])
-AM_INIT_AUTOMAKE([libmicrohttpd], [0.9.16])
+AC_INIT([libmicrohttpd], [0.9.19],[libmicrohttpd@gnu.org])
+AM_INIT_AUTOMAKE([libmicrohttpd], [0.9.19])
 AM_CONFIG_HEADER([MHD_config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AH_TOP([#define _GNU_SOURCE  1])
 
-LIB_VERSION_CURRENT=23
+LIB_VERSION_CURRENT=24
 LIB_VERSION_REVISION=0
-LIB_VERSION_AGE=13
+LIB_VERSION_AGE=14
 AC_SUBST(LIB_VERSION_CURRENT)
 AC_SUBST(LIB_VERSION_REVISION)
 AC_SUBST(LIB_VERSION_AGE)
@@ -64,6 +64,18 @@ AM_PROG_CC_C_O
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AC_C_BIGENDIAN
+
+
+AC_CHECK_MEMBER([struct sockaddr_in.sin_len],
+   [ AC_DEFINE(HAVE_SOCKADDR_IN_SIN_LEN, 1, [Do we have sockaddr_in.sin_len?])
+   ],
+   [],
+   [
+      #include <sys/types.h>
+      #include <sys/socket.h>
+      #include <netinet/in.h>
+   ])
+
 AC_CHECK_PROG(HAVE_CURL_BINARY,[curl],true,false)
 AM_CONDITIONAL(HAVE_CURL_BINARY,$HAVE_CURL_BINARY)
 

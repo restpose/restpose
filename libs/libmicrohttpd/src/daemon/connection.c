@@ -658,8 +658,9 @@ build_header_response (struct MHD_Connection *connection)
       /* estimate size */
       size = off + 2;           /* extra \r\n at the end */
       kind = MHD_HEADER_KIND;
-      if (NULL == MHD_get_response_header (connection->response,
-                                           MHD_HTTP_HEADER_DATE))
+      if ( (0 == (connection->daemon->options & MHD_SUPPRESS_DATE_NO_CLOCK)) && 
+	   (NULL == MHD_get_response_header (connection->response,
+					     MHD_HTTP_HEADER_DATE)) )
         get_date_string (date);
       else
         date[0] = '\0';
@@ -671,7 +672,8 @@ build_header_response (struct MHD_Connection *connection)
       kind = MHD_FOOTER_KIND;
       off = 0;
     }
-  must_add_close = ( (connection->read_closed == MHD_YES) &&
+  must_add_close = ( (connection->state == MHD_CONNECTION_FOOTERS_RECEIVED) &&
+		     (connection->read_closed == MHD_YES) &&
 		     (0 == strcasecmp (connection->version,
 				       MHD_HTTP_VERSION_1_1)) &&
 		     (NULL == MHD_get_response_header (connection->response,
@@ -1064,6 +1066,12 @@ connection_add_header (struct MHD_Connection *connection,
 }
 
 /**
+ * Parse and unescape the arguments given by the client as part
+ * of the HTTP request URI.
+ *
+ * @param kind header kind to use for adding to the connection
+ * @param connection connection to add headers to
+ * @param args argument URI string (after "?" in URI)
  * @return MHD_NO on failure (out of memory), MHD_YES for success
  */
 static int
@@ -1108,6 +1116,7 @@ parse_arguments (enum MHD_ValueKind kind,
     }
   return MHD_YES;
 }
+
 
 /**
  * Parse the cookie header (see RFC 2109).
@@ -1236,7 +1245,7 @@ parse_initial_message_line (struct MHD_Connection *connection, char *line)
       connection->daemon->uri_log_callback (connection->daemon->
                                             uri_log_callback_cls, uri);
   args = strstr (uri, "?");
-  if (args != NULL)
+  if (NULL != args)
     {
       args[0] = '\0';
       args++;
@@ -1246,7 +1255,7 @@ parse_initial_message_line (struct MHD_Connection *connection, char *line)
 					 connection,
 					 uri);
   connection->url = uri;
-  if (httpVersion == NULL)
+  if (NULL == httpVersion)
     connection->version = "";
   else
     connection->version = httpVersion;

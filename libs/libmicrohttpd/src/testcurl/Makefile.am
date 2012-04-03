@@ -27,6 +27,7 @@ endif
 endif
 
 check_PROGRAMS = \
+  test_start_stop \
   daemontest_get \
   daemontest_get_sendfile \
   daemontest_urlparse \
@@ -62,7 +63,7 @@ noinst_PROGRAMS = \
 
 if ENABLE_DAUTH
   check_PROGRAMS += \
-	daemontest_digestauth
+	daemontest_digestauth daemontest_digestauth_with_arguments
 endif
 
 TESTS = $(check_PROGRAMS)
@@ -71,6 +72,11 @@ noinst_LIBRARIES = libcurl_version_check.a
 
 libcurl_version_check_a_SOURCES = \
   curl_version_check.c
+
+test_start_stop_SOURCES = \
+  test_start_stop.c
+test_start_stop_LDADD = \
+  $(top_builddir)/src/daemon/libmicrohttpd.la
 
 daemon_options_test_SOURCES = \
   daemon_options_test.c
@@ -106,6 +112,12 @@ perf_get_concurrent_LDADD = \
 daemontest_digestauth_SOURCES = \
   daemontest_digestauth.c
 daemontest_digestauth_LDADD = \
+  $(top_builddir)/src/daemon/libmicrohttpd.la \
+  @LIBCURL@
+
+daemontest_digestauth_with_arguments_SOURCES = \
+  daemontest_digestauth_with_arguments.c
+daemontest_digestauth_with_arguments_LDADD = \
   $(top_builddir)/src/daemon/libmicrohttpd.la \
   @LIBCURL@
 

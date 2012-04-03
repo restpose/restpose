@@ -944,9 +944,18 @@ MHD_add_connection (struct MHD_Daemon *daemon,
   MHD_set_http_callbacks_ (connection);
   connection->recv_cls = &recv_param_adapter;
   connection->send_cls = &send_param_adapter;
-#if LINUX
+  /* non-blocking sockets are required on most systems and for GNUtls;
+     however, they somehow cause serious problems on CYGWIN (#1824) */
+#ifdef CYGWIN
+  if
+#if HTTPS_SUPPORT
+    (0 != (daemon->options & MHD_USE_SSL))
+#else
+    (0)
+#endif
+#endif
   {
-    /* non-blocking sockets perform better on Linux */
+    /* make socket non-blocking */
     int flags = fcntl (connection->socket_fd, F_GETFL);
     if ( (flags == -1) ||
 	 (0 != fcntl (connection->socket_fd, F_SETFL, flags | O_NONBLOCK)) )
@@ -957,7 +966,6 @@ MHD_add_connection (struct MHD_Daemon *daemon,
 #endif
       }
   }
-#endif
 
 #if HTTPS_SUPPORT
   if (0 != (daemon->options & MHD_USE_SSL))
@@ -1219,14 +1227,15 @@ MHD_get_timeout (struct MHD_Daemon *daemon,
   while (pos != NULL)
     {
       if (0 != pos->connection_timeout) {
-        have_timeout = MHD_YES;
-        if (earliest_deadline > pos->last_activity + pos->connection_timeout)
+        if (!have_timeout ||
+	    earliest_deadline > pos->last_activity + pos->connection_timeout)
           earliest_deadline = pos->last_activity + pos->connection_timeout;
 #if HTTPS_SUPPORT
         if (  (0 != (daemon->options & MHD_USE_SSL)) &&
 	      (0 != gnutls_record_check_pending (pos->tls_session)) )
 	  earliest_deadline = 0;
 #endif
+        have_timeout = MHD_YES;
       }
       pos = pos->next;
     }
@@ -1777,15 +1786,17 @@ parse_options_va (struct MHD_Daemon *daemon,
 	      ret = gnutls_priority_init (&daemon->priority_cache,
 					  pstr = va_arg (ap, const char*),
 					  NULL);
-#if HAVE_MESSAGES
 	      if (ret != GNUTLS_E_SUCCESS)
+	      {
+#if HAVE_MESSAGES
 		FPRINTF (stderr,
 			 "Setting priorities to `%s' failed: %s\n",
 			 pstr,
 			 gnutls_strerror (ret));
 #endif	  
-	      if (ret != GNUTLS_E_SUCCESS)
+		daemon->priority_cache = NULL;
 		return MHD_NO;
+	      }
 	    }
           break;
 #endif
@@ -2044,7 +2055,8 @@ MHD_start_daemon_va (unsigned int options,
   if (MHD_YES != parse_options_va (retVal, &servaddr, ap))
     {
 #if HTTPS_SUPPORT
-      if (options & MHD_USE_SSL)
+      if ( (0 != (options & MHD_USE_SSL)) &&
+	   (NULL != retVal->priority_cache) )
 	gnutls_priority_deinit (retVal->priority_cache);
 #endif
       free (retVal);
@@ -2175,6 +2187,9 @@ MHD_start_daemon_va (unsigned int options,
 	      memset (&servaddr6, 0, sizeof (struct sockaddr_in6));
 	      servaddr6.sin6_family = AF_INET6;
 	      servaddr6.sin6_port = htons (port);
+#if HAVE_SOCKADDR_IN_SIN_LEN
+	      servaddr6.sin6_len = sizeof (struct sockaddr_in6);
+#endif
 	      servaddr = (struct sockaddr *) &servaddr6;
 	    }
 	  else
@@ -2183,6 +2198,9 @@ MHD_start_daemon_va (unsigned int options,
 	      memset (&servaddr4, 0, sizeof (struct sockaddr_in));
 	      servaddr4.sin_family = AF_INET;
 	      servaddr4.sin_port = htons (port);
+#if HAVE_SOCKADDR_IN_SIN_LEN
+	      servaddr4.sin_len = sizeof (struct sockaddr_in);
+#endif
 	      servaddr = (struct sockaddr *) &servaddr4;
 	    }
 	}
