@@ -397,7 +397,7 @@ dnl Similarly for uuid support.
 
 dnl Check for zlib.h.
 AC_CHECK_HEADERS(zlib.h, [], [
-  AC_MSG_ERROR([zlib.h not found - required for brass, chert and flint (you may need to install the zlib1g-dev or zlib-devel package)])
+  AC_MSG_ERROR([zlib.h not found - required for mongodb binary item support (you may need to install the zlib1g-dev or zlib-devel package)])
   ], [ ])
 
 dnl Check for zlibVersion in -lz.
@@ -405,7 +405,7 @@ SAVE_LIBS=$LIBS
 LIBS=
 dnl mingw build needs -lzlib or -lzdll.
 AC_SEARCH_LIBS([zlibVersion], [z zlib zdll], [], [
-  AC_MSG_ERROR([zlibVersion() not found in -lz, -lzlib, or -lzdll - required for brass, chert and flint (you may need to install the zlib1g-dev or zlib-devel package)])
+  AC_MSG_ERROR([zlibVersion() not found in -lz, -lzlib, or -lzdll - required for mongodb binary item support (you may need to install the zlib1g-dev or zlib-devel package)])
   ])
 if test x != x"$LIBS" ; then
   RESTPOSE_LDFLAGS="$XAPIAN_LDFLAGS $LIBS"
@@ -427,7 +427,7 @@ case $host_os in
       SAVE_LIBS=$LIBS
       LIBS=
       AC_SEARCH_LIBS([uuid_generate], [uuid], [], [
-	AC_MSG_ERROR([uuid_generate() not found in -luuid - required for brass, chert and flint (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
+	AC_MSG_ERROR([uuid_generate() not found in -luuid - required (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
 	])
       if test x != x"$LIBS" ; then
 	XAPIAN_LDFLAGS="$XAPIAN_LDFLAGS $LIBS"
@@ -440,7 +440,7 @@ case $host_os in
 	  AC_MSG_ERROR([uuid.h found, but uuid_create() not found.  You probably wants to install libuuid from util-linux-ng or e2fsprogs (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
 	])
       ], [
-	AC_MSG_ERROR([Neither uuid/uuid.h nor uuid.h found - required for brass, chert and flint (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
+	AC_MSG_ERROR([Neither uuid/uuid.h nor uuid.h found - required (you may need to install the uuid-dev, libuuid-devel or e2fsprogs-devel package)])
       ], [ ])
     ], [ ])
     ;;
