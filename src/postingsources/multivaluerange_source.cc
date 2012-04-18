@@ -144,11 +144,11 @@ MultiValueRangeSource::unserialise(const string &s) const
     const char * p = s.data();
     const char * end = p + s.size();
 
-    Xapian::valueno new_slot = decode_length(&p, end, false);
-    size_t start_len = decode_length(&p, end, true);
+    Xapian::valueno new_slot = rsp_decode_length(&p, end, false);
+    size_t start_len = rsp_decode_length(&p, end, true);
     string new_start_val(p, start_len);
     p += start_len;
-    size_t end_len = decode_length(&p, end, true);
+    size_t end_len = rsp_decode_length(&p, end, true);
     string new_end_val(p, end_len);
     p += end_len;
     Xapian::weight new_wt = Xapian::sortable_unserialise(string(p, end - p));
@@ -189,7 +189,7 @@ MultiValueRangeSource::check_range(const std::string & value) const
     const char * pos = value.data();
     const char * endpos = pos + value.size();
     while (pos != endpos) {
-	size_t len = decode_length(&pos, endpos, true);
+	size_t len = rsp_decode_length(&pos, endpos, true);
 	string val(pos, len);
 
 	if (start_val <= val && val <= end_val)

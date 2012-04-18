@@ -206,7 +206,7 @@ VintLengthSlotDecoder::next(const char ** begin_ptr, size_t * len_ptr)
     if (pos == endpos) {
 	return false;
     }
-    size_t len = decode_length(&pos, endpos, true);
+    size_t len = rsp_decode_length(&pos, endpos, true);
     *begin_ptr = pos;
     *len_ptr = len;
     pos += len;

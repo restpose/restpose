@@ -25,7 +25,7 @@
 using namespace std;
 
 size_t
-decode_length(const char ** p, const char *end, bool check_remaining)
+rsp_decode_length(const char ** p, const char *end, bool check_remaining)
 {
     if (*p == end) {
 	throw RestPose::UnserialisationError("Bad encoded length: no data");

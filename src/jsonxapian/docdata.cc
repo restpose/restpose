@@ -63,10 +63,10 @@ DocumentData::unserialise(const std::string &s)
     const char * ptr = s.data();
     const char * endptr = ptr + s.size();
     while (ptr != endptr) {
-	size_t len = decode_length(&ptr, endptr, true);
+	size_t len = rsp_decode_length(&ptr, endptr, true);
 	std::string field(ptr, len);
 	ptr += len;
-	len = decode_length(&ptr, endptr, true);
+	len = rsp_decode_length(&ptr, endptr, true);
 	std::string value(ptr, len);
 	ptr += len;
 	fields[field] = value;

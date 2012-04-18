@@ -201,14 +201,14 @@ LatLongDistancePostingSource::unserialise_with_registry(const string &s,
     const char * p = s.data();
     const char * end = p + s.size();
 
-    valueno new_slot = decode_length(&p, end, false);
-    size_t len = decode_length(&p, end, true);
+    valueno new_slot = rsp_decode_length(&p, end, false);
+    size_t len = rsp_decode_length(&p, end, true);
     string new_serialised_center(p, len);
     p += len;
-    len = decode_length(&p, end, true);
+    len = rsp_decode_length(&p, end, true);
     string new_metric_name(p, len);
     p += len;
-    len = decode_length(&p, end, true);
+    len = rsp_decode_length(&p, end, true);
     string new_serialised_metric(p, len);
     p += len;
     double new_max_range = unserialise_double(&p, end);

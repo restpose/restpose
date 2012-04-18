@@ -67,6 +67,6 @@ encode_length(T len)
  *
  *  @return	The decoded length.
  */
-size_t decode_length(const char ** p, const char *end, bool check_remaining);
+size_t rsp_decode_length(const char ** p, const char *end, bool check_remaining);
 
 #endif
