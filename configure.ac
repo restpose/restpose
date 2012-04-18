@@ -387,8 +387,6 @@ if test yes = "$enable_module_mongodb" ; then
   :
 fi
 
-use_win32_uuid_api=0
-
 dnl We use zlib for decompressing binary items from mongodb.  We could
 dnl automatically disable support if zlib isn't found, but zlib is required for
 dnl Xapian anyway, so it's easier just to require it.
@@ -413,6 +411,8 @@ fi
 LIBS=$SAVE_LIBS
 
 dnl Find the UUID library (from e2fsprogs/util-linux-ng, not the OSSP one).
+
+use_win32_uuid_api=0
 
 case $host_os in
   *mingw* | *cygwin*) dnl Use built-in API.
@@ -457,6 +457,17 @@ fi
 LIBS=$SAVE_LIBS
 
 AM_CONDITIONAL([USE_WIN32_UUID_API], [test "$use_win32_uuid_api" = 1])
+
+
+dnl Set USE_WIN32 conditional for win32 targets.  Used by Unittest++
+use_win32=0
+case $host_os in
+  *mingw* | *cygwin*) dnl Use built-in API.
+    use_win32=1
+    ;;
+esac
+AM_CONDITIONAL([USE_WIN32], [test "$use_win32" = 1])
+
 
 AC_ARG_ENABLE(quiet,
   [AS_HELP_STRING([--enable-quiet], [enable quiet building [default=no]])],

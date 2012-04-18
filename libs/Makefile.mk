@@ -55,12 +55,14 @@ noinst_HEADERS += \
  libs/xapiancommon/safedirent.h \
  libs/xapiancommon/safeerrno.h \
  libs/xapiancommon/safefcntl.h \
+ libs/xapiancommon/safesysselect.h \
  libs/xapiancommon/safesysstat.h \
  libs/xapiancommon/safeunistd.h \
  libs/xapiancommon/safeuuid.h \
  libs/xapiancommon/safewindows.h \
  libs/xapiancommon/serialise.h \
  libs/xapiancommon/serialise-double.h \
+ libs/xapiancommon/socketpair.h \
  libs/xapiancommon/str.h \
  libs/xapiancommon/utils.h
 
@@ -74,6 +76,8 @@ libxapiancommon_a_SOURCES = \
 
 # Windows-specific files
 EXTRA_DIST += \
+ libs/xapiancommon/msvc_dirent.cc \
+ libs/xapiancommon/msvc_dirent.h \
  libs/xapiancommon/win32_uuid.h \
  libs/xapiancommon/win32_uuid.cc
 
@@ -115,7 +119,8 @@ noinst_HEADERS += \
  libs/unittest-cpp/UnitTest++/src/UnitTest++.h \
  libs/unittest-cpp/UnitTest++/src/XmlTestReporter.h \
  libs/unittest-cpp/UnitTest++/src/Posix/SignalTranslator.h \
- libs/unittest-cpp/UnitTest++/src/Posix/TimeHelpers.h
+ libs/unittest-cpp/UnitTest++/src/Posix/TimeHelpers.h \
+ libs/unittest-cpp/UnitTest++/src/Win32/TimeHelpers.h
 libunittestpp_a_SOURCES = \
  libs/unittest-cpp/UnitTest++/src/AssertException.cpp \
  libs/unittest-cpp/UnitTest++/src/Test.cpp \
@@ -132,9 +137,15 @@ libunittestpp_a_SOURCES = \
  libs/unittest-cpp/UnitTest++/src/DeferredTestReporter.cpp \
  libs/unittest-cpp/UnitTest++/src/DeferredTestResult.cpp \
  libs/unittest-cpp/UnitTest++/src/XmlTestReporter.cpp \
- libs/unittest-cpp/UnitTest++/src/CurrentTest.cpp \
+ libs/unittest-cpp/UnitTest++/src/CurrentTest.cpp
+if USE_WIN32
+libunittestpp_a_SOURCES += \
+ libs/unittest-cpp/UnitTest++/src/Win32/TimeHelpers.cpp
+else
+libunittestpp_a_SOURCES += \
  libs/unittest-cpp/UnitTest++/src/Posix/SignalTranslator.cpp \
  libs/unittest-cpp/UnitTest++/src/Posix/TimeHelpers.cpp
+endif
 EXTRA_DIST += \
  libs/unittest-cpp/UnitTest++/COPYING \
  libs/unittest-cpp/UnitTest++/README
