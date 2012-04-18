@@ -956,6 +956,7 @@ MHD_add_connection (struct MHD_Daemon *daemon,
 #endif
   {
     /* make socket non-blocking */
+#ifndef MINGW
     int flags = fcntl (connection->socket_fd, F_GETFL);
     if ( (flags == -1) ||
 	 (0 != fcntl (connection->socket_fd, F_SETFL, flags | O_NONBLOCK)) )
@@ -965,6 +966,16 @@ MHD_add_connection (struct MHD_Daemon *daemon,
 		STRERROR (errno));
 #endif
       }
+#else
+    unsigned long flags = 1;
+    if (0 != ioctlsocket (connection->socket_fd, FIONBIO, &flags))
+      {
+#if HAVE_MESSAGES
+	FPRINTF(stderr, "Failed to make socket non-blocking: %s\n", 
+		STRERROR (errno));
+#endif
+      }
+#endif
   }
 
 #if HTTPS_SUPPORT
