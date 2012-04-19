@@ -347,13 +347,11 @@ answer_connection_cb(void * cls,
 
 	server->answer(*conn_info);
 	return MHD_YES;
-    } catch(RestPose::Error & e) {
-	// FIXME log
-	fprintf(stderr, "RestPose::Error(): %s\n", e.what());
+    } catch(const RestPose::Error & e) {
+	LOG_ERROR("request processing failed with", e);
 	return MHD_NO;
-    } catch(bad_alloc) {
-	// FIXME log
-	fprintf(stderr, "bad_alloc\n");
+    } catch(const std::bad_alloc & e) {
+	LOG_ERROR("request processing failed with", e);
 	return MHD_NO;
     }
 }
@@ -417,6 +415,7 @@ HTTPServer::start()
     if (!daemon) {
 	throw RestPose::HTTPServerError("Unable to start HTTP daemon");
     }
+    LOG_INFO("Listening for HTTP connections on port " + str(port));
 }
 
 void
