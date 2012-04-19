@@ -40,6 +40,7 @@ setup_routes(Router & router)
     router.add("/", HTTP_GETHEAD, new RootHandlerFactory);
     router.add("/static/*", HTTP_GETHEAD, new FileHandlerFactory);
     router.add("/status", HTTP_GETHEAD, new ServerStatusHandlerFactory);
+    router.add("/shutdown", HTTP_POST, new ServerShutdownHandlerFactory);
 
     // Collections
     router.add("/coll", HTTP_GETHEAD, new CollListHandlerFactory);

@@ -80,6 +80,21 @@ ServerStatusHandler::enqueue(ConnectionInfo &,
 	new ServerStatusTask(resulthandle, taskman));
 }
 
+
+Handler *
+ServerShutdownHandlerFactory::create(const std::vector<std::string> &) const
+{
+    return new ServerShutdownHandler;
+}
+
+void
+ServerShutdownHandler::handle(ConnectionInfo & conn)
+{
+    server->shutdown();
+    conn.respond(MHD_HTTP_OK, "{}", "application/json");
+}
+
+
 Handler *
 IndexDocumentHandlerFactory::create(
 	const std::vector<std::string> & path_params) const

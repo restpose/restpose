@@ -60,6 +60,17 @@ class ServerStatusHandler : public QueuedHandler {
 };
 
 
+class ServerShutdownHandlerFactory : public HandlerFactory {
+  public:
+    Handler * create(const std::vector<std::string> & path_params) const;
+};
+
+class ServerShutdownHandler : public Handler {
+  public:
+    void handle(ConnectionInfo & info);
+};
+
+
 class IndexDocumentHandlerFactory : public HandlerFactory {
   public:
     Handler * create(const std::vector<std::string> & path_params) const;
