@@ -160,6 +160,8 @@ main(int argc, char * const* argv)
 	fprintf(stderr, "Unable to initialise threading\n");
 	return 1;
     }
+    pthread_win32_thread_attach_np();
+    fprintf(stderr, "initialised threading\n");
 #endif
 #ifdef WIN32
     WORD wVersionRequested = MAKEWORD(2, 2);
@@ -192,7 +194,9 @@ main(int argc, char * const* argv)
     WSACleanup();
 #endif
 #ifdef PTW32_STATIC_LIB
+    pthread_win32_thread_detach_np();
     pthread_win32_process_detach_np();
+    fprintf(stderr, "detached threading\n");
 #endif
     return result;
 }
