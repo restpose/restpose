@@ -25,7 +25,7 @@ What is the point of a search engine?
 With most database systems (certainly with relational databases, and also with
 many of the newer "NoSQL" databases), the focus of queries performed on a
 database is to retrieve a set of records matching the query.  In contrast, the
-main focus of queries performed in a search engine is to retrive a ranked list
+main focus of queries performed in a search engine is to retrieve a ranked list
 of records; and often, only to return the most highly ranked.  Whilst a good
 ranking is important, it is hard to define exactly what a good ranking is, so
 there are many ways to customise how the ranking is performed.  It is generally
@@ -33,7 +33,7 @@ a binary yes/no decision to tell if a database is returning the correct answer
 to a query; with a search engine, it is much less clear cut what the correct
 answer to a query is, so the appropriate topic to discuss is often how high
 quality the results of a query are - ie, how well the ranking matches some
-theoretcial ideal.
+theoretical ideal.
 
 Many databases provide some support for "full text search" these days.  This is
 often sufficient to implement a very simple search engine, but doesn't allow
@@ -44,7 +44,7 @@ the cost of losing some control over aspects such as fully transactional
 updates, ability to perform complex joins, etc.
 
 The difference of focus between a database and a search engine often means that
-a good approach is to use both a standard database for some types of query, and
+a good approach is to use both a standard database for some types of queries, and
 a search engine for others.
 
 
@@ -53,7 +53,7 @@ Development
 
 RestPose is still in early development - it is likely that the internal storage
 formats will change from time to time (though this will be noted clearly in
-release notes), and the APIs are likely to be modified as 
+release notes), and the APIs are likely to be modified as well.
 
 Development is performed using Git, using github to hold the master repository.
 The Python client is actively maintained by the same author as the core engine,
