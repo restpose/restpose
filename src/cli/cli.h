@@ -43,6 +43,24 @@ struct CliOptions {
      */
     int parse(const char * progname, int argc, char * const* argv);
 
+#ifdef __WIN32__
+    /** Get the command to use when running as a service.
+     */
+    std::string service_command() const;
+
+    enum service_action_type {
+	SRVACT_NONE,
+	SRVACT_INSTALL,
+	SRVACT_REMOVE,
+	SRVACT_REINSTALL,
+	SRVACT_RUN_SERVICE
+    };
+    service_action_type service_action;
+    std::string service_name;
+    std::string service_user;
+    std::string service_password;
+#endif
+
     enum action_type {
 	ACT_DEFAULT,
 	ACT_SERVE,

@@ -25,6 +25,7 @@
 #include <config.h>
 
 #include "cli.h"
+#include "str.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -33,7 +34,11 @@
 #include <xapian.h>
 
 RestPose::CliOptions::CliOptions()
-	: datadir(),
+	:
+#ifdef __WIN32__
+	  service_action(SRVACT_NONE),
+#endif
+	  datadir(),
 	  action(ACT_DEFAULT),
 	  port(7777),
 	  pedantic(false),
@@ -43,6 +48,29 @@ RestPose::CliOptions::CliOptions()
 	  mongo_import()
 {
 }
+
+#ifdef __WIN32__
+std::string
+RestPose::CliOptions::service_command()
+{
+    std::string result = "--datadir=\"" + datadir + "\"";
+    result.append(" --action=serve");
+
+    result.append(" --port=" + str(port));
+    if (pedantic) {
+	result.append(" --pedantic");
+    }
+    if (!service_name.empty()) {
+	result.append(" --serviceName=\"" + service_name + "\"");
+    }
+    if (!service_user.empty()) {
+	result.append(" --serviceUser=\"" + service_user + "\"");
+    }
+    if (!service_password.empty()) {
+	result.append(" --servicePassword=\"" + service_password + "\"");
+    }
+}
+#endif
 
 int
 RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
@@ -58,6 +86,18 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
 
 	{ "dbname",     required_argument,      NULL, 'n' },
 	{ "searchfile", required_argument,      NULL, 'f' },
+
+#ifdef __WIN32__
+	{ "install",    no_argument,            NULL, 256 },
+	{ "remove",     no_argument,            NULL, 257 },
+	{ "reinstall",  no_argument,            NULL, 258 },
+	{ "serviceName", required_argument,     NULL, 259 },
+	{ "serviceUser", required_argument,     NULL, 260 },
+	{ "servicePassword", required_argument, NULL, 261 },
+
+	// Internal option, used when called by service manager.
+	{ "service", no_argument,               NULL, 262 },
+#endif
 
 	{ "mongo_import", required_argument,    NULL, 'm' },
 	{ 0, 0, NULL, 0 }
@@ -85,6 +125,17 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
 "                         for testing clients.\n"
 "  -m, --mongo_import=CFG start a mongo importer, with some JSON config\n"
 "\n"
+#ifdef __WIN32__
+"Windows service options\n"
+"  --install              install restpose as a Windows service\n"
+"  --remove               remove an installed restpose Windows service\n"
+"  --reinstall            reinstall Windows service (same as --remove followed\n"
+"                         by --install)\n"
+"  --serviceName=NAME     Specify a Windows service name\n"
+"  --serviceUser=USER          User account to run the service under\n"
+"  --servicePassword=PASSWORD  Password used to authenticate serviceUser\n"
+"\n"
+#endif
 "Options for \"search\" action\n"
 "  -n, --dbname=DBNAME    name of database for \"cmd\" action\n"
 "  -f, --searchfile=PATH  perform a search stored in a file\n"
@@ -140,6 +191,26 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
 		return 1;
 	    case '?':
 		return 1;
+#ifdef __WIN32__
+	    case 256:
+		service_action = SRVACT_INSTALL;
+		break;
+	    case 257:
+		service_action = SRVACT_REMOVE;
+		break;
+	    case 258:
+		service_action = SRVACT_REINSTALL;
+		break;
+	    case 259:
+		service_name = optarg;
+		break;
+	    case 260:
+		service_user = optarg;
+		break;
+	    case 261:
+		service_password = optarg;
+		break;
+#endif
 	}
     }
 
