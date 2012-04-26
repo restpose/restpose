@@ -51,7 +51,7 @@ RestPose::CliOptions::CliOptions()
 
 #ifdef __WIN32__
 std::string
-RestPose::CliOptions::service_command()
+RestPose::CliOptions::service_command_opts() const
 {
     std::string result = "--datadir=\"" + datadir + "\"";
     result.append(" --action=serve");

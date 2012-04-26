@@ -46,7 +46,7 @@ struct CliOptions {
 #ifdef __WIN32__
     /** Get the command to use when running as a service.
      */
-    std::string service_command() const;
+    std::string service_command_opts() const;
 
     enum service_action_type {
 	SRVACT_NONE,
