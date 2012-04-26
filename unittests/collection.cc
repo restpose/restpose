@@ -38,6 +38,11 @@
 #include "utils/jsonutils.h"
 #include "utils/rsperrors.h"
 
+#ifdef __WIN32__
+#include <windows.h>
+#include <tchar.h>
+#endif
+
 using namespace RestPose;
 
 #define DEFAULT_TYPE_SCHEMA \
@@ -72,16 +77,32 @@ class TempDir {
     TempDir(const TempDir &);
     void operator=(const TempDir &);
   public:
-    TempDir(std::string prefix) {
-	char tmpl[prefix.size() + 7];
-	memcpy(tmpl, prefix.c_str(), prefix.size());
-	memset(tmpl + prefix.size(), 'X', 6);
-	tmpl[prefix.size() + 6] = '\0';
+    TempDir(const std::string & prefix) {
+#ifndef __WIN32__
+	std::string full_prefix = "/tmp/" + prefix;
+	char tmpl[full_prefix.size() + 7];
+	memcpy(tmpl, full_prefix.c_str(), full_prefix.size());
+	memset(tmpl + full_prefix.size(), 'X', 6);
+	tmpl[full_prefix.size() + 6] = '\0';
 	char * result = mkdtemp(tmpl);
 	if (result == NULL) {
 	    throw SysError("Can't make temporary directory", errno);
 	}
-	path = std::string(result, prefix.size() + 6);
+	path = std::string(result, full_prefix.size() + 6);
+#else
+	TCHAR path_buf[MAX_PATH];
+	DWORD path_len = GetTempPath(MAX_PATH, path_buf);
+	if (path_len > MAX_PATH || path_len == 0) {
+	    throw SysError("Can't get temp path", 0);
+	}
+
+	TCHAR dirname_buf[MAX_PATH]; 
+	if (GetTempFileName(path_buf, TEXT(prefix.c_str()), 1, dirname_buf) == 0) {
+	    throw SysError("Can't get temp filename", 0);
+	}
+	path = dirname_buf;
+	mkdir(dirname_buf);
+#endif
     }
 
     ~TempDir() {
@@ -103,7 +124,7 @@ class TempDir {
 /// Test checking of the format in collection configs.
 TEST(CollectionConfigFormatCheck)
 {
-    TempDir path("/tmp/jsonxapian");
+    TempDir path("jsonxapian");
     Collection c("test", path.get() + "/test");
     c.open_writable();
 
@@ -127,7 +148,7 @@ TEST(CollectionConfigFormatCheck)
 /// Test setting and getting collection schemas.
 TEST(CollectionSchemas)
 {
-    TempDir path("/tmp/jsonxapian");
+    TempDir path("jsonxapian");
     Collection c("test", path.get() + "/test");
     c.open_writable();
 
@@ -186,7 +207,7 @@ TEST(CollectionSchemas)
 /// Test setting and getting collection pipes.
 TEST(CollectionPipes)
 {
-    TempDir path("/tmp/jsonxapian");
+    TempDir path("jsonxapian");
     Collection c("test", path.get() + "/test");
     c.open_writable();
 
@@ -236,7 +257,7 @@ TEST(CollectionPipes)
 // Test adding a document to a collection via a pipe
 TEST(CollectionAddViaPipe)
 {
-    TempDir path("/tmp/jsonxapian");
+    TempDir path("jsonxapian");
     CollectionPool pool(path.get());
     TaskManager * taskman = new TaskManager(pool);
     taskman->start();
@@ -299,7 +320,7 @@ TEST(CollectionAddViaPipe)
 /// Test using a categoriser in a collection.
 TEST(CollectionCategoriser)
 {
-    TempDir path("/tmp/jsonxapian");
+    TempDir path("jsonxapian");
     CollectionPool pool(path.get());
     TaskManager * taskman = new TaskManager(pool);
     taskman->start();
@@ -427,7 +448,7 @@ TEST(CollectionCategoriser)
 /// Test using a taxonomy in a collection.
 TEST(CollectionCategory)
 {
-    TempDir path("/tmp/jsonxapian");
+    TempDir path("jsonxapian");
     CollectionPool pool(path.get());
     Json::Value tmp;
 
