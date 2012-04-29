@@ -42,11 +42,14 @@ libs/jsoncpp/test/data/test_*.process-output
 libs/jsoncpp/test/data/test_*.rewrite
 libs/libmicrohttpd/Makefile
 libs/libmicrohttpd/contrib/Makefile
+libs/libmicrohttpd/doc/mdate-sh
+libs/libmicrohttpd/doc/texinfo.tex
 libs/libmicrohttpd/doc/Makefile
 libs/libmicrohttpd/doc/microhttpd.info
 libs/libmicrohttpd/doc/microhttpd-tutorial.info
 libs/libmicrohttpd/doc/stamp-vti
 libs/libmicrohttpd/doc/version.texi
+libs/libmicrohttpd/INSTALL
 libs/libmicrohttpd/libmicrohttpd.pc
 libs/libmicrohttpd/libtool
 libs/libmicrohttpd/MHD_config.h.in
