@@ -43,6 +43,7 @@
 
 #ifdef WIN32
 #include <winsock2.h>
+#include "utils/winservice.h"
 #endif
 
 // For training; this should probably be in a separate file
@@ -73,7 +74,17 @@ main_do(int argc, char * const* argv)
 
     try {
 
-    if (opts.action == CliOptions::ACT_SERVE) {
+#ifdef __WIN32__
+    if (opts.service_action != CliOptions::SRVACT_NONE) {
+	if (winservice_handle(opts, server)) {
+	    ret = -1;
+	}
+    }
+#endif
+
+    if (ret < 0) {
+	// Have already done an action, so should finish.
+    } else if (opts.action == CliOptions::ACT_SERVE) {
 	server.add("httpserver", new HTTPServer(opts.port, opts.pedantic, &router));
 
 	if (!opts.mongo_import.empty()) {
@@ -142,7 +153,7 @@ main_do(int argc, char * const* argv)
     g_log.stop();
     g_log.join();
 
-    return ret;
+    return (ret > 0) ? ret : 0;
 }
 
 #ifdef PTW32_STATIC_LIB

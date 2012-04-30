@@ -13,7 +13,8 @@ noinst_HEADERS += \
  src/utils/threading.h \
  src/utils/threadsafequeue.h \
  src/utils/utils.h \
- src/utils/validation.h
+ src/utils/validation.h \
+ src/utils/winservice.h
 
 libutils_a_SOURCES = \
  src/utils/compression.cc \
@@ -23,4 +24,5 @@ libutils_a_SOURCES = \
  src/utils/rsperrors.cc \
  src/utils/threading.cc \
  src/utils/utils.cc \
- src/utils/validation.cc
+ src/utils/validation.cc \
+ src/utils/winservice.cc
