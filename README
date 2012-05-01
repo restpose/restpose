@@ -1,12 +1,16 @@
 A JSON/REST search server.
 
- * Source: http://github.com/rboulton/restpose
+ * Source: http://github.com/restpose/restpose
  * Documentation: http://restpose.readthedocs.org/
 
 There is a python client for RestPose:
 
- * Source: http://github.com/rboulton/restpose-py
+ * Source: http://github.com/restpose/restpose-py
  * Documentation: http://restpose-py.readthedocs.org
+
+There is also an admin web interface to RestPose:
+
+ * Source: http://github.com/restpose/rspview
 
 This project is still at an early stage of development.  The latest release
 is 0.7.6.  Chat to rboulton on irc://irc.freenode.net/#restpose (in a
