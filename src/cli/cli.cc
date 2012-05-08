@@ -63,6 +63,7 @@ RestPose::CliOptions::service_command_opts() const
     if (!service_name.empty()) {
 	result.append(" --serviceName=\"" + service_name + "\"");
     }
+    return result;
 }
 #endif
 

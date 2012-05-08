@@ -83,14 +83,14 @@ install_service(const CliOptions & options)
 	return false;
     }
 
-    std::wstring service_winname(options.service_name.begin(),
-				 options.service_name.end());
+    std::wstring service_winname(options.get_service_name().begin(),
+				 options.get_service_name().end());
  
     // Check for existing service with same name
     SC_HANDLE service_handle = OpenService(sc_manager, service_winname.c_str(),
 					   SERVICE_ALL_ACCESS);
     if (service_handle != NULL) {
-	LOG_ERROR("Found existing service named \"" + options.service_name +
+	LOG_ERROR("Found existing service named \"" + options.get_service_name() +
 		  "\", can't install");
 	CloseServiceHandle(service_handle);
 	CloseServiceHandle(sc_manager);
@@ -105,6 +105,9 @@ install_service(const CliOptions & options)
     cli_buf += "\" ";
     cli_buf += options.service_command_opts();
     std::wstring command_line(cli_buf.begin(), cli_buf.end()); // FIXME - convert from UTF8
+
+    LOG_INFO("Command line calculated");
+    LOG_INFO("Command line: " + cli_buf);
 
     // Create service.
     service_handle = CreateService(
@@ -126,7 +129,7 @@ install_service(const CliOptions & options)
 	LOG_ERROR("Unable to create service: " + get_win_err(err));
 	return false;
     }
-    LOG_INFO("Service " + options.service_name +
+    LOG_INFO("Service " + options.get_service_name() +
 	     " installed (with command line: " +
 	     to_utf8_string(const_cast<LPTSTR>(command_line.c_str())) + ")");
 
@@ -180,13 +183,13 @@ remove_service(const CliOptions & options)
 	return false;
     }
 
-    std::wstring service_winname(options.service_name.begin(),
-				 options.service_name.end());
+    std::wstring service_winname(options.get_service_name().begin(),
+				 options.get_service_name().end());
 
     SC_HANDLE service_handle = OpenService(sc_manager, service_winname.c_str(),
 					   SERVICE_ALL_ACCESS);
     if (service_handle == NULL) {
-	LOG_ERROR("Couldn't find service named \"" + options.service_name +
+	LOG_ERROR("Couldn't find service named \"" + options.get_service_name() +
 		  "\", can't remove");
 	CloseServiceHandle(sc_manager);
 	return false;
@@ -195,7 +198,7 @@ remove_service(const CliOptions & options)
     SERVICE_STATUS status;
     // stop service if its running
     if (ControlService(service_handle, SERVICE_CONTROL_STOP, &status)) {
-	LOG_INFO("Stopping service " + options.service_name);
+	LOG_INFO("Stopping service " + options.get_service_name());
 
 	// FIXME - can we wait for this, rather than polling?
 	while (QueryServiceStatus(service_handle, &status)) {
@@ -205,7 +208,7 @@ remove_service(const CliOptions & options)
 		break;
 	    }
 	}
-	LOG_INFO("Service " + options.service_name + " stopped");
+	LOG_INFO("Service " + options.get_service_name() + " stopped");
     }
 
     bool removed = DeleteService(service_handle);
@@ -213,11 +216,11 @@ remove_service(const CliOptions & options)
     CloseServiceHandle(sc_manager);
 
     if (!removed) {
-	LOG_ERROR("Service " + options.service_name + " removed");
+	LOG_ERROR("Service " + options.get_service_name() + " removed");
 	return false;
     }
 
-    LOG_INFO("Service " + options.service_name + " removed");
+    LOG_INFO("Service " + options.get_service_name() + " removed");
     return true;
 }
 
@@ -225,8 +228,8 @@ static void
 start_service(const CliOptions & options,
 	      Server & server)
 {
-    g_service_winname = std::wstring(options.service_name.begin(),
-				     options.service_name.end());
+    g_service_winname = std::wstring(options.get_service_name().begin(),
+				     options.get_service_name().end());
     g_status_handle = 0;
     g_server = &server;
     g_options = &options;
@@ -239,7 +242,7 @@ start_service(const CliOptions & options,
 	{ NULL, NULL }
     };
 
-    LOG_INFO("Trying to start Windows service '" + options.service_name + "'");
+    LOG_INFO("Trying to start Windows service '" + options.get_service_name() + "'");
     StartServiceCtrlDispatcher(dispatch_table);
 }
 

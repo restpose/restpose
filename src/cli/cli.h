@@ -56,7 +56,13 @@ struct CliOptions {
 	SRVACT_RUN_SERVICE
     };
     service_action_type service_action;
-    std::string service_name;
+    mutable std::string service_name;
+    const std::string & get_service_name() const {
+	if (service_name.empty()) {
+	    service_name = "restpose";
+	}
+	return service_name;
+    }
 #endif
 
     enum action_type {
