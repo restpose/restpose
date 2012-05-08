@@ -65,11 +65,6 @@ main_do(int argc, char * const* argv)
     }
 
     Server server;
-    CollectionPool pool(opts.datadir);
-    TaskManager * taskman = new TaskManager(pool);
-    server.add("taskman", taskman);
-    Router router(taskman, &server);
-    setup_routes(router);
     g_log.start();
 
     try {
@@ -85,6 +80,11 @@ main_do(int argc, char * const* argv)
     if (ret < 0) {
 	// Have already done an action, so should finish.
     } else if (opts.action == CliOptions::ACT_SERVE) {
+	CollectionPool pool(opts.datadir);
+	TaskManager * taskman = new TaskManager(pool);
+	server.add("taskman", taskman);
+	Router router(taskman, &server);
+	setup_routes(router);
 	server.add("httpserver", new HTTPServer(opts.port, opts.pedantic, &router));
 
 	if (!opts.mongo_import.empty()) {

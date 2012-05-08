@@ -57,8 +57,6 @@ struct CliOptions {
     };
     service_action_type service_action;
     std::string service_name;
-    std::string service_user;
-    std::string service_password;
 #endif
 
     enum action_type {

@@ -63,12 +63,6 @@ RestPose::CliOptions::service_command_opts() const
     if (!service_name.empty()) {
 	result.append(" --serviceName=\"" + service_name + "\"");
     }
-    if (!service_user.empty()) {
-	result.append(" --serviceUser=\"" + service_user + "\"");
-    }
-    if (!service_password.empty()) {
-	result.append(" --servicePassword=\"" + service_password + "\"");
-    }
 }
 #endif
 
@@ -92,11 +86,9 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
 	{ "remove",     no_argument,            NULL, 257 },
 	{ "reinstall",  no_argument,            NULL, 258 },
 	{ "serviceName", required_argument,     NULL, 259 },
-	{ "serviceUser", required_argument,     NULL, 260 },
-	{ "servicePassword", required_argument, NULL, 261 },
 
 	// Internal option, used when called by service manager.
-	{ "service", no_argument,               NULL, 262 },
+	{ "service", no_argument,               NULL, 260 },
 #endif
 
 	{ "mongo_import", required_argument,    NULL, 'm' },
@@ -205,11 +197,7 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
 		service_name = optarg;
 		break;
 	    case 260:
-		service_user = optarg;
-		break;
-	    case 261:
-		service_password = optarg;
-		break;
+		service_action = SRVACT_RUN_SERVICE;
 #endif
 	}
     }
