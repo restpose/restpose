@@ -1,3 +1,13 @@
+0.7.7 - 9th May 2012
+
+ - Fixed compilation problems for windows, and added support for installing
+   and running as a windows service.
+ - Add a /shutdown resource, POST to this to shut the server down.
+ - Display a log message on server startup.
+ - Miscellaneous other build fixes.
+ - Update links to point to new repository location (now using an
+   organisation on github: http://github.com/restpose )
+
 0.7.6 - 10th November 2011
 
  - Initial geospatial search support.
