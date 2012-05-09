@@ -60,4 +60,4 @@ The Python client is actively maintained by the same author as the core engine,
 since it is used to run parts of the main testsuite.
 
 Issues can be reported in the git repository at
-http://github.com/rboulton/restpose
+http://github.com/restpose/restpose

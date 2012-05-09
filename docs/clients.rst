@@ -8,7 +8,7 @@ integration into your chosen lanugae.
 
 This section lists the languages for which clients are currently available:
 
- * Python.  http://github.com/rboulton/restpose-py/  This is an "official"
+ * Python.  http://github.com/restpose/restpose-py/  This is an "official"
    client, maintained by the RestPose team.  It is released whenever a new
    version of RestPose server is, and the latest version should always provide
    access to all features of RestPose Server.
