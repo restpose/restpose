@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Note - large parts of this file are copied from Xapian.
 
-AC_INIT([restpose], [0.7.7], [http://github.com/restpose/restpose])
+AC_INIT([restpose], [0.7.8dev], [http://github.com/restpose/restpose])
 AC_PREREQ([2.61])
 AM_INIT_AUTOMAKE([1.10 -Wportability tar-ustar std-options])
 
