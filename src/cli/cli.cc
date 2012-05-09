@@ -53,8 +53,8 @@ RestPose::CliOptions::CliOptions()
 std::string
 RestPose::CliOptions::service_command_opts() const
 {
-    std::string result = "--datadir=\"" + datadir + "\"";
-    result.append(" --action=serve");
+    std::string result = "--service --datadir=\"" + datadir + "\"";
+    result.append(" --action=server");
 
     result.append(" --port=" + str(port));
     if (pedantic) {
@@ -108,11 +108,11 @@ RestPose::CliOptions::parse(const char * progname, int argc, char * const* argv)
 "  -v, --version          display version number\n"
 "  -d, --datadir=DATADIR  directory to store data in\n"
 "  -a, --action=ACTION    action: one of:\n"
-"                         \"serve\" (default) to run a server\n"
+"                         \"server\" (default) to run a server\n"
 "                         \"search\" to perform a command immediately\n"
 "                         \"train\" to train a classifier\n"
 "\n"
-"Options for \"serve\" action\n"
+"Options for \"server\" action\n"
 "  -p, --port=PORT        port number to listen on\n"
 "  -P, --pedantic         specify to be pedantic about request handling; use\n"
 "                         for testing clients.\n"
