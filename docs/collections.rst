@@ -337,6 +337,7 @@ Xapian has a limitation that the slots are addressed only by numbers rather
 than by strings.  For convenience, restpose allows slots to be addressed by
 strings, and hashes the strings to produce a number.  There is a small chance
 of hash collision, but this is unlikely to be a problem unless you are using
+large numbers of slots.
 
 It is still possible to use a number to reference a slot.  If you use a number
 directly, it is advisable to use a number less than 0x0fffffff, since the
