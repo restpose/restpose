@@ -7,6 +7,6 @@ Thanks to
 =========
 
 Dan Colish: zlib import fixes, python setup.
-
+Alex Stapleton: bug report with good testcase.
 
 All who've contributed to Xapian.
