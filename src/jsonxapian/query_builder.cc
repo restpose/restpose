@@ -428,7 +428,11 @@ DocumentTypeQueryBuilder::total_docs(const Xapian::Database & db) const
 const FieldConfig *
 DocumentTypeQueryBuilder::get_field_config(const std::string & fieldname) const
 {
-    return schema->get(fieldname);
+    if (schema != NULL) {
+	return schema->get(fieldname);
+    } else {
+	return NULL;
+    }
 }
 
 SlotDecoder *

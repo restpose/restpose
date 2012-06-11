@@ -143,6 +143,16 @@ TEST(SearchIntegerExactFields)
 	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size_requested\":10,\"total_docs\":2}",
 		    json_serialise(search_results));
     }
+
+    // Check a facet on a missing field (regression test; used to segfault; issue #5)
+    {
+	Json::Value search_results(Json::objectValue);
+	string search_str = "{\"query\":{\"field\":[\"field\",\"text\",{\"op\":\"phrase\",\"text\":\"text\"}]},\"info\":[{\"facet_count\":{\"doc_limit\":null,\"field\":\"type\",\"result_limit\":null}}]}";
+	coll.perform_search(json_unserialise(search_str, tmp), "type", search_results);
+	CHECK_EQUAL("{\"check_at_least\":0,\"from\":0,\"info\":[{\"counts\":[],\"docs_seen\":0,\"fieldname\":\"type\",\"type\":\"facet_count\",\"values_seen\":0}],\"items\":[],\"matches_estimated\":0,\"matches_lower_bound\":0,\"matches_upper_bound\":0,\"size_requested\":10,\"total_docs\":0}",
+		    json_serialise(search_results));
+    }
+
     coll.close();
     rmdir_recursive("tmp_testdir");
 }
