@@ -26,6 +26,7 @@
 #define XAPSRV_INCLUDED_IO_WRAPPERS_H
 
 #include <string>
+#include <unistd.h>
 
 /** Open a file for appending, creating it if not present.
  *
